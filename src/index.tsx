@@ -6,16 +6,33 @@ import { Drag } from "./drag"
 import { DragNode, NodeCard } from "./NodeCard"
 import { moveNode, Nodes } from "./nodes"
 
-export const createNodes = (n: number): Nodes => {
-    const nodes: Nodes = {}
-    for (let i = 0; i < n; ++i) {
-        nodes[i] = {
-            uuid: i.toString(),
-            x: Math.random() * (window.innerWidth - 150),
-            y: Math.random() * (window.innerHeight - 150),
-        }
+export const createNodes = (): Nodes => {
+    return {
+        "0": {
+            uuid: "0",
+            title: "number",
+            x: 25,
+            y: 25,
+            inputs: [],
+            outputs: ["out"],
+        },
+        "1": {
+            uuid: "1",
+            title: "number",
+            x: 25,
+            y: 150,
+            inputs: [],
+            outputs: ["out"],
+        },
+        "2": {
+            uuid: "2",
+            title: "add",
+            x: 200,
+            y: 85,
+            inputs: ["x", "y"],
+            outputs: ["out"],
+        },
     }
-    return nodes
 }
 
 interface Camera {

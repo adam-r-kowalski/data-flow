@@ -1,3 +1,4 @@
+import { For } from "solid-js"
 import { Drag, drag } from "./drag"
 import { Node } from "./node"
 
@@ -39,56 +40,39 @@ export const NodeCard = (props: Props) => {
             }}
         >
             <div style={{ display: "flex" }}>
-                <div>
-                    <div
-                        style={{
-                            display: "flex",
-                            "align-items": "center",
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: "25px",
-                                height: "25px",
-                                "background-color": "red",
-                                margin: "1px",
-                                background: "rgba(255, 255, 255, 0.30)",
-                                "backdrop-filter": "blur(4px)",
-                                "-webkit-backdrop-filter": "blur(4px)",
-                                "border-radius": "5px",
-                            }}
-                        />
-                        <div
-                            style={{
-                                "white-space": "nowrap",
-                                margin: "2px",
-                            }}
-                        >
-                            x
-                        </div>
-                    </div>
-                    <div style={{ display: "flex", "align-items": "center" }}>
-                        <div
-                            style={{
-                                width: "25px",
-                                height: "25px",
-                                "background-color": "red",
-                                margin: "1px",
-                                background: "rgba(255, 255, 255, 0.30)",
-                                "backdrop-filter": "blur(4px)",
-                                "-webkit-backdrop-filter": "blur(4px)",
-                                "border-radius": "5px",
-                            }}
-                        />
-                        <div
-                            style={{
-                                "white-space": "nowrap",
-                                margin: "2px",
-                            }}
-                        >
-                            y
-                        </div>
-                    </div>
+                <div style={{ "margin-top": "5px" }}>
+                    <For each={props.node.inputs}>
+                        {(input) => (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    "align-items": "center",
+                                    "margin-right": "5px",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: "25px",
+                                        height: "25px",
+                                        "background-color": "red",
+                                        margin: "1px",
+                                        background: "rgba(255, 255, 255, 0.30)",
+                                        "backdrop-filter": "blur(4px)",
+                                        "-webkit-backdrop-filter": "blur(4px)",
+                                        "border-radius": "5px",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        "white-space": "nowrap",
+                                        margin: "2px",
+                                    }}
+                                >
+                                    {input}
+                                </div>
+                            </div>
+                        )}
+                    </For>
                 </div>
                 <div
                     style={{
@@ -96,21 +80,20 @@ export const NodeCard = (props: Props) => {
                         "flex-direction": "column",
                         "justify-content": "center",
                         "align-items": "center",
+                        margin: "2px 5px 2px 5px",
                     }}
                 >
                     <div
                         style={{
                             "font-size": "1.3em",
-                            "margin-top": "2px",
-                            "margin-bottom": "2px",
                         }}
                     >
-                        Add
+                        {props.node.title}
                     </div>
 
                     <div
                         style={{
-                            margin: "4px 20px",
+                            "margin-top": "5px",
                             padding: "10px",
                             background: "rgba(255, 255, 255, 0.30)",
                             "backdrop-filter": "blur(4px)",
@@ -121,29 +104,40 @@ export const NodeCard = (props: Props) => {
                         42
                     </div>
                 </div>
-                <div>
-                    <div
-                        style={{
-                            display: "flex",
-                            "align-items": "center",
-                            "justify-content": "end",
-                        }}
-                    >
-                        <div style={{ "white-space": "nowrap" }}>out</div>
-                        <div
-                            style={{
-                                width: "25px",
-                                height: "25px",
-                                "background-color": "red",
-                                "margin-left": "4px",
-                                "margin-bottom": "4px",
-                                background: "rgba(255, 255, 255, 0.30)",
-                                "backdrop-filter": "blur(4px)",
-                                "-webkit-backdrop-filter": "blur(4px)",
-                                "border-radius": "5px",
-                            }}
-                        />
-                    </div>
+                <div style={{ "margin-top": "5px" }}>
+                    <For each={props.node.outputs}>
+                        {(output) => (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    "align-items": "center",
+                                    "justify-content": "end",
+                                    "margin-left": "5px",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        "white-space": "nowrap",
+                                        margin: "2px",
+                                    }}
+                                >
+                                    {output}
+                                </div>
+                                <div
+                                    style={{
+                                        width: "25px",
+                                        height: "25px",
+                                        "background-color": "red",
+                                        margin: "1px",
+                                        background: "rgba(255, 255, 255, 0.30)",
+                                        "backdrop-filter": "blur(4px)",
+                                        "-webkit-backdrop-filter": "blur(4px)",
+                                        "border-radius": "5px",
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </For>
                 </div>
             </div>
         </div>

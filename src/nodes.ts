@@ -8,7 +8,7 @@ export const moveNode = (nodes: Nodes, drag: DragNode): Nodes => {
     return {
         ...nodes,
         [node.uuid]: {
-            uuid: node.uuid,
+            ...node,
             x: node.x + drag.dx,
             y: node.y + drag.dy,
         },
