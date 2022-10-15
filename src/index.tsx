@@ -1,6 +1,6 @@
 import { createSignal, For } from "solid-js"
 import { render } from "solid-js/web"
-import { Background } from "./Background"
+import { Background, Zoom } from "./Background"
 import { Drag } from "./drag"
 
 import { DragNode, NodeCard } from "./NodeCard"
@@ -38,30 +38,54 @@ export const createNodes = (): Nodes => {
 interface Camera {
     x: number
     y: number
+    zoom: number
 }
 
 export const moveCamera = (camera: Camera, drag: Drag): Camera => ({
-    x: camera.x + drag.dx,
-    y: camera.y + drag.dy,
+    x: camera.x + drag.dx / camera.zoom,
+    y: camera.y + drag.dy / camera.zoom,
+    zoom: camera.zoom,
 })
 
+const clamp = (value: number, min: number, max: number): number =>
+    Math.max(min, Math.min(max, value))
+
+export const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
+    const newZoom = clamp(camera.zoom * Math.pow(2, zoom.delta * -0.01), 0.5, 5)
+    return {
+        x: camera.x,
+        y: camera.y,
+        zoom: newZoom,
+    }
+}
+
 const App = () => {
-    const [nodes, setNodes] = createSignal(createNodes(10))
-    const [camera, setCamera] = createSignal({ x: 0, y: 0 })
+    const [nodes, setNodes] = createSignal(createNodes())
+    const [camera, setCamera] = createSignal({ x: 0, y: 0, zoom: 1 })
     const onDragNode = (drag: DragNode) => {
-        setNodes(moveNode(nodes(), drag))
+        setNodes(moveNode(nodes(), camera().zoom, drag))
     }
     const onDragBackground = (drag: Drag) => {
         setCamera(moveCamera(camera(), drag))
+    }
+    const onZoomBackground = (zoom: Zoom) => {
+        setCamera(zoomCamera(camera(), zoom))
     }
     const transform = () => {
         const { x, y } = camera()
         return `translate(${x}px, ${y}px)`
     }
+    const zoom = () => `${camera().zoom * 100}%`
     return (
         <div>
-            <Background onDrag={onDragBackground} onZoom={console.log} />
-            <div style={{ position: "absolute", transform: transform() }}>
+            <Background onDrag={onDragBackground} onZoom={onZoomBackground} />
+            <div
+                style={{
+                    position: "absolute",
+                    transform: transform(),
+                    zoom: zoom(),
+                }}
+            >
                 <For each={Object.values(nodes())}>
                     {(node) => (
                         <NodeCard

@@ -2,8 +2,10 @@ import { drag, Drag } from "./drag"
 
 0 && drag
 
-interface Zoom {
+export interface Zoom {
     delta: number
+    x: number
+    y: number
 }
 
 interface Props {
@@ -17,7 +19,11 @@ export const Background = (props: Props) => {
             use:drag={{ onDrag: props.onDrag }}
             onWheel={(e) =>
                 e.ctrlKey
-                    ? props.onZoom({ delta: e.deltaY })
+                    ? props.onZoom({
+                          delta: e.deltaY,
+                          x: e.clientX,
+                          y: e.clientY,
+                      })
                     : props.onDrag({ dx: -e.deltaX, dy: -e.deltaY })
             }
             style={{

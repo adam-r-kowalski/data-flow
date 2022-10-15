@@ -37,10 +37,11 @@ export const NodeCard = (props: Props) => {
                 "border-radius": "10px",
                 border: "1px solid rgba(255, 255, 255, 0.18)",
                 cursor: "default",
+                padding: "4px",
             }}
         >
             <div style={{ display: "flex" }}>
-                <div style={{ "margin-top": "5px" }}>
+                <div>
                     <For each={props.node.inputs}>
                         {(input) => (
                             <div
@@ -55,7 +56,7 @@ export const NodeCard = (props: Props) => {
                                         width: "25px",
                                         height: "25px",
                                         "background-color": "red",
-                                        margin: "1px",
+                                        margin: "2px",
                                         background: "rgba(255, 255, 255, 0.30)",
                                         "backdrop-filter": "blur(4px)",
                                         "-webkit-backdrop-filter": "blur(4px)",
@@ -80,7 +81,7 @@ export const NodeCard = (props: Props) => {
                         "flex-direction": "column",
                         "justify-content": "center",
                         "align-items": "center",
-                        margin: "2px 5px 2px 5px",
+                        margin: "0px 5px 0px 5px",
                     }}
                 >
                     <div
@@ -94,6 +95,7 @@ export const NodeCard = (props: Props) => {
                     <div
                         style={{
                             "margin-top": "5px",
+                            "margin-bottom": "2px",
                             padding: "10px",
                             background: "rgba(255, 255, 255, 0.30)",
                             "backdrop-filter": "blur(4px)",
@@ -104,7 +106,7 @@ export const NodeCard = (props: Props) => {
                         42
                     </div>
                 </div>
-                <div style={{ "margin-top": "5px" }}>
+                <div>
                     <For each={props.node.outputs}>
                         {(output) => (
                             <div
@@ -128,7 +130,7 @@ export const NodeCard = (props: Props) => {
                                         width: "25px",
                                         height: "25px",
                                         "background-color": "red",
-                                        margin: "1px",
+                                        margin: "2px",
                                         background: "rgba(255, 255, 255, 0.30)",
                                         "backdrop-filter": "blur(4px)",
                                         "-webkit-backdrop-filter": "blur(4px)",
