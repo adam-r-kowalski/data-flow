@@ -5,27 +5,33 @@ export interface Drag {
     dy: number
 }
 
-export type OnDrag = (drag: Drag) => void
+interface Callbacks {
+    onDragStart?: () => void
+    onDrag: (drag: Drag) => void
+    onDragStop?: () => void
+}
 
-export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
-    const [pointer, setPointer] = createSignal({ x: 0, y: 0 })
-    const [dragging, setDragging] = createSignal(false)
+export const drag = (el: HTMLElement, accessor: Accessor<Callbacks>): void => {
+    const [pointer, setPointer] = createSignal({ x: 0, y: 0, id: -1 })
     const onPointerMove = (e: PointerEvent) => {
-        if (!dragging()) return
-        const { x, y } = pointer()
-        accessor()({ dx: e.clientX - x, dy: e.clientY - y })
-        setPointer({ x: e.clientX, y: e.clientY })
+        if (pointer().id !== e.pointerId) return
+        const { id, x, y } = pointer()
+        accessor().onDrag({ dx: e.clientX - x, dy: e.clientY - y })
+        setPointer({ x: e.clientX, y: e.clientY, id })
     }
-    const onPointerUp = () => {
+    const onPointerUp = (e: PointerEvent) => {
+        if (pointer().id !== e.pointerId) return
         document.removeEventListener("pointermove", onPointerMove)
         document.removeEventListener("pointerup", onPointerUp)
-        setDragging(false)
+        accessor().onDragStop?.()
+        setPointer({ x: 0, y: 0, id: -1 })
     }
     const onPointerDown = (e: PointerEvent) => {
+        if (pointer().id !== -1) return
         document.addEventListener("pointermove", onPointerMove)
         document.addEventListener("pointerup", onPointerUp)
-        setPointer({ x: e.clientX, y: e.clientY })
-        setDragging(true)
+        accessor().onDragStart?.()
+        setPointer({ x: e.clientX, y: e.clientY, id: e.pointerId })
     }
     el.addEventListener("pointerdown", onPointerDown)
     onCleanup(() => el.removeEventListener("pointerdown", onPointerDown))
@@ -34,7 +40,7 @@ export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
 declare module "solid-js" {
     namespace JSX {
         interface Directives {
-            drag: OnDrag
+            drag: Callbacks
         }
     }
 }

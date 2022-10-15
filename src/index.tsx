@@ -1,6 +1,7 @@
 import { createSignal, For } from "solid-js"
 import { render } from "solid-js/web"
-import { Background, DragBackground } from "./Background"
+import { Background } from "./Background"
+import { Drag } from "./drag"
 
 import { DragNode, NodeCard } from "./NodeCard"
 import { moveNode, Nodes } from "./nodes"
@@ -22,7 +23,7 @@ interface Camera {
     y: number
 }
 
-export const moveCamera = (camera: Camera, drag: DragBackground): Camera => ({
+export const moveCamera = (camera: Camera, drag: Drag): Camera => ({
     x: camera.x + drag.dx,
     y: camera.y + drag.dy,
 })
@@ -33,7 +34,7 @@ const App = () => {
     const onDragNode = (drag: DragNode) => {
         setNodes(moveNode(nodes(), drag))
     }
-    const onDragBackground = (drag: DragBackground) => {
+    const onDragBackground = (drag: Drag) => {
         setCamera(moveCamera(camera(), drag))
     }
     const transform = () => {
@@ -42,10 +43,16 @@ const App = () => {
     }
     return (
         <div>
-            <Background onDrag={onDragBackground} />
+            <Background onDrag={onDragBackground} onZoom={console.log} />
             <div style={{ position: "absolute", transform: transform() }}>
                 <For each={Object.values(nodes())}>
-                    {(node) => <NodeCard node={node} onDrag={onDragNode} />}
+                    {(node) => (
+                        <NodeCard
+                            node={node}
+                            onDrag={onDragNode}
+                            onDragBackground={onDragBackground}
+                        />
+                    )}
                 </For>
             </div>
         </div>
@@ -53,3 +60,7 @@ const App = () => {
 }
 
 render(() => <App />, document.getElementById("root")!)
+
+document.addEventListener("wheel", (e) => e.preventDefault(), {
+    passive: false,
+})
