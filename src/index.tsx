@@ -8,7 +8,6 @@ import { Drag } from "./drag"
 import { moveNode, Nodes } from "./nodes"
 import { Camera } from "./camera"
 import { BoundingBox } from "./track_bounding_box"
-import { writeSignal } from "solid-js/types/reactive/signal"
 
 export const createNodes = (): Nodes => {
     return {
@@ -19,6 +18,7 @@ export const createNodes = (): Nodes => {
             y: 25,
             inputs: [],
             outputs: [{ uuid: "node-0-output-0", name: "out" }],
+            value: 5,
         },
         "node-1": {
             uuid: "node-1",
@@ -27,6 +27,7 @@ export const createNodes = (): Nodes => {
             y: 150,
             inputs: [],
             outputs: [{ uuid: "node-1-output-0", name: "out" }],
+            value: 12,
         },
         "node-2": {
             uuid: "node-2",
@@ -38,6 +39,7 @@ export const createNodes = (): Nodes => {
                 { uuid: "node-2-input-1", name: "y" },
             ],
             outputs: [{ uuid: "node-2-output-0", name: "out" }],
+            value: 17,
         },
     }
 }
@@ -175,3 +177,5 @@ render(() => <App />, document.getElementById("root")!)
 document.addEventListener("wheel", (e) => e.preventDefault(), {
     passive: false,
 })
+
+document.addEventListener("contextmenu", (e) => e.preventDefault())

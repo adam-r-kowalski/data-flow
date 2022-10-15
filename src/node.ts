@@ -15,4 +15,5 @@ export interface Node {
     name: string
     inputs: Input[]
     outputs: Output[]
+    value: number
 }

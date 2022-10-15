@@ -117,7 +117,7 @@ export const NodeCard = (props: Props) => {
                             "border-radius": "4px",
                         }}
                     >
-                        42
+                        {props.node.value}
                     </div>
                 </div>
                 <div>
