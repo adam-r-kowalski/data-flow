@@ -1,8 +1,10 @@
 import { For } from "solid-js"
 import { Drag, drag } from "./drag"
+import { BoundingBox, trackBoundingBox } from "./track_bounding_box"
 import { Node } from "./node"
 
 0 && drag
+0 && trackBoundingBox
 
 export interface DragNode {
     uuid: string
@@ -10,10 +12,16 @@ export interface DragNode {
     dy: number
 }
 
+export interface BoundingBoxChanged {
+    uuid: string
+    box: BoundingBox
+}
+
 interface Props {
     node: Node
     onDrag: (drag: DragNode) => void
     onDragBackground: (drag: Drag) => void
+    onBoundingBox: (changed: BoundingBoxChanged) => void
 }
 
 export const NodeCard = (props: Props) => {
@@ -62,6 +70,12 @@ export const NodeCard = (props: Props) => {
                                         "-webkit-backdrop-filter": "blur(4px)",
                                         "border-radius": "5px",
                                     }}
+                                    use:trackBoundingBox={(box) => {
+                                        props.onBoundingBox({
+                                            uuid: input.uuid,
+                                            box,
+                                        })
+                                    }}
                                 />
                                 <div
                                     style={{
@@ -69,7 +83,7 @@ export const NodeCard = (props: Props) => {
                                         margin: "2px",
                                     }}
                                 >
-                                    {input}
+                                    {input.name}
                                 </div>
                             </div>
                         )}
@@ -89,7 +103,7 @@ export const NodeCard = (props: Props) => {
                             "font-size": "1.3em",
                         }}
                     >
-                        {props.node.title}
+                        {props.node.name}
                     </div>
 
                     <div
@@ -123,7 +137,7 @@ export const NodeCard = (props: Props) => {
                                         margin: "2px",
                                     }}
                                 >
-                                    {output}
+                                    {output.name}
                                 </div>
                                 <div
                                     style={{
@@ -135,6 +149,12 @@ export const NodeCard = (props: Props) => {
                                         "backdrop-filter": "blur(4px)",
                                         "-webkit-backdrop-filter": "blur(4px)",
                                         "border-radius": "5px",
+                                    }}
+                                    use:trackBoundingBox={(box) => {
+                                        props.onBoundingBox({
+                                            uuid: output.uuid,
+                                            box,
+                                        })
                                     }}
                                 />
                             </div>
