@@ -3,11 +3,12 @@ import { render } from "solid-js/web"
 
 import { Background, Zoom } from "./Background"
 import { BoundingBoxChanged, DragNode, NodeCard } from "./NodeCard"
-import { BezierCurves } from "./BezierCurves"
+import { BezierCurves, Paths } from "./BezierCurves"
 import { Drag } from "./drag"
 import { moveNode, Nodes } from "./nodes"
-import { BoundingBox } from "./track_bounding_box"
 import { Camera } from "./camera"
+import { BoundingBox } from "./track_bounding_box"
+import { writeSignal } from "solid-js/types/reactive/signal"
 
 export const createNodes = (): Nodes => {
     return {
@@ -41,13 +42,36 @@ export const createNodes = (): Nodes => {
     }
 }
 
+export interface Edge {
+    uuid: string
+    input: string
+    output: string
+}
+
+export type Edges = { [uuid: string]: Edge }
+
+export const createEdges = (): Edges => {
+    return {
+        "edge-0": {
+            uuid: "edge-0",
+            input: "node-2-input-0",
+            output: "node-0-output-0",
+        },
+        "edge-1": {
+            uuid: "edge-1",
+            input: "node-2-input-1",
+            output: "node-1-output-0",
+        },
+    }
+}
+
 export const moveCamera = (camera: Camera, drag: Drag): Camera => ({
     x: camera.x + drag.dx,
     y: camera.y + drag.dy,
     zoom: camera.zoom,
 })
 
-type BoundingBoxes = { [uuid: string]: BoundingBox }
+export type BoundingBoxes = { [uuid: string]: BoundingBox }
 
 const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
     const boxes: BoundingBoxes = {}
@@ -64,6 +88,7 @@ const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
 
 const App = () => {
     const [nodes, setNodes] = createSignal(createNodes())
+    const edges = createEdges()
     const [camera, setCamera] = createSignal({ x: 0, y: 0, zoom: 1 })
     const [boundingBoxes, setBoundingBoxes] = createSignal(
         createBoundingBoxes(nodes())
@@ -103,14 +128,31 @@ const App = () => {
         const { x, y, zoom } = camera()
         return `translate(${x}px, ${y}px) scale(${zoom}, ${zoom})`
     }
+    const paths = (): Paths => {
+        const boxes = boundingBoxes()
+        return Object.values(edges).map((edge) => {
+            const inputBox = boxes[edge.input]
+            const outputBox = boxes[edge.output]
+            const x0 = outputBox.x + outputBox.width / 2
+            const y0 = outputBox.y + outputBox.height / 2
+            const x1 = inputBox.x + inputBox.width / 2
+            const y1 = inputBox.y + inputBox.height / 2
+            return {
+                p0: { x: x0, y: y0 },
+                p1: { x: x0 + 50, y: y0 },
+                p2: { x: x1 - 50, y: y1 },
+                p3: { x: x1, y: y1 },
+            }
+        })
+    }
     return (
         <div>
             <Background onDrag={onDragBackground} onZoom={onZoomBackground} />
+            <BezierCurves paths={paths()} />
             <div
                 style={{
                     position: "absolute",
                     transform: transform(),
-                    //zoom: zoom(),
                 }}
             >
                 <For each={Object.values(nodes())}>
@@ -124,7 +166,6 @@ const App = () => {
                     )}
                 </For>
             </div>
-            <BezierCurves boxes={Object.values(boundingBoxes())} />
         </div>
     )
 }
