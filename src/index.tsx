@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js"
+import { createSignal, For, onCleanup } from "solid-js"
 import { render } from "solid-js/web"
 
 import { Background, Zoom } from "./Background"
@@ -77,12 +77,13 @@ export type BoundingBoxes = { [uuid: string]: BoundingBox }
 
 const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
     const boxes: BoundingBoxes = {}
+    const el: HTMLElement = document.createElement("div")
     for (const node of Object.values(nodes)) {
         for (const input of node.inputs) {
-            boxes[input.uuid] = { x: 0, y: 0, width: 0, height: 0 }
+            boxes[input.uuid] = { x: 0, y: 0, width: 0, height: 0, el }
         }
         for (const output of node.outputs) {
-            boxes[output.uuid] = { x: 0, y: 0, width: 0, height: 0 }
+            boxes[output.uuid] = { x: 0, y: 0, width: 0, height: 0, el }
         }
     }
     return boxes
@@ -110,12 +111,8 @@ const App = () => {
         setCamera(moveCamera(c, scaled))
         const boxes: BoundingBoxes = {}
         for (const [uuid, box] of Object.entries(boundingBoxes())) {
-            boxes[uuid] = {
-                x: box.x + scaled.dx,
-                y: box.y + scaled.dy,
-                width: box.width,
-                height: box.height,
-            }
+            const { x, y, width, height } = box.el.getBoundingClientRect()
+            boxes[uuid] = { x, y, width, height, el: box.el }
         }
         setBoundingBoxes(boxes)
     }

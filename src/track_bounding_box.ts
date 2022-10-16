@@ -5,6 +5,7 @@ export interface BoundingBox {
     y: number
     width: number
     height: number
+    el: HTMLElement
 }
 
 type OnBoundingBox = (box: BoundingBox) => void
@@ -15,7 +16,8 @@ export const trackBoundingBox = (
 ): void => {
     const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
-            accessor()(entry.target.getBoundingClientRect())
+            const { x, y, width, height } = entry.target.getBoundingClientRect()
+            accessor()({ x, y, width, height, el })
         }
     })
     resizeObserver.observe(el)
