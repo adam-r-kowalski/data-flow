@@ -9,6 +9,7 @@ import { moveNode, Nodes } from "./nodes"
 import { Camera } from "./camera"
 import { BoundingBox } from "./track_bounding_box"
 import { Menu } from "./Menu"
+import { Mat3x3, matMul, scale, translate } from "./mat3x3"
 
 export const createNodes = (): Nodes => {
     return {
@@ -90,6 +91,18 @@ const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
     return boxes
 }
 
+const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
+    const { x, y, zoom: s } = camera
+    const transform: Mat3x3 = [s, 0, x, 0, s, y, 0, 0, 1]
+    const newTransform = [
+        translate(zoom.x, zoom.y),
+        scale(1 - zoom.delta * 0.01),
+        translate(-zoom.x, -zoom.y),
+        transform,
+    ].reduce(matMul)
+    return { x: newTransform[2], y: newTransform[5], zoom: newTransform[0] }
+}
+
 const App = () => {
     const [nodes, setNodes] = createSignal(createNodes())
     const edges = createEdges()
@@ -108,7 +121,7 @@ const App = () => {
     }
     const onDragBackground = (drag: Drag) => {
         const c = camera()
-        const scaled = { dx: drag.dx * c.zoom, dy: drag.dy * c.zoom }
+        const scaled = { dx: drag.dx, dy: drag.dy }
         setCamera(moveCamera(c, scaled))
         const boxes: BoundingBoxes = {}
         for (const [uuid, box] of Object.entries(boundingBoxes())) {
@@ -118,7 +131,13 @@ const App = () => {
         setBoundingBoxes(boxes)
     }
     const onZoomBackground = (zoom: Zoom) => {
-        console.log(zoom)
+        setCamera(zoomCamera(camera(), zoom))
+        const boxes: BoundingBoxes = {}
+        for (const [uuid, box] of Object.entries(boundingBoxes())) {
+            const { x, y, width, height } = box.el.getBoundingClientRect()
+            boxes[uuid] = { x, y, width, height, el: box.el }
+        }
+        setBoundingBoxes(boxes)
     }
     const onBoundingBox = (change: BoundingBoxChanged) => {
         const boxes = boundingBoxes()
@@ -139,8 +158,8 @@ const App = () => {
             const y1 = inputBox.y + inputBox.height / 2
             return {
                 p0: { x: x0, y: y0 },
-                p1: { x: x0 + 50, y: y0 },
-                p2: { x: x1 - 50, y: y1 },
+                p1: { x: x0 + 50 * camera().zoom, y: y0 },
+                p2: { x: x1 - 50 * camera().zoom, y: y1 },
                 p3: { x: x1, y: y1 },
             }
         })
@@ -165,7 +184,7 @@ const App = () => {
     return (
         <div>
             <Background onDrag={onDragBackground} onZoom={onZoomBackground} />
-            <BezierCurves paths={paths()} size={size()} />
+            <BezierCurves paths={paths()} size={size()} zoom={camera().zoom} />
             <div
                 style={{
                     position: "absolute",
