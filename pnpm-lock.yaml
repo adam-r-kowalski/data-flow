@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  solid-icons: ^1.0.2
   solid-js: ^1.5.1
   typescript: ^4.8.2
   vite: ^3.0.9
@@ -8,6 +9,7 @@ specifiers:
   vitest: ^0.22.1
 
 dependencies:
+  solid-icons: 1.0.2_solid-js@1.5.1
   solid-js: 1.5.1
 
 devDependencies:
@@ -868,6 +870,15 @@ packages:
     resolution: {integrity: sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==}
     hasBin: true
     dev: true
+
+  /solid-icons/1.0.2_solid-js@1.5.1:
+    resolution: {integrity: sha512-Pockp4vkCFFW+uubuRpb50pqKZNzjLhUUDm5VPpcZJWSgDw7fOxnMLcO1fC2bK8l+kYbJOr52y+pB5fnoZXg3Q==}
+    engines: {node: '>= 16'}
+    peerDependencies:
+      solid-js: '*'
+    dependencies:
+      solid-js: 1.5.1
+    dev: false
 
   /solid-js/1.5.1:
     resolution: {integrity: sha512-Y6aKystIxnrB0quV5nhqNuJV+l2Fk3/PQy1mMya/bzxlGiMHAym7v1NaqEgqDIvctbkxOi5dBj0ER/ewrH060g==}

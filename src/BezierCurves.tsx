@@ -14,15 +14,21 @@ export interface Path {
 
 export type Paths = Path[]
 
+interface Size {
+    width: number
+    height: number
+}
+
 interface Props {
     paths: Paths
+    size: Size
 }
 
 export const BezierCurves = (props: Props) => {
     return (
         <svg
-            width="100%"
-            height="100%"
+            width={`${props.size.width}px`}
+            height={`${props.size.height}px`}
             style={{ position: "absolute", "pointer-events": "none" }}
         >
             <For each={props.paths}>

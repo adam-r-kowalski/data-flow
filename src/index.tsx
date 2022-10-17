@@ -8,6 +8,7 @@ import { Drag } from "./drag"
 import { moveNode, Nodes } from "./nodes"
 import { Camera } from "./camera"
 import { BoundingBox } from "./track_bounding_box"
+import { Menu } from "./Menu"
 
 export const createNodes = (): Nodes => {
     return {
@@ -144,10 +145,27 @@ const App = () => {
             }
         })
     }
+
+    const [size, setSize] = createSignal({
+        width: window.innerWidth,
+        height: window.innerHeight,
+    })
+    const onResize = () => {
+        setSize({
+            width: window.innerWidth,
+            height: window.innerHeight,
+        })
+    }
+    window.addEventListener("resize", onResize)
+
+    onCleanup(() => {
+        window.removeEventListener("resize", onResize)
+    })
+
     return (
         <div>
             <Background onDrag={onDragBackground} onZoom={onZoomBackground} />
-            <BezierCurves paths={paths()} />
+            <BezierCurves paths={paths()} size={size()} />
             <div
                 style={{
                     position: "absolute",
@@ -165,6 +183,7 @@ const App = () => {
                     )}
                 </For>
             </div>
+            <Menu size={size()} />
         </div>
     )
 }
