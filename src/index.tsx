@@ -93,6 +93,8 @@ const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
 
 const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
     const { x, y, zoom: s } = camera
+    if ((s <= 0.1 && zoom.delta > 0) || (s >= 5 && zoom.delta < 0))
+        return camera
     const transform: Mat3x3 = [s, 0, x, 0, s, y, 0, 0, 1]
     const newTransform = [
         translate(zoom.x, zoom.y),
@@ -100,7 +102,11 @@ const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
         translate(-zoom.x, -zoom.y),
         transform,
     ].reduce(matMul)
-    return { x: newTransform[2], y: newTransform[5], zoom: newTransform[0] }
+    return {
+        x: newTransform[2],
+        y: newTransform[5],
+        zoom: newTransform[0],
+    }
 }
 
 const App = () => {
