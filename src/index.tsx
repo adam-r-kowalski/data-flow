@@ -183,13 +183,35 @@ const App = () => {
     }
     window.addEventListener("resize", onResize)
 
+    const onWheel = (e: WheelEvent) => {
+        e.preventDefault()
+
+        e.ctrlKey
+            ? onZoomBackground({
+                  delta: e.deltaY,
+                  x: e.clientX,
+                  y: e.clientY,
+              })
+            : onDragBackground({ dx: -e.deltaX, dy: -e.deltaY })
+    }
+
+    document.addEventListener("wheel", onWheel, {
+        passive: false,
+    })
+
+    const onContextMenu = (e: MouseEvent) => e.preventDefault()
+
+    document.addEventListener("contextmenu", onContextMenu)
+
     onCleanup(() => {
         window.removeEventListener("resize", onResize)
+        document.removeEventListener("wheel", onWheel)
+        document.removeEventListener("contextmenu", onContextMenu)
     })
 
     return (
         <div>
-            <Background onDrag={onDragBackground} onZoom={onZoomBackground} />
+            <Background onDrag={onDragBackground} />
             <BezierCurves paths={paths()} size={size()} zoom={camera().zoom} />
             <div
                 style={{
@@ -214,9 +236,3 @@ const App = () => {
 }
 
 render(() => <App />, document.getElementById("root")!)
-
-document.addEventListener("wheel", (e) => e.preventDefault(), {
-    passive: false,
-})
-
-document.addEventListener("contextmenu", (e) => e.preventDefault())
