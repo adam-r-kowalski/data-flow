@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  fast-check: ^3.2.0
   solid-icons: ^1.0.2
   solid-js: ^1.5.1
   typescript: ^4.8.2
@@ -13,6 +14,7 @@ dependencies:
   solid-js: 1.5.1
 
 devDependencies:
+  fast-check: 3.2.0
   typescript: 4.8.2
   vite: 3.0.9
   vite-plugin-solid: 2.3.0_solid-js@1.5.1+vite@3.0.9
@@ -722,6 +724,13 @@ packages:
     engines: {node: '>=0.8.0'}
     dev: true
 
+  /fast-check/3.2.0:
+    resolution: {integrity: sha512-RH1GMdVeN6Le0B4gI7fz5VZnCgrkREqt4SFMGyFe8v9n06ZuFdR2npxJDl8GUvZQZCq0/mo92JYUZInZnUm0nw==}
+    engines: {node: '>=8.0.0'}
+    dependencies:
+      pure-rand: 5.0.3
+    dev: true
+
   /fsevents/2.3.2:
     resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -843,6 +852,10 @@ packages:
       nanoid: 3.3.4
       picocolors: 1.0.0
       source-map-js: 1.0.2
+    dev: true
+
+  /pure-rand/5.0.3:
+    resolution: {integrity: sha512-9N8x1h8dptBQpHyC7aZMS+iNOAm97WMGY0AFrguU1cpfW3I5jINkWe5BIY5md0ofy+1TCIELsVcm/GJXZSaPbw==}
     dev: true
 
   /resolve/1.22.1:
