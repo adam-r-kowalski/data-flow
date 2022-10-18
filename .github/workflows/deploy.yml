@@ -15,13 +15,17 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - uses: pnpm/action-setup@v2.2.4
+              with:
+                  version: 6.0.2
+
             - name: Checkout 🛎️
               uses: actions/checkout@v3
 
             - name: Install and Build 🔧
               run: |
-                  npm ci
-                  npm run build
+                  pnpm ci
+                  pnpm run build
 
             - name: Deploy 🚀
               uses: JamesIves/github-pages-deploy-action@v4
