@@ -16,9 +16,26 @@ interface NoPointer {
     kind: PointersKind.NO_POINTER
 }
 
+export enum PointerTargetKind {
+    NODE,
+    BACKGROUND,
+}
+
+export interface PointerTargetNode {
+    kind: PointerTargetKind.NODE
+    uuid: string
+}
+
+export interface PointerTargetBackground {
+    kind: PointerTargetKind.BACKGROUND
+}
+
+export type PointerTarget = PointerTargetNode | PointerTargetBackground
+
 interface OnePointer {
     kind: PointersKind.ONE_POINTER
     pointer: Pointer
+    target: PointerTarget
 }
 
 interface TwoPointers {
@@ -39,12 +56,17 @@ export type Pointers =
     | TwoPointers
     | ThreeOrMorePointers
 
-export const pointerDown = (pointers: Pointers, pointer: Pointer): Pointers => {
+export const pointerDown = (
+    pointers: Pointers,
+    pointer: Pointer,
+    target: PointerTarget
+): Pointers => {
     switch (pointers.kind) {
         case PointersKind.NO_POINTER:
             return {
                 kind: PointersKind.ONE_POINTER,
                 pointer,
+                target,
             }
         case PointersKind.ONE_POINTER:
             const [p1, p2] = [pointers.pointer, pointer]
@@ -69,10 +91,10 @@ export const pointerDown = (pointers: Pointers, pointer: Pointer): Pointers => {
     }
 }
 
-export const pointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
+export const pointerUp = (pointers: Pointers, id: number): Pointers => {
     switch (pointers.kind) {
         case PointersKind.THREE_OR_MORE_POINTERS: {
-            const { [pointer.id]: _, ...rest } = pointers.pointers
+            const { [id]: _, ...rest } = pointers.pointers
             const values = Object.values(rest)
             if (values.length >= 3) {
                 return {
@@ -90,11 +112,14 @@ export const pointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
             }
         }
         case PointersKind.TWO_POINTERS: {
-            const { [pointer.id]: _, ...rest } = pointers.pointers
+            const { [id]: _, ...rest } = pointers.pointers
             const [p] = Object.values(rest)
             return {
                 kind: PointersKind.ONE_POINTER,
                 pointer: p,
+                target: {
+                    kind: PointerTargetKind.BACKGROUND,
+                },
             }
         }
         case PointersKind.ONE_POINTER:
@@ -118,6 +143,7 @@ export interface PointerMoveDrag {
     kind: PointerMoveKind.DRAG
     pointers: Pointers
     delta: Vec2
+    target: PointerTarget
 }
 
 export type PointerMove = PointerMoveIgnore | PointerMoveDrag
@@ -136,8 +162,10 @@ export const pointerMove = (
                 pointers: {
                     kind: PointersKind.ONE_POINTER,
                     pointer,
+                    target: pointers.target,
                 },
                 delta,
+                target: pointers.target,
             }
         default:
             throw "not implemented"

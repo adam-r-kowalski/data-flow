@@ -1,9 +1,7 @@
 import { For } from "solid-js"
-import { Drag, drag } from "./drag"
 import { BoundingBox, trackBoundingBox } from "./track_bounding_box"
 import { Node } from "./node"
 
-0 && drag
 0 && trackBoundingBox
 
 export interface DragNode {
@@ -19,22 +17,14 @@ export interface BoundingBoxChanged {
 
 interface Props {
     node: Node
-    onDrag: (drag: DragNode) => void
-    onDragBackground: (drag: Drag) => void
+    onPointerDown: (e: PointerEvent) => void
     onBoundingBox: (changed: BoundingBoxChanged) => void
 }
 
 export const NodeCard = (props: Props) => {
     return (
         <div
-            use:drag={{
-                onDrag: ({ dx, dy }) =>
-                    props.onDrag({ uuid: props.node.uuid, dx, dy }),
-            }}
-            onWheel={(e) =>
-                !e.ctrlKey &&
-                props.onDragBackground({ dx: -e.deltaX, dy: -e.deltaY })
-            }
+            onPointerDown={props.onPointerDown}
             style={{
                 position: "absolute",
                 transform: `translate(${props.node.x}px, ${props.node.y}px)`,

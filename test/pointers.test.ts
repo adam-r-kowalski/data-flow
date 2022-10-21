@@ -1,7 +1,7 @@
 import { test, expect } from "vitest"
 import * as fc from "fast-check"
 import { Arbitrary } from "fast-check"
-import { midpoint, distance, Vec2, sub, add } from "../src/vec2"
+import { midpoint, distance, Vec2, sub } from "../src/vec2"
 import {
     Pointer,
     pointerDown,
@@ -96,7 +96,7 @@ test("pointer up with four pointers", () => {
             pointers = pointerDown(pointers, p2)
             pointers = pointerDown(pointers, p3)
             pointers = pointerDown(pointers, p4)
-            pointers = pointerUp(pointers, p1)
+            pointers = pointerUp(pointers, p1.id)
             expect(pointers).toEqual({
                 kind: PointersKind.THREE_OR_MORE_POINTERS,
                 pointers: {
@@ -116,7 +116,7 @@ test("pointer up with three pointers", () => {
             pointers = pointerDown(pointers, p1)
             pointers = pointerDown(pointers, p2)
             pointers = pointerDown(pointers, p3)
-            pointers = pointerUp(pointers, p1)
+            pointers = pointerUp(pointers, p1.id)
             expect(pointers).toEqual({
                 kind: PointersKind.TWO_POINTERS,
                 pointers: {
@@ -136,7 +136,7 @@ test("pointer up with two pointers", () => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
             pointers = pointerDown(pointers, p2)
-            pointers = pointerUp(pointers, p1)
+            pointers = pointerUp(pointers, p1.id)
             expect(pointers).toEqual({
                 kind: PointersKind.ONE_POINTER,
                 pointer: p2,
@@ -150,7 +150,7 @@ test("pointer up with one pointer", () => {
         fc.property(PointerArb, (p1) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
-            pointers = pointerUp(pointers, p1)
+            pointers = pointerUp(pointers, p1.id)
             expect(pointers).toEqual({ kind: PointersKind.NO_POINTER })
         })
     )
@@ -160,7 +160,7 @@ test("pointer up with no pointers throws", () => {
     fc.assert(
         fc.property(PointerArb, (p) => {
             const pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            expect(() => pointerUp(pointers, p)).toThrow(
+            expect(() => pointerUp(pointers, p.id)).toThrow(
                 "pointer up when no pointers are down"
             )
         })
