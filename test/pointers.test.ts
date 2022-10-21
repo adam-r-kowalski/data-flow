@@ -9,6 +9,8 @@ import {
     PointerMoveKind,
     Pointers,
     PointersKind,
+    PointerTarget,
+    PointerTargetKind,
     pointerUp,
 } from "../src/pointers"
 
@@ -23,14 +25,17 @@ const PointersArb = (n: number): Arbitrary<Pointer[]> =>
 
 const Vec2Arb: Arbitrary<Vec2> = fc.tuple(fc.integer(), fc.integer())
 
+const background: PointerTarget = { kind: PointerTargetKind.BACKGROUND }
+
 test("pointer down with no pointers", () => {
     fc.assert(
         fc.property(PointerArb, (pointer) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, pointer)
+            pointers = pointerDown(pointers, pointer, background)
             expect(pointers).toEqual({
                 kind: PointersKind.ONE_POINTER,
                 pointer,
+                target: background,
             })
         })
     )
@@ -40,8 +45,8 @@ test("pointer down with one pointer", () => {
     fc.assert(
         fc.property(PointersArb(2), ([p1, p2]) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1)
-            pointers = pointerDown(pointers, p2)
+            pointers = pointerDown(pointers, p1, background)
+            pointers = pointerDown(pointers, p2, background)
             expect(pointers).toEqual({
                 kind: PointersKind.TWO_POINTERS,
                 pointers: { [p1.id]: p1, [p2.id]: p2 },
@@ -56,9 +61,9 @@ test("pointer down with two pointers", () => {
     fc.assert(
         fc.property(PointersArb(3), ([p1, p2, p3]) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1)
-            pointers = pointerDown(pointers, p2)
-            pointers = pointerDown(pointers, p3)
+            pointers = pointerDown(pointers, p1, background)
+            pointers = pointerDown(pointers, p2, background)
+            pointers = pointerDown(pointers, p3, background)
             expect(pointers).toEqual({
                 kind: PointersKind.THREE_OR_MORE_POINTERS,
                 pointers: { [p1.id]: p1, [p2.id]: p2, [p3.id]: p3 },
@@ -71,10 +76,10 @@ test("pointer down with three pointers", () => {
     fc.assert(
         fc.property(PointersArb(4), ([p1, p2, p3, p4]) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1)
-            pointers = pointerDown(pointers, p2)
-            pointers = pointerDown(pointers, p3)
-            pointers = pointerDown(pointers, p4)
+            pointers = pointerDown(pointers, p1, background)
+            pointers = pointerDown(pointers, p2, background)
+            pointers = pointerDown(pointers, p3, background)
+            pointers = pointerDown(pointers, p4, background)
             expect(pointers).toEqual({
                 kind: PointersKind.THREE_OR_MORE_POINTERS,
                 pointers: {
@@ -92,10 +97,10 @@ test("pointer up with four pointers", () => {
     fc.assert(
         fc.property(PointersArb(4), ([p1, p2, p3, p4]) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1)
-            pointers = pointerDown(pointers, p2)
-            pointers = pointerDown(pointers, p3)
-            pointers = pointerDown(pointers, p4)
+            pointers = pointerDown(pointers, p1, background)
+            pointers = pointerDown(pointers, p2, background)
+            pointers = pointerDown(pointers, p3, background)
+            pointers = pointerDown(pointers, p4, background)
             pointers = pointerUp(pointers, p1.id)
             expect(pointers).toEqual({
                 kind: PointersKind.THREE_OR_MORE_POINTERS,
@@ -113,9 +118,9 @@ test("pointer up with three pointers", () => {
     fc.assert(
         fc.property(PointersArb(3), ([p1, p2, p3]) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1)
-            pointers = pointerDown(pointers, p2)
-            pointers = pointerDown(pointers, p3)
+            pointers = pointerDown(pointers, p1, background)
+            pointers = pointerDown(pointers, p2, background)
+            pointers = pointerDown(pointers, p3, background)
             pointers = pointerUp(pointers, p1.id)
             expect(pointers).toEqual({
                 kind: PointersKind.TWO_POINTERS,
@@ -134,12 +139,13 @@ test("pointer up with two pointers", () => {
     fc.assert(
         fc.property(PointersArb(2), ([p1, p2]) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1)
-            pointers = pointerDown(pointers, p2)
+            pointers = pointerDown(pointers, p1, background)
+            pointers = pointerDown(pointers, p2, background)
             pointers = pointerUp(pointers, p1.id)
             expect(pointers).toEqual({
                 kind: PointersKind.ONE_POINTER,
                 pointer: p2,
+                target: background,
             })
         })
     )
@@ -149,7 +155,7 @@ test("pointer up with one pointer", () => {
     fc.assert(
         fc.property(PointerArb, (p1) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1)
+            pointers = pointerDown(pointers, p1, background)
             pointers = pointerUp(pointers, p1.id)
             expect(pointers).toEqual({ kind: PointersKind.NO_POINTER })
         })
@@ -183,15 +189,17 @@ test("pointer move when one pointer down", () => {
     fc.assert(
         fc.property(PointerArb, Vec2Arb, (p, pos) => {
             let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p)
+            pointers = pointerDown(pointers, p, background)
             const result = pointerMove(pointers, { id: p.id, pos })
             expect(result).toEqual({
                 kind: PointerMoveKind.DRAG,
                 pointers: {
                     kind: PointersKind.ONE_POINTER,
                     pointer: { id: p.id, pos },
+                    target: background,
                 },
                 delta: sub(pos, p.pos),
+                target: background,
             })
         })
     )
