@@ -1,7 +1,7 @@
 import { createSignal, For, onCleanup } from "solid-js"
 import { render } from "solid-js/web"
 
-import { Background, Zoom } from "./Background"
+import { Background } from "./Background"
 import { BoundingBoxChanged, DragNode, NodeCard } from "./NodeCard"
 import { BezierCurves, Paths } from "./BezierCurves"
 import { Drag } from "./drag"
@@ -89,6 +89,12 @@ const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
         }
     }
     return boxes
+}
+
+interface Zoom {
+    delta: number
+    x: number
+    y: number
 }
 
 const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {

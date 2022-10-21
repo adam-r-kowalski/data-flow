@@ -1,107 +1,16 @@
 import { test, expect } from "vitest"
 import * as fc from "fast-check"
 import { Arbitrary } from "fast-check"
-import { midpoint, distance, Vec2 } from "../src/vec2"
-
-interface Pointer {
-    id: number
-    pos: Vec2
-}
-
-enum Kind {
-    NO_POINTER,
-    ONE_POINTER,
-    TWO_POINTERS,
-    THREE_OR_MORE_POINTERS,
-}
-
-interface NoPointer {
-    kind: Kind.NO_POINTER
-}
-
-interface OnePointer {
-    kind: Kind.ONE_POINTER
-    pointer: Pointer
-}
-
-interface TwoPointers {
-    kind: Kind.TWO_POINTERS
-    pointers: { [id: number]: Pointer }
-    midpoint: Vec2
-    distance: number
-}
-
-interface ThreeOrMorePointers {
-    kind: Kind.THREE_OR_MORE_POINTERS
-    pointers: { [id: number]: Pointer }
-}
-
-type Pointers = NoPointer | OnePointer | TwoPointers | ThreeOrMorePointers
-
-const pointerDown = (pointers: Pointers, pointer: Pointer): Pointers => {
-    switch (pointers.kind) {
-        case Kind.NO_POINTER:
-            return {
-                kind: Kind.ONE_POINTER,
-                pointer,
-            }
-        case Kind.ONE_POINTER:
-            const [p1, p2] = [pointers.pointer, pointer]
-            return {
-                kind: Kind.TWO_POINTERS,
-                pointers: {
-                    [p1.id]: p1,
-                    [p2.id]: p2,
-                },
-                midpoint: midpoint(p1.pos, p2.pos),
-                distance: distance(p1.pos, p2.pos),
-            }
-        case Kind.TWO_POINTERS:
-        case Kind.THREE_OR_MORE_POINTERS:
-            return {
-                kind: Kind.THREE_OR_MORE_POINTERS,
-                pointers: {
-                    ...pointers.pointers,
-                    [pointer.id]: pointer,
-                },
-            }
-    }
-}
-
-const pointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
-    switch (pointers.kind) {
-        case Kind.THREE_OR_MORE_POINTERS: {
-            const { [pointer.id]: _, ...rest } = pointers.pointers
-            const values = Object.values(rest)
-            if (values.length >= 3) {
-                return {
-                    kind: Kind.THREE_OR_MORE_POINTERS,
-                    pointers: rest,
-                }
-            } else {
-                const [p1, p2] = values
-                return {
-                    kind: Kind.TWO_POINTERS,
-                    pointers: rest,
-                    midpoint: midpoint(p1.pos, p2.pos),
-                    distance: distance(p1.pos, p2.pos),
-                }
-            }
-        }
-        case Kind.TWO_POINTERS: {
-            const { [pointer.id]: _, ...rest } = pointers.pointers
-            const [p] = Object.values(rest)
-            return {
-                kind: Kind.ONE_POINTER,
-                pointer: p,
-            }
-        }
-        case Kind.ONE_POINTER:
-            return { kind: Kind.NO_POINTER }
-        case Kind.NO_POINTER:
-            throw "can't perform pointer up when no pointers are down"
-    }
-}
+import { midpoint, distance, Vec2, sub, add } from "../src/vec2"
+import {
+    Pointer,
+    pointerDown,
+    pointerMove,
+    PointerMoveKind,
+    Pointers,
+    PointersKind,
+    pointerUp,
+} from "../src/pointers"
 
 const PointerArb: Arbitrary<Pointer> = fc
     .tuple(fc.integer(), fc.integer(), fc.integer())
@@ -112,24 +21,29 @@ const PointersArb = (n: number): Arbitrary<Pointer[]> =>
         .array(PointerArb, { minLength: n, maxLength: n })
         .filter((pointers) => new Set(pointers.map(({ id }) => id)).size === n)
 
-test("transition from no pointers to one pointer", () => {
+const Vec2Arb: Arbitrary<Vec2> = fc.tuple(fc.integer(), fc.integer())
+
+test("pointer down with no pointers", () => {
     fc.assert(
         fc.property(PointerArb, (pointer) => {
-            let pointers: Pointers = { kind: Kind.NO_POINTER }
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, pointer)
-            expect(pointers).toEqual({ kind: Kind.ONE_POINTER, pointer })
+            expect(pointers).toEqual({
+                kind: PointersKind.ONE_POINTER,
+                pointer,
+            })
         })
     )
 })
 
-test("transition from one pointer to two pointers", () => {
+test("pointer down with one pointer", () => {
     fc.assert(
         fc.property(PointersArb(2), ([p1, p2]) => {
-            let pointers: Pointers = { kind: Kind.NO_POINTER }
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
             pointers = pointerDown(pointers, p2)
             expect(pointers).toEqual({
-                kind: Kind.TWO_POINTERS,
+                kind: PointersKind.TWO_POINTERS,
                 pointers: { [p1.id]: p1, [p2.id]: p2 },
                 midpoint: midpoint(p1.pos, p2.pos),
                 distance: distance(p1.pos, p2.pos),
@@ -138,31 +52,31 @@ test("transition from one pointer to two pointers", () => {
     )
 })
 
-test("transition from two pointers to three pointers", () => {
+test("pointer down with two pointers", () => {
     fc.assert(
         fc.property(PointersArb(3), ([p1, p2, p3]) => {
-            let pointers: Pointers = { kind: Kind.NO_POINTER }
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
             pointers = pointerDown(pointers, p2)
             pointers = pointerDown(pointers, p3)
             expect(pointers).toEqual({
-                kind: Kind.THREE_OR_MORE_POINTERS,
+                kind: PointersKind.THREE_OR_MORE_POINTERS,
                 pointers: { [p1.id]: p1, [p2.id]: p2, [p3.id]: p3 },
             })
         })
     )
 })
 
-test("transition from three pointers to four pointers", () => {
+test("pointer down with three pointers", () => {
     fc.assert(
         fc.property(PointersArb(4), ([p1, p2, p3, p4]) => {
-            let pointers: Pointers = { kind: Kind.NO_POINTER }
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
             pointers = pointerDown(pointers, p2)
             pointers = pointerDown(pointers, p3)
             pointers = pointerDown(pointers, p4)
             expect(pointers).toEqual({
-                kind: Kind.THREE_OR_MORE_POINTERS,
+                kind: PointersKind.THREE_OR_MORE_POINTERS,
                 pointers: {
                     [p1.id]: p1,
                     [p2.id]: p2,
@@ -174,17 +88,17 @@ test("transition from three pointers to four pointers", () => {
     )
 })
 
-test("transition from four pointers to three pointers", () => {
+test("pointer up with four pointers", () => {
     fc.assert(
         fc.property(PointersArb(4), ([p1, p2, p3, p4]) => {
-            let pointers: Pointers = { kind: Kind.NO_POINTER }
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
             pointers = pointerDown(pointers, p2)
             pointers = pointerDown(pointers, p3)
             pointers = pointerDown(pointers, p4)
             pointers = pointerUp(pointers, p1)
             expect(pointers).toEqual({
-                kind: Kind.THREE_OR_MORE_POINTERS,
+                kind: PointersKind.THREE_OR_MORE_POINTERS,
                 pointers: {
                     [p2.id]: p2,
                     [p3.id]: p3,
@@ -195,16 +109,16 @@ test("transition from four pointers to three pointers", () => {
     )
 })
 
-test("transition from three pointers to two pointers", () => {
+test("pointer up with three pointers", () => {
     fc.assert(
         fc.property(PointersArb(3), ([p1, p2, p3]) => {
-            let pointers: Pointers = { kind: Kind.NO_POINTER }
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
             pointers = pointerDown(pointers, p2)
             pointers = pointerDown(pointers, p3)
             pointers = pointerUp(pointers, p1)
             expect(pointers).toEqual({
-                kind: Kind.TWO_POINTERS,
+                kind: PointersKind.TWO_POINTERS,
                 pointers: {
                     [p2.id]: p2,
                     [p3.id]: p3,
@@ -216,28 +130,69 @@ test("transition from three pointers to two pointers", () => {
     )
 })
 
-test("transition from two pointers to one pointer", () => {
+test("pointer up with two pointers", () => {
     fc.assert(
         fc.property(PointersArb(2), ([p1, p2]) => {
-            let pointers: Pointers = { kind: Kind.NO_POINTER }
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
             pointers = pointerDown(pointers, p2)
             pointers = pointerUp(pointers, p1)
             expect(pointers).toEqual({
-                kind: Kind.ONE_POINTER,
+                kind: PointersKind.ONE_POINTER,
                 pointer: p2,
             })
         })
     )
 })
 
-test("transition from one pointer to no pointers", () => {
+test("pointer up with one pointer", () => {
     fc.assert(
         fc.property(PointerArb, (p1) => {
-            let pointers: Pointers = { kind: Kind.NO_POINTER }
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
             pointers = pointerDown(pointers, p1)
             pointers = pointerUp(pointers, p1)
-            expect(pointers).toEqual({ kind: Kind.NO_POINTER })
+            expect(pointers).toEqual({ kind: PointersKind.NO_POINTER })
+        })
+    )
+})
+
+test("pointer up with no pointers throws", () => {
+    fc.assert(
+        fc.property(PointerArb, (p) => {
+            const pointers: Pointers = { kind: PointersKind.NO_POINTER }
+            expect(() => pointerUp(pointers, p)).toThrow(
+                "pointer up when no pointers are down"
+            )
+        })
+    )
+})
+
+test("pointer move when no pointers down", () => {
+    fc.assert(
+        fc.property(PointerArb, (p) => {
+            const pointers: Pointers = { kind: PointersKind.NO_POINTER }
+            expect(pointerMove(pointers, p)).toEqual({
+                kind: PointerMoveKind.IGNORE,
+                pointers,
+            })
+        })
+    )
+})
+
+test("pointer move when one pointer down", () => {
+    fc.assert(
+        fc.property(PointerArb, Vec2Arb, (p, pos) => {
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
+            pointers = pointerDown(pointers, p)
+            const result = pointerMove(pointers, { id: p.id, pos })
+            expect(result).toEqual({
+                kind: PointerMoveKind.DRAG,
+                pointers: {
+                    kind: PointersKind.ONE_POINTER,
+                    pointer: { id: p.id, pos },
+                },
+                delta: sub(pos, p.pos),
+            })
         })
     )
 })
