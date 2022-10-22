@@ -1,15 +1,26 @@
 import { createSignal, For, onCleanup } from "solid-js"
 import { render } from "solid-js/web"
 
-import { Background, Zoom } from "./Background"
+import { Background } from "./Background"
 import { BoundingBoxChanged, DragNode, NodeCard } from "./NodeCard"
 import { BezierCurves, Paths } from "./BezierCurves"
-import { Drag } from "./drag"
 import { moveNode, Nodes } from "./nodes"
 import { Camera } from "./camera"
 import { BoundingBox } from "./track_bounding_box"
 import { Menu } from "./Menu"
-import { Mat3x3, matMul, scale, translate } from "./mat3x3"
+import * as mat3x3 from "./mat3x3"
+import { Mat3x3, matMul, translate } from "./mat3x3"
+import * as vec2 from "./vec2"
+import {
+    pointerDown,
+    pointerMove,
+    PointerMoveKind,
+    Pointers,
+    PointersKind,
+    PointerTarget,
+    PointerTargetKind,
+    pointerUp,
+} from "./pointers"
 
 export const createNodes = (): Nodes => {
     return {
@@ -69,6 +80,11 @@ export const createEdges = (): Edges => {
     }
 }
 
+interface Drag {
+    dx: number
+    dy: number
+}
+
 export const moveCamera = (camera: Camera, drag: Drag): Camera => ({
     x: camera.x + drag.dx,
     y: camera.y + drag.dy,
@@ -91,6 +107,12 @@ const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
     return boxes
 }
 
+interface Zoom {
+    delta: number
+    x: number
+    y: number
+}
+
 const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
     const { x, y, zoom: s } = camera
     if ((s <= 0.1 && zoom.delta > 0) || (s >= 5 && zoom.delta < 0))
@@ -98,7 +120,7 @@ const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
     const transform: Mat3x3 = [s, 0, x, 0, s, y, 0, 0, 1]
     const newTransform = [
         translate(zoom.x, zoom.y),
-        scale(1 - zoom.delta * 0.01),
+        mat3x3.scale(1 - zoom.delta * 0.01),
         translate(-zoom.x, -zoom.y),
         transform,
     ].reduce(matMul)
@@ -120,14 +142,14 @@ const App = () => {
         const zoom = camera().zoom
         const scaled = {
             uuid: drag.uuid,
-            dx: drag.dx / zoom,
-            dy: drag.dy / zoom,
+            dx: -drag.dx / zoom,
+            dy: -drag.dy / zoom,
         }
         setNodes(moveNode(nodes(), scaled))
     }
     const onDragBackground = (drag: Drag) => {
         const c = camera()
-        const scaled = { dx: drag.dx, dy: drag.dy }
+        const scaled = { dx: -drag.dx, dy: -drag.dy }
         setCamera(moveCamera(c, scaled))
         const boxes: BoundingBoxes = {}
         for (const [uuid, box] of Object.entries(boundingBoxes())) {
@@ -185,14 +207,13 @@ const App = () => {
 
     const onWheel = (e: WheelEvent) => {
         e.preventDefault()
-
         e.ctrlKey
             ? onZoomBackground({
                   delta: e.deltaY,
                   x: e.clientX,
                   y: e.clientY,
               })
-            : onDragBackground({ dx: -e.deltaX, dy: -e.deltaY })
+            : onDragBackground({ dx: e.deltaX, dy: e.deltaY })
     }
 
     document.addEventListener("wheel", onWheel, {
@@ -203,15 +224,85 @@ const App = () => {
 
     document.addEventListener("contextmenu", onContextMenu)
 
+    const [pointers, setPointers] = createSignal<Pointers>({
+        kind: PointersKind.NO_POINTER,
+    })
+
+    const onPointerDown = (event: PointerEvent, target: PointerTarget) => {
+        setPointers(
+            pointerDown(
+                pointers(),
+                {
+                    id: event.pointerId,
+                    pos: [event.clientX, event.clientY],
+                },
+                target
+            )
+        )
+    }
+
+    const onPointerUp = (event: PointerEvent) => {
+        setPointers(pointerUp(pointers(), event.pointerId))
+    }
+
+    const onPointerMove = (event: PointerEvent) => {
+        const result = pointerMove(pointers(), {
+            id: event.pointerId,
+            pos: [event.clientX, event.clientY],
+        })
+        setPointers(result.pointers)
+        switch (result.kind) {
+            case PointerMoveKind.DRAG: {
+                const target = result.target
+                const [dx, dy] = result.delta
+                switch (target.kind) {
+                    case PointerTargetKind.BACKGROUND:
+                        onDragBackground({ dx, dy })
+                        break
+                    case PointerTargetKind.NODE:
+                        onDragNode({ dx, dy, uuid: target.uuid })
+                        break
+                }
+                break
+            }
+            case PointerMoveKind.ZOOM: {
+                const [x, y] = result.midpoint
+                const [dx, dy] = vec2.scale(result.pan, -1)
+                let c = moveCamera(camera(), { dx, dy })
+                c = zoomCamera(c, { delta: -result.zoom, x, y })
+                setCamera(c)
+                const boxes: BoundingBoxes = {}
+                for (const [uuid, box] of Object.entries(boundingBoxes())) {
+                    const { x, y, width, height } =
+                        box.el.getBoundingClientRect()
+                    boxes[uuid] = { x, y, width, height, el: box.el }
+                }
+                setBoundingBoxes(boxes)
+                break
+            }
+            case PointerMoveKind.IGNORE:
+                break
+        }
+    }
+
+    document.addEventListener("pointerup", onPointerUp)
+    document.addEventListener("pointermove", onPointerMove)
+
     onCleanup(() => {
         window.removeEventListener("resize", onResize)
         document.removeEventListener("wheel", onWheel)
         document.removeEventListener("contextmenu", onContextMenu)
+        document.removeEventListener("pointerup", onPointerUp)
+        document.removeEventListener("pointermove", onPointerMove)
     })
 
     return (
         <div>
-            <Background onDrag={onDragBackground} />
+            <Background
+                onPointerDown={(e) =>
+                    onPointerDown(e, { kind: PointerTargetKind.BACKGROUND })
+                }
+            />
             <BezierCurves paths={paths()} size={size()} zoom={camera().zoom} />
             <div
                 style={{
@@ -223,8 +314,12 @@ const App = () => {
                     {(node) => (
                         <NodeCard
                             node={node}
-                            onDrag={onDragNode}
-                            onDragBackground={onDragBackground}
+                            onPointerDown={(e) =>
+                                onPointerDown(e, {
+                                    kind: PointerTargetKind.NODE,
+                                    uuid: node.uuid,
+                                })
+                            }
                             onBoundingBox={onBoundingBox}
                         />
                     )}

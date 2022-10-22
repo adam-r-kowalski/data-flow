@@ -1,15 +1,11 @@
-import { drag, Drag } from "./drag"
-
-0 && drag
-
 interface Props {
-    onDrag: (drag: Drag) => void
+    onPointerDown: (e: PointerEvent) => void
 }
 
 export const Background = (props: Props) => {
     return (
         <div
-            use:drag={{ onDrag: props.onDrag }}
+            onPointerDown={props.onPointerDown}
             style={{
                 position: "absolute",
                 width: "100vw",
