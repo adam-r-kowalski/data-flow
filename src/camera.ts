@@ -16,20 +16,22 @@ export interface Zoom {
     pos: Vec2
 }
 
+export const clamp = (value: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, value))
+
 export const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
     const {
         pos: [x, y],
         zoom: s,
     } = camera
-    if ((s <= 0.1 && zoom.delta > 0) || (s >= 5 && zoom.delta < 0))
-        return camera
     const {
         pos: [zx, zy],
         delta,
     } = zoom
+    const newZoom = clamp(s * (1 - delta * 0.01), 0.1, 5)
     const transform = [
         translate(zx, zy),
-        scale(1 - delta * 0.01),
+        scale(newZoom / s),
         translate(-zx, -zy),
         [s, 0, x, 0, s, y, 0, 0, 1] as Mat3x3,
     ].reduce(matMul)
