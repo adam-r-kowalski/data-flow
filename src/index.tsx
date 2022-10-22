@@ -5,11 +5,9 @@ import { Background } from "./Background"
 import { BoundingBoxChanged, DragNode, NodeCard } from "./NodeCard"
 import { BezierCurves, Paths } from "./BezierCurves"
 import { moveNode, Nodes } from "./nodes"
-import { Camera } from "./camera"
+import { Camera, moveCamera, Zoom, zoomCamera } from "./camera"
 import { BoundingBox } from "./track_bounding_box"
 import { Menu } from "./Menu"
-import * as mat3x3 from "./mat3x3"
-import { Mat3x3, matMul, translate } from "./mat3x3"
 import * as vec2 from "./vec2"
 import {
     pointerDown,
@@ -80,17 +78,6 @@ export const createEdges = (): Edges => {
     }
 }
 
-interface Drag {
-    dx: number
-    dy: number
-}
-
-export const moveCamera = (camera: Camera, drag: Drag): Camera => ({
-    x: camera.x + drag.dx,
-    y: camera.y + drag.dy,
-    zoom: camera.zoom,
-})
-
 export type BoundingBoxes = { [uuid: string]: BoundingBox }
 
 const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
@@ -107,34 +94,10 @@ const createBoundingBoxes = (nodes: Nodes): BoundingBoxes => {
     return boxes
 }
 
-interface Zoom {
-    delta: number
-    x: number
-    y: number
-}
-
-const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
-    const { x, y, zoom: s } = camera
-    if ((s <= 0.1 && zoom.delta > 0) || (s >= 5 && zoom.delta < 0))
-        return camera
-    const transform: Mat3x3 = [s, 0, x, 0, s, y, 0, 0, 1]
-    const newTransform = [
-        translate(zoom.x, zoom.y),
-        mat3x3.scale(1 - zoom.delta * 0.01),
-        translate(-zoom.x, -zoom.y),
-        transform,
-    ].reduce(matMul)
-    return {
-        x: newTransform[2],
-        y: newTransform[5],
-        zoom: newTransform[0],
-    }
-}
-
 const App = () => {
     const [nodes, setNodes] = createSignal(createNodes())
     const edges = createEdges()
-    const [camera, setCamera] = createSignal({ x: 0, y: 0, zoom: 1 })
+    const [camera, setCamera] = createSignal<Camera>({ zoom: 1, pos: [0, 0] })
     const [boundingBoxes, setBoundingBoxes] = createSignal(
         createBoundingBoxes(nodes())
     )
@@ -147,9 +110,9 @@ const App = () => {
         }
         setNodes(moveNode(nodes(), scaled))
     }
-    const onDragBackground = (drag: Drag) => {
+    const onDragBackground = (drag: vec2.Vec2) => {
         const c = camera()
-        const scaled = { dx: -drag.dx, dy: -drag.dy }
+        const scaled = vec2.scale(drag, -1)
         setCamera(moveCamera(c, scaled))
         const boxes: BoundingBoxes = {}
         for (const [uuid, box] of Object.entries(boundingBoxes())) {
@@ -172,7 +135,10 @@ const App = () => {
         setBoundingBoxes({ ...boxes, [change.uuid]: change.box })
     }
     const transform = () => {
-        const { x, y, zoom } = camera()
+        const {
+            pos: [x, y],
+            zoom,
+        } = camera()
         return `translate(${x}px, ${y}px) scale(${zoom}, ${zoom})`
     }
     const paths = (): Paths => {
@@ -210,10 +176,9 @@ const App = () => {
         e.ctrlKey
             ? onZoomBackground({
                   delta: e.deltaY,
-                  x: e.clientX,
-                  y: e.clientY,
+                  pos: [e.clientX, e.clientY],
               })
-            : onDragBackground({ dx: e.deltaX, dy: e.deltaY })
+            : onDragBackground([e.deltaX, e.deltaY])
     }
 
     document.addEventListener("wheel", onWheel, {
@@ -257,7 +222,7 @@ const App = () => {
                 const [dx, dy] = result.delta
                 switch (target.kind) {
                     case PointerTargetKind.BACKGROUND:
-                        onDragBackground({ dx, dy })
+                        onDragBackground([dx, dy])
                         break
                     case PointerTargetKind.NODE:
                         onDragNode({ dx, dy, uuid: target.uuid })
@@ -268,8 +233,8 @@ const App = () => {
             case PointerMoveKind.ZOOM: {
                 const [x, y] = result.midpoint
                 const [dx, dy] = vec2.scale(result.pan, -1)
-                let c = moveCamera(camera(), { dx, dy })
-                c = zoomCamera(c, { delta: -result.zoom, x, y })
+                let c = moveCamera(camera(), [dx, dy])
+                c = zoomCamera(c, { delta: -result.zoom, pos: [x, y] })
                 setCamera(c)
                 const boxes: BoundingBoxes = {}
                 for (const [uuid, box] of Object.entries(boundingBoxes())) {
