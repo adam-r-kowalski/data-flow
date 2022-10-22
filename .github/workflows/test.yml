@@ -27,7 +27,7 @@ jobs:
                   node-version: 16
                   cache: "pnpm"
 
-            - name: Install 🔧
+            - name: Install and Test 🔧
               run: |
                   pnpm install
                   pnpm test
