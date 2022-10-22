@@ -5,7 +5,7 @@ import { Background } from "./Background"
 import { BoundingBoxChanged, DragNode, NodeCard } from "./NodeCard"
 import { BezierCurves, Paths } from "./BezierCurves"
 import { moveNode, Nodes } from "./nodes"
-import { Camera, moveCamera, Zoom, zoomCamera } from "./camera"
+import { Camera, moveCamera, transform, Zoom, zoomCamera } from "./camera"
 import { BoundingBox } from "./track_bounding_box"
 import { Menu } from "./Menu"
 import * as vec2 from "./vec2"
@@ -110,36 +110,27 @@ const App = () => {
         }
         setNodes(moveNode(nodes(), scaled))
     }
+    const recreateBoundingBoxes = () => {
+        const boxes: BoundingBoxes = {}
+        for (const [uuid, box] of Object.entries(boundingBoxes())) {
+            const { x, y, width, height } = box.el.getBoundingClientRect()
+            boxes[uuid] = { x, y, width, height, el: box.el }
+        }
+        setBoundingBoxes(boxes)
+    }
     const onDragBackground = (drag: vec2.Vec2) => {
         const c = camera()
         const scaled = vec2.scale(drag, -1)
         setCamera(moveCamera(c, scaled))
-        const boxes: BoundingBoxes = {}
-        for (const [uuid, box] of Object.entries(boundingBoxes())) {
-            const { x, y, width, height } = box.el.getBoundingClientRect()
-            boxes[uuid] = { x, y, width, height, el: box.el }
-        }
-        setBoundingBoxes(boxes)
+        recreateBoundingBoxes()
     }
     const onZoomBackground = (zoom: Zoom) => {
         setCamera(zoomCamera(camera(), zoom))
-        const boxes: BoundingBoxes = {}
-        for (const [uuid, box] of Object.entries(boundingBoxes())) {
-            const { x, y, width, height } = box.el.getBoundingClientRect()
-            boxes[uuid] = { x, y, width, height, el: box.el }
-        }
-        setBoundingBoxes(boxes)
+        recreateBoundingBoxes()
     }
     const onBoundingBox = (change: BoundingBoxChanged) => {
         const boxes = boundingBoxes()
         setBoundingBoxes({ ...boxes, [change.uuid]: change.box })
-    }
-    const transform = () => {
-        const {
-            pos: [x, y],
-            zoom,
-        } = camera()
-        return `translate(${x}px, ${y}px) scale(${zoom}, ${zoom})`
     }
     const paths = (): Paths => {
         const boxes = boundingBoxes()
@@ -236,13 +227,7 @@ const App = () => {
                 let c = moveCamera(camera(), [dx, dy])
                 c = zoomCamera(c, { delta: -result.zoom, pos: [x, y] })
                 setCamera(c)
-                const boxes: BoundingBoxes = {}
-                for (const [uuid, box] of Object.entries(boundingBoxes())) {
-                    const { x, y, width, height } =
-                        box.el.getBoundingClientRect()
-                    boxes[uuid] = { x, y, width, height, el: box.el }
-                }
-                setBoundingBoxes(boxes)
+                recreateBoundingBoxes()
                 break
             }
             case PointerMoveKind.IGNORE:
@@ -272,7 +257,7 @@ const App = () => {
             <div
                 style={{
                     position: "absolute",
-                    transform: transform(),
+                    transform: transform(camera()),
                 }}
             >
                 <For each={Object.values(nodes())}>

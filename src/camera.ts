@@ -38,3 +38,6 @@ export const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
         pos: [transform[2], transform[5]],
     }
 }
+
+export const transform = ({ pos: [x, y], zoom }: Camera) =>
+    `translate(${x}px, ${y}px) scale(${zoom}, ${zoom})`
