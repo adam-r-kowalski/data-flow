@@ -14,16 +14,16 @@ import {
     pointerUp,
 } from "../src/pointers"
 
+const Vec2Arb: Arbitrary<Vec2> = fc.tuple(fc.integer(), fc.integer())
+
 const PointerArb: Arbitrary<Pointer> = fc
-    .tuple(fc.integer(), fc.integer(), fc.integer())
-    .map(([id, x, y]) => ({ id, pos: [x, y] }))
+    .tuple(fc.integer(), Vec2Arb)
+    .map(([id, pos]) => ({ id, pos }))
 
 const PointersArb = (n: number): Arbitrary<Pointer[]> =>
     fc
         .array(PointerArb, { minLength: n, maxLength: n })
         .filter((pointers) => new Set(pointers.map(({ id }) => id)).size === n)
-
-const Vec2Arb: Arbitrary<Vec2> = fc.tuple(fc.integer(), fc.integer())
 
 const background: PointerTarget = { kind: PointerTargetKind.BACKGROUND }
 
