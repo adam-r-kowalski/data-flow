@@ -72,3 +72,163 @@ test("zoom camera into current position going over min zoom", () => {
         )
     )
 })
+
+test("zoom camera into position above and to the right of current position", () => {
+    fc.assert(
+        fc.property(
+            CameraArb({ min: 1, max: 1 }),
+            fc.integer({ min: -100, max: -10 }),
+            fc.integer({ min: 1, max: 10 }),
+            (camera, delta, d) => {
+                const [x, y] = camera.pos
+                const actual = zoomCamera(camera, {
+                    delta,
+                    pos: [x + d, y + d],
+                })
+                expect(actual.zoom).toEqual(camera.zoom * (1 - delta * 0.01))
+                expect(actual.pos[0]).toBeLessThan(camera.pos[0])
+                expect(actual.pos[1]).toBeLessThan(camera.pos[1])
+            }
+        )
+    )
+})
+
+test("zoom camera into position above and to the left of current position", () => {
+    fc.assert(
+        fc.property(
+            CameraArb({ min: 1, max: 1 }),
+            fc.integer({ min: -100, max: -10 }),
+            fc.integer({ min: 1, max: 10 }),
+            (camera, delta, d) => {
+                const [x, y] = camera.pos
+                const actual = zoomCamera(camera, {
+                    delta,
+                    pos: [x - d, y + d],
+                })
+                expect(actual.zoom).toEqual(camera.zoom * (1 - delta * 0.01))
+                expect(actual.pos[0]).toBeGreaterThan(camera.pos[0])
+                expect(actual.pos[1]).toBeLessThan(camera.pos[1])
+            }
+        )
+    )
+})
+
+test("zoom camera into position below and to the left of current position", () => {
+    fc.assert(
+        fc.property(
+            CameraArb({ min: 1, max: 1 }),
+            fc.integer({ min: -100, max: -10 }),
+            fc.integer({ min: 1, max: 10 }),
+            (camera, delta, d) => {
+                const [x, y] = camera.pos
+                const actual = zoomCamera(camera, {
+                    delta,
+                    pos: [x - d, y - d],
+                })
+                expect(actual.zoom).toEqual(camera.zoom * (1 - delta * 0.01))
+                expect(actual.pos[0]).toBeGreaterThan(camera.pos[0])
+                expect(actual.pos[1]).toBeGreaterThan(camera.pos[1])
+            }
+        )
+    )
+})
+
+test("zoom camera into position below and to the right of current position", () => {
+    fc.assert(
+        fc.property(
+            CameraArb({ min: 1, max: 1 }),
+            fc.integer({ min: -100, max: -10 }),
+            fc.integer({ min: 1, max: 10 }),
+            (camera, delta, d) => {
+                const [x, y] = camera.pos
+                const actual = zoomCamera(camera, {
+                    delta,
+                    pos: [x + d, y - d],
+                })
+                expect(actual.zoom).toEqual(camera.zoom * (1 - delta * 0.01))
+                expect(actual.pos[0]).toBeLessThan(camera.pos[0])
+                expect(actual.pos[1]).toBeGreaterThan(camera.pos[1])
+            }
+        )
+    )
+})
+
+test("zoom camera out of position below and to the right of current position", () => {
+    fc.assert(
+        fc.property(
+            CameraArb({ min: 1, max: 1 }),
+            fc.integer({ min: 10, max: 80 }),
+            fc.integer({ min: 1, max: 10 }),
+            (camera, delta, d) => {
+                const [x, y] = camera.pos
+                const actual = zoomCamera(camera, {
+                    delta,
+                    pos: [x + d, y - d],
+                })
+                expect(actual.zoom).toEqual(camera.zoom * (1 - delta * 0.01))
+                expect(actual.pos[0]).toBeGreaterThan(camera.pos[0])
+                expect(actual.pos[1]).toBeLessThan(camera.pos[1])
+            }
+        )
+    )
+})
+
+test("zoom camera out of position below and to the left of current position", () => {
+    fc.assert(
+        fc.property(
+            CameraArb({ min: 1, max: 1 }),
+            fc.integer({ min: 10, max: 80 }),
+            fc.integer({ min: 1, max: 10 }),
+            (camera, delta, d) => {
+                const [x, y] = camera.pos
+                const actual = zoomCamera(camera, {
+                    delta,
+                    pos: [x - d, y - d],
+                })
+                expect(actual.zoom).toEqual(camera.zoom * (1 - delta * 0.01))
+                expect(actual.pos[0]).toBeLessThan(camera.pos[0])
+                expect(actual.pos[1]).toBeLessThan(camera.pos[1])
+            }
+        )
+    )
+})
+
+test("zoom camera out of position above and to the left of current position", () => {
+    fc.assert(
+        fc.property(
+            CameraArb({ min: 1, max: 1 }),
+            fc.integer({ min: 10, max: 80 }),
+            fc.integer({ min: 1, max: 10 }),
+            (camera, delta, d) => {
+                const [x, y] = camera.pos
+                const actual = zoomCamera(camera, {
+                    delta,
+                    pos: [x - d, y + d],
+                })
+                expect(actual.zoom).toEqual(camera.zoom * (1 - delta * 0.01))
+                expect(actual.pos[0]).toBeLessThan(camera.pos[0])
+                expect(actual.pos[1]).toBeGreaterThan(camera.pos[1])
+            }
+        )
+    )
+})
+
+test("zoom camera out of position above and to the right of current position", () => {
+    fc.assert(
+        fc.property(
+            CameraArb({ min: 1, max: 1 }),
+            fc.integer({ min: 10, max: 80 }),
+            fc.integer({ min: 1, max: 10 }),
+            (camera, delta, d) => {
+                const [x, y] = camera.pos
+                const actual = zoomCamera(camera, {
+                    delta,
+                    pos: [x + d, y + d],
+                })
+                expect(actual.zoom).toEqual(camera.zoom * (1 - delta * 0.01))
+                expect(actual.pos[0]).toBeGreaterThan(camera.pos[0])
+                expect(actual.pos[1]).toBeGreaterThan(camera.pos[1])
+            }
+        )
+    )
+})
