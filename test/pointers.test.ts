@@ -204,3 +204,51 @@ test("pointer move when one pointer down", () => {
         })
     )
 })
+
+test("pointer move when two pointers down", () => {
+    fc.assert(
+        fc.property(PointersArb(2), Vec2Arb, ([p1, p2], pos) => {
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
+            pointers = pointerDown(pointers, p1, background)
+            pointers = pointerDown(pointers, p2, background)
+            const result = pointerMove(pointers, { id: p1.id, pos })
+            const expected = {
+                kind: PointerMoveKind.ZOOM,
+                pointers: {
+                    kind: PointersKind.TWO_POINTERS,
+                    pointers: { [p1.id]: { id: p1.id, pos }, [p2.id]: p2 },
+                    midpoint: midpoint(pos, p2.pos),
+                    distance: distance(pos, p2.pos),
+                },
+                zoom: distance(pos, p2.pos) - distance(p1.pos, p2.pos),
+                pan: sub(midpoint(pos, p2.pos), midpoint(p1.pos, p2.pos)),
+                midpoint: midpoint(pos, p2.pos),
+            }
+            expect(result).toEqual(expected)
+        })
+    )
+})
+
+test("pointer move when three pointers down", () => {
+    fc.assert(
+        fc.property(PointersArb(3), Vec2Arb, ([p1, p2, p3], pos) => {
+            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
+            pointers = pointerDown(pointers, p1, background)
+            pointers = pointerDown(pointers, p2, background)
+            pointers = pointerDown(pointers, p3, background)
+            const result = pointerMove(pointers, { id: p1.id, pos })
+            const expected = {
+                kind: PointerMoveKind.IGNORE,
+                pointers: {
+                    kind: PointersKind.THREE_OR_MORE_POINTERS,
+                    pointers: {
+                        [p1.id]: { id: p1.id, pos },
+                        [p2.id]: p2,
+                        [p3.id]: p3,
+                    },
+                },
+            }
+            expect(result).toEqual(expected)
+        })
+    )
+})

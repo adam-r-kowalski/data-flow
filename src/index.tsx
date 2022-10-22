@@ -8,7 +8,9 @@ import { moveNode, Nodes } from "./nodes"
 import { Camera } from "./camera"
 import { BoundingBox } from "./track_bounding_box"
 import { Menu } from "./Menu"
-import { Mat3x3, matMul, scale, translate } from "./mat3x3"
+import * as mat3x3 from "./mat3x3"
+import { Mat3x3, matMul, translate } from "./mat3x3"
+import * as vec2 from "./vec2"
 import {
     pointerDown,
     pointerMove,
@@ -118,7 +120,7 @@ const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
     const transform: Mat3x3 = [s, 0, x, 0, s, y, 0, 0, 1]
     const newTransform = [
         translate(zoom.x, zoom.y),
-        scale(1 - zoom.delta * 0.01),
+        mat3x3.scale(1 - zoom.delta * 0.01),
         translate(-zoom.x, -zoom.y),
         transform,
     ].reduce(matMul)
@@ -250,7 +252,7 @@ const App = () => {
         })
         setPointers(result.pointers)
         switch (result.kind) {
-            case PointerMoveKind.DRAG:
+            case PointerMoveKind.DRAG: {
                 const target = result.target
                 const [dx, dy] = result.delta
                 switch (target.kind) {
@@ -261,6 +263,23 @@ const App = () => {
                         onDragNode({ dx, dy, uuid: target.uuid })
                         break
                 }
+                break
+            }
+            case PointerMoveKind.ZOOM: {
+                const [x, y] = result.midpoint
+                const [dx, dy] = vec2.scale(result.pan, -1)
+                let c = moveCamera(camera(), { dx, dy })
+                c = zoomCamera(c, { delta: -result.zoom, x, y })
+                setCamera(c)
+                const boxes: BoundingBoxes = {}
+                for (const [uuid, box] of Object.entries(boundingBoxes())) {
+                    const { x, y, width, height } =
+                        box.el.getBoundingClientRect()
+                    boxes[uuid] = { x, y, width, height, el: box.el }
+                }
+                setBoundingBoxes(boxes)
+                break
+            }
             case PointerMoveKind.IGNORE:
                 break
         }

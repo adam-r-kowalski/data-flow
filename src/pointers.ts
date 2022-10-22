@@ -132,6 +132,7 @@ export const pointerUp = (pointers: Pointers, id: number): Pointers => {
 export enum PointerMoveKind {
     IGNORE,
     DRAG,
+    ZOOM,
 }
 
 export interface PointerMoveIgnore {
@@ -146,7 +147,15 @@ export interface PointerMoveDrag {
     target: PointerTarget
 }
 
-export type PointerMove = PointerMoveIgnore | PointerMoveDrag
+export interface PointerMoveZoom {
+    kind: PointerMoveKind.ZOOM
+    pointers: Pointers
+    zoom: number
+    pan: Vec2
+    midpoint: Vec2
+}
+
+export type PointerMove = PointerMoveIgnore | PointerMoveDrag | PointerMoveZoom
 
 export const pointerMove = (
     pointers: Pointers,
@@ -167,7 +176,33 @@ export const pointerMove = (
                 delta,
                 target: pointers.target,
             }
-        default:
-            throw "not implemented"
+        case PointersKind.TWO_POINTERS:
+            const newPointers = {
+                ...pointers.pointers,
+                [pointer.id]: pointer,
+            }
+            const [p1, p2] = Object.values(newPointers)
+            const newMidpoint = midpoint(p1.pos, p2.pos)
+            const newDistance = distance(p1.pos, p2.pos)
+            return {
+                kind: PointerMoveKind.ZOOM,
+                pointers: {
+                    kind: PointersKind.TWO_POINTERS,
+                    pointers: newPointers,
+                    midpoint: newMidpoint,
+                    distance: newDistance,
+                },
+                zoom: newDistance - pointers.distance,
+                pan: sub(newMidpoint, pointers.midpoint),
+                midpoint: newMidpoint,
+            }
+        case PointersKind.THREE_OR_MORE_POINTERS:
+            return {
+                kind: PointerMoveKind.IGNORE,
+                pointers: {
+                    kind: PointersKind.THREE_OR_MORE_POINTERS,
+                    pointers: { ...pointers.pointers, [pointer.id]: pointer },
+                },
+            }
     }
 }
