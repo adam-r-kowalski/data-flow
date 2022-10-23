@@ -1,4 +1,7 @@
 import { For } from "solid-js"
+import { BoundingBoxes } from "./bounding_boxes"
+import { Edges } from "./edges"
+import { Vec2 } from "./vec2"
 
 export interface Point {
     x: number
@@ -14,25 +17,39 @@ export interface Path {
 
 export type Paths = Path[]
 
-interface Size {
-    width: number
-    height: number
-}
-
 interface Props {
-    paths: Paths
-    size: Size
+    edges: Edges
+    boundingBoxes: BoundingBoxes
+    window: Vec2
     zoom: number
 }
 
 export const BezierCurves = (props: Props) => {
+    const paths = (): Paths => {
+        const boxes = props.boundingBoxes
+        return Object.values(props.edges).map((edge) => {
+            const inputBox = boxes[edge.input]
+            const outputBox = boxes[edge.output]
+            const x0 = outputBox.x + outputBox.width / 2
+            const y0 = outputBox.y + outputBox.height / 2
+            const x1 = inputBox.x + inputBox.width / 2
+            const y1 = inputBox.y + inputBox.height / 2
+            return {
+                p0: { x: x0, y: y0 },
+                p1: { x: x0 + 50 * props.zoom, y: y0 },
+                p2: { x: x1 - 50 * props.zoom, y: y1 },
+                p3: { x: x1, y: y1 },
+            }
+        })
+    }
+
     return (
         <svg
-            width={`${props.size.width}px`}
-            height={`${props.size.height}px`}
+            width={`${props.window[0]}px`}
+            height={`${props.window[1]}px`}
             style={{ position: "absolute", "pointer-events": "none" }}
         >
-            <For each={props.paths}>
+            <For each={paths()}>
                 {(path) => {
                     const x0 = path.p0.x
                     const y0 = path.p0.y

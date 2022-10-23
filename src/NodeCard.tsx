@@ -1,30 +1,38 @@
 import { For } from "solid-js"
-import { BoundingBox, trackBoundingBox } from "./track_bounding_box"
+import { BoundingBox, trackBoundingBox } from "./bounding_boxes"
 import { Node } from "./node"
 
 0 && trackBoundingBox
 
-export interface DragNode {
+export interface NodePointerDown {
+    kind: "node/pointer-down"
     uuid: string
-    dx: number
-    dy: number
 }
 
 export interface BoundingBoxChanged {
+    kind: "bounding-box/changed"
     uuid: string
     box: BoundingBox
 }
 
+export type Event = NodePointerDown | BoundingBoxChanged
+
+type Dispatch = (event: Event) => void
+
 interface Props {
     node: Node
-    onPointerDown: (e: PointerEvent) => void
-    onBoundingBox: (changed: BoundingBoxChanged) => void
+    dispatch: Dispatch
 }
 
 export const NodeCard = (props: Props) => {
     return (
         <div
-            onPointerDown={props.onPointerDown}
+            onPointerDown={() =>
+                props.dispatch({
+                    kind: "node/pointer-down",
+                    uuid: props.node.uuid,
+                })
+            }
             style={{
                 position: "absolute",
                 transform: `translate(${props.node.x}px, ${props.node.y}px)`,
@@ -61,7 +69,8 @@ export const NodeCard = (props: Props) => {
                                         "border-radius": "5px",
                                     }}
                                     use:trackBoundingBox={(box) => {
-                                        props.onBoundingBox({
+                                        props.dispatch({
+                                            kind: "bounding-box/changed",
                                             uuid: input.uuid,
                                             box,
                                         })
@@ -141,7 +150,8 @@ export const NodeCard = (props: Props) => {
                                         "border-radius": "5px",
                                     }}
                                     use:trackBoundingBox={(box) => {
-                                        props.onBoundingBox({
+                                        props.dispatch({
+                                            kind: "bounding-box/changed",
                                             uuid: output.uuid,
                                             box,
                                         })

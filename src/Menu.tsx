@@ -1,24 +1,20 @@
 import { AiOutlinePlus, AiOutlineUndo, AiOutlineRedo } from "solid-icons/ai"
-
-interface Size {
-    width: number
-    height: number
-}
+import { Vec2 } from "./vec2"
 
 interface Props {
-    size: Size
+    window: Vec2
 }
 
 export const Menu = (props: Props) => {
     return (
         <div
             style={{
-                width: `${props.size.width}px`,
-                height: `${props.size.height}px`,
+                width: `${props.window[0]}px`,
+                height: `${props.window[1]}px`,
                 position: "absolute",
                 display: "flex",
                 "flex-direction":
-                    props.size.width < props.size.height ? "row" : "column",
+                    props.window[0] < props.window[1] ? "row" : "column",
                 "justify-content": "center",
                 "align-items": "flex-end",
                 "pointer-events": "none",

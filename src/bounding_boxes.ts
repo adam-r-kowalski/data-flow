@@ -8,6 +8,8 @@ export interface BoundingBox {
     el: HTMLElement
 }
 
+export type BoundingBoxes = { [uuid: string]: BoundingBox }
+
 type OnBoundingBox = (box: BoundingBox) => void
 
 export const trackBoundingBox = (
