@@ -8,11 +8,11 @@ export interface BoundingBox {
     el: HTMLElement
 }
 
+export type OnBoundingBox = (box: BoundingBox) => void
+
 export type BoundingBoxes = { [uuid: string]: BoundingBox }
 
-type OnBoundingBox = (box: BoundingBox) => void
-
-export const trackBoundingBox = (
+export const track = (
     el: HTMLElement,
     accessor: Accessor<OnBoundingBox>
 ): void => {
@@ -29,7 +29,16 @@ export const trackBoundingBox = (
 declare module "solid-js" {
     namespace JSX {
         interface Directives {
-            trackBoundingBox: OnBoundingBox
+            track: OnBoundingBox
         }
     }
+}
+
+export const recreate = (boxes: BoundingBoxes): BoundingBoxes => {
+    const newBoxes: BoundingBoxes = {}
+    for (const [uuid, box] of Object.entries(boxes)) {
+        const { x, y, width, height } = box.el.getBoundingClientRect()
+        newBoxes[uuid] = { x, y, width, height, el: box.el }
+    }
+    return newBoxes
 }

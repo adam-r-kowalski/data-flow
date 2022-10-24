@@ -1,11 +1,22 @@
+import { PointerDown, PointerTargetKind } from "./pointers"
+
 interface Props {
-    onPointerDown: (e: PointerEvent) => void
+    dispatch: (event: PointerDown) => void
 }
 
 export const Background = (props: Props) => {
     return (
         <div
-            onPointerDown={props.onPointerDown}
+            onPointerDown={(e) =>
+                props.dispatch({
+                    kind: "pointer/down",
+                    pointer: {
+                        id: e.pointerId,
+                        pos: [e.clientX, e.clientY],
+                    },
+                    target: { kind: PointerTargetKind.BACKGROUND },
+                })
+            }
             style={{
                 position: "absolute",
                 width: "100vw",

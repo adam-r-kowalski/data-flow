@@ -43,7 +43,6 @@ export const demoModel: Model = {
             output: "node-1-output-0",
         },
     },
-    boundingBoxes: {},
     camera: { zoom: 1, pos: [0, 0] },
     pointers: { kind: PointersKind.NO_POINTER },
     window: [window.innerWidth, window.innerHeight],

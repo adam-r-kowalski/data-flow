@@ -1,149 +1,98 @@
-import { createSignal, For, onCleanup } from "solid-js"
+import { createSignal, For } from "solid-js"
 import { render } from "solid-js/web"
 
 import { Background } from "./Background"
-import { BoundingBoxChanged, NodeCard } from "./NodeCard"
-import { BezierCurves, Paths } from "./BezierCurves"
-import { moveNode } from "./nodes"
-import { moveCamera, transform, Zoom, zoomCamera } from "./camera"
+import { NodeCard } from "./NodeCard"
+import { BezierCurves } from "./BezierCurves"
 import { Menu } from "./Menu"
-import * as vec2 from "./vec2"
-import {
-    pointerDown,
-    pointerMove,
-    PointerMoveKind,
-    Pointers,
-    PointersKind,
-    PointerTarget,
-    PointerTargetKind,
-    pointerUp,
-} from "./pointers"
 import { demoModel } from "./demo"
 import { Event, update } from "./update"
+import * as camera from "./camera"
+import { BoundingBox, BoundingBoxes } from "./bounding_boxes"
+import * as boundingBoxes from "./bounding_boxes"
+import { Model } from "./model"
 
 const App = () => {
-    const [model, setModel] = createSignal(demoModel)
+    const [model, setModel] = createSignal<Model>(demoModel)
+    const [boxes, setBoxes] = createSignal<BoundingBoxes>({})
+    const onBoundingBox = (uuid: string, box: BoundingBox) => {
+        setBoxes((prev) => ({ ...prev, [uuid]: box }))
+    }
     const dispatch = (event: Event) => window.postMessage(event)
-    window.addEventListener("message", (event) =>
-        setModel((prev) => update(prev, event.data))
-    )
-    const onResize = () => {
-        setSize({
-            width: window.innerWidth,
-            height: window.innerHeight,
-        })
-    }
-    window.addEventListener("resize", onResize)
-
-    const onWheel = (e: WheelEvent) => {
-        e.preventDefault()
-        e.ctrlKey
-            ? onZoomBackground({
-                  delta: e.deltaY,
-                  pos: [e.clientX, e.clientY],
-              })
-            : onDragBackground([e.deltaX, e.deltaY])
-    }
-
-    document.addEventListener("wheel", onWheel, {
-        passive: false,
-    })
-
-    const onContextMenu = (e: MouseEvent) => e.preventDefault()
-
-    document.addEventListener("contextmenu", onContextMenu)
-
-    const onPointerDown = (event: PointerEvent, target: PointerTarget) => {
-        setPointers(
-            pointerDown(
-                pointers(),
-                {
-                    id: event.pointerId,
-                    pos: [event.clientX, event.clientY],
-                },
-                target
-            )
-        )
-    }
-
-    const onPointerUp = (event: PointerEvent) => {
-        setPointers(pointerUp(pointers(), event.pointerId))
-    }
-
-    const onPointerMove = (event: PointerEvent) => {
-        const result = pointerMove(pointers(), {
-            id: event.pointerId,
-            pos: [event.clientX, event.clientY],
-        })
-        setPointers(result.pointers)
-        switch (result.kind) {
-            case PointerMoveKind.DRAG: {
-                const target = result.target
-                const [dx, dy] = result.delta
-                switch (target.kind) {
-                    case PointerTargetKind.BACKGROUND:
-                        onDragBackground([dx, dy])
-                        break
-                    case PointerTargetKind.NODE:
-                        onDragNode({ dx, dy, uuid: target.uuid })
-                        break
-                }
-                break
-            }
-            case PointerMoveKind.ZOOM: {
-                const [x, y] = result.midpoint
-                const [dx, dy] = vec2.scale(result.pan, -1)
-                let c = moveCamera(camera(), [dx, dy])
-                c = zoomCamera(c, { delta: -result.zoom, pos: [x, y] })
-                setCamera(c)
-                recreateBoundingBoxes()
-                break
-            }
-            case PointerMoveKind.IGNORE:
+    window.addEventListener("message", (message: MessageEvent<Event>) => {
+        const event: Event = message.data
+        setModel((prev) => update(prev, event))
+        setBoxes(boundingBoxes.recreate)
+        switch (event.kind) {
+            case "camera/drag":
+            case "camera/zoom":
+                setBoxes(boundingBoxes.recreate)
+            default:
                 break
         }
-    }
-
-    document.addEventListener("pointerup", onPointerUp)
-    document.addEventListener("pointermove", onPointerMove)
-
-    onCleanup(() => {
-        window.removeEventListener("resize", onResize)
-        document.removeEventListener("wheel", onWheel)
-        document.removeEventListener("contextmenu", onContextMenu)
-        document.removeEventListener("pointerup", onPointerUp)
-        document.removeEventListener("pointermove", onPointerMove)
     })
-
+    window.addEventListener("resize", () =>
+        dispatch({
+            kind: "window/resize",
+            window: [window.innerWidth, window.innerHeight],
+        })
+    )
+    document.addEventListener(
+        "wheel",
+        (e) => {
+            e.preventDefault()
+            e.ctrlKey
+                ? dispatch({
+                      kind: "camera/zoom",
+                      delta: e.deltaY,
+                      pos: [e.clientX, e.clientY],
+                      pan: [0, 0],
+                  })
+                : dispatch({
+                      kind: "camera/drag",
+                      drag: [e.deltaX, e.deltaY],
+                  })
+        },
+        {
+            passive: false,
+        }
+    )
+    document.addEventListener("contextmenu", (e) => e.preventDefault())
+    document.addEventListener("pointerup", (e) =>
+        dispatch({
+            kind: "pointer/up",
+            id: e.pointerId,
+        })
+    )
+    document.addEventListener("pointermove", (e) => {
+        dispatch({
+            kind: "pointer/move",
+            pointer: {
+                id: e.pointerId,
+                pos: [e.clientX, e.clientY],
+            },
+        })
+    })
     return (
         <div>
-            <Background
-                onPointerDown={(e) =>
-                    onPointerDown(e, { kind: PointerTargetKind.BACKGROUND })
-                }
-            />
+            <Background dispatch={dispatch} />
             <BezierCurves
                 edges={model().edges}
-                boundingBoxes={model().boundingBoxes}
+                boxes={boxes()}
                 window={model().window}
                 zoom={model().camera.zoom}
             />
             <div
                 style={{
                     position: "absolute",
-                    transform: transform(model().camera),
+                    transform: camera.transform(model().camera),
                 }}
             >
                 <For each={Object.values(model().nodes)}>
                     {(node) => (
                         <NodeCard
                             node={node}
-                            onPointerDown={(e) =>
-                                onPointerDown(e, {
-                                    kind: PointerTargetKind.NODE,
-                                    uuid: node.uuid,
-                                })
-                            }
+                            dispatch={dispatch}
                             onBoundingBox={onBoundingBox}
                         />
                     )}

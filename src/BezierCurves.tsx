@@ -19,28 +19,30 @@ export type Paths = Path[]
 
 interface Props {
     edges: Edges
-    boundingBoxes: BoundingBoxes
+    boxes: BoundingBoxes
     window: Vec2
     zoom: number
 }
 
 export const BezierCurves = (props: Props) => {
     const paths = (): Paths => {
-        const boxes = props.boundingBoxes
-        return Object.values(props.edges).map((edge) => {
-            const inputBox = boxes[edge.input]
-            const outputBox = boxes[edge.output]
+        const result: Paths = []
+        for (const edge of Object.values(props.edges)) {
+            const inputBox = props.boxes[edge.input]
+            const outputBox = props.boxes[edge.output]
+            if (!inputBox || !outputBox) continue
             const x0 = outputBox.x + outputBox.width / 2
             const y0 = outputBox.y + outputBox.height / 2
             const x1 = inputBox.x + inputBox.width / 2
             const y1 = inputBox.y + inputBox.height / 2
-            return {
+            result.push({
                 p0: { x: x0, y: y0 },
                 p1: { x: x0 + 50 * props.zoom, y: y0 },
                 p2: { x: x1 - 50 * props.zoom, y: y1 },
                 p3: { x: x1, y: y1 },
-            }
-        })
+            })
+        }
+        return result
     }
 
     return (

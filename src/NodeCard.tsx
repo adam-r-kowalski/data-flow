@@ -1,41 +1,37 @@
 import { For } from "solid-js"
-import { BoundingBox, trackBoundingBox } from "./bounding_boxes"
 import { Node } from "./node"
+import { PointerDown, PointerTargetKind } from "./pointers"
+import { BoundingBox, track } from "./bounding_boxes"
 
-0 && trackBoundingBox
+0 && track
 
-export interface NodePointerDown {
-    kind: "node/pointer-down"
-    uuid: string
-}
-
-export interface BoundingBoxChanged {
-    kind: "bounding-box/changed"
-    uuid: string
-    box: BoundingBox
-}
-
-export type Event = NodePointerDown | BoundingBoxChanged
-
-type Dispatch = (event: Event) => void
+type Dispatch = (event: PointerDown) => void
 
 interface Props {
     node: Node
     dispatch: Dispatch
+    onBoundingBox: (uuid: string, box: BoundingBox) => void
 }
 
 export const NodeCard = (props: Props) => {
     return (
         <div
-            onPointerDown={() =>
+            onPointerDown={(e) =>
                 props.dispatch({
-                    kind: "node/pointer-down",
-                    uuid: props.node.uuid,
+                    kind: "pointer/down",
+                    pointer: {
+                        id: e.pointerId,
+                        pos: [e.clientX, e.clientY],
+                    },
+                    target: {
+                        kind: PointerTargetKind.NODE,
+                        uuid: props.node.uuid,
+                    },
                 })
             }
             style={{
                 position: "absolute",
-                transform: `translate(${props.node.x}px, ${props.node.y}px)`,
+                transform: `translate(${props.node.pos[0]}px, ${props.node.pos[1]}px)`,
                 background: "rgba(255, 255, 255, 0.25)",
                 "box-shadow": "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
                 "backdrop-filter": "blur(4px)",
@@ -68,13 +64,9 @@ export const NodeCard = (props: Props) => {
                                         "-webkit-backdrop-filter": "blur(4px)",
                                         "border-radius": "5px",
                                     }}
-                                    use:trackBoundingBox={(box) => {
-                                        props.dispatch({
-                                            kind: "bounding-box/changed",
-                                            uuid: input.uuid,
-                                            box,
-                                        })
-                                    }}
+                                    use:track={(box) =>
+                                        props.onBoundingBox(input.uuid, box)
+                                    }
                                 />
                                 <div
                                     style={{
@@ -149,13 +141,9 @@ export const NodeCard = (props: Props) => {
                                         "-webkit-backdrop-filter": "blur(4px)",
                                         "border-radius": "5px",
                                     }}
-                                    use:trackBoundingBox={(box) => {
-                                        props.dispatch({
-                                            kind: "bounding-box/changed",
-                                            uuid: output.uuid,
-                                            box,
-                                        })
-                                    }}
+                                    use:track={(box) =>
+                                        props.onBoundingBox(output.uuid, box)
+                                    }
                                 />
                             </div>
                         )}
