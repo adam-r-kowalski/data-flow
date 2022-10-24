@@ -1,5 +1,6 @@
 import { Mat3x3, matMul, scale, translate } from "./mat3x3"
 import { Vec2, add } from "./vec2"
+import * as boundingBoxes from "./bounding_boxes"
 
 export interface Camera {
     zoom: number
@@ -18,10 +19,17 @@ export interface Drag {
     drag: Vec2
 }
 
-export const drag = <M extends HasCamera>(model: M, { drag }: Drag): M => {
+type Dispatch = (event: boundingBoxes.Recreate) => void
+
+export const drag = <M extends HasCamera>(
+    dispatch: Dispatch,
+    model: M,
+    event: Drag
+): M => {
+    dispatch({ kind: "bounding-box/recreate" })
     const camera = {
         zoom: model.camera.zoom,
-        pos: add(model.camera.pos, drag),
+        pos: add(model.camera.pos, event.drag),
     }
     return { ...model, camera }
 }
@@ -34,9 +42,11 @@ export interface Zoom {
 }
 
 export const zoom = <M extends HasCamera>(
+    dispatch: Dispatch,
     model: M,
     { pos: [zx, zy], delta, pan }: Zoom
 ): M => {
+    dispatch({ kind: "bounding-box/recreate" })
     const {
         pos: [x, y],
         zoom: s,

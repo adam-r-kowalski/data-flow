@@ -21,15 +21,11 @@ const App = () => {
     const dispatch = (event: Event) => window.postMessage(event)
     const onMessage = (message: MessageEvent<Event>) => {
         const event: Event = message.data
-        setModel((prev) => update(prev, event))
         switch (event.kind) {
-            case "camera/drag":
-            case "camera/zoom":
-            case "pointer/move":
-                setBoxes(boundingBoxes.recreate)
-                break
+            case "bounding-box/recreate":
+                return setBoxes(boundingBoxes.recreate)
             default:
-                break
+                return setModel((prev) => update(dispatch, prev, event))
         }
     }
     const onResize = () =>

@@ -10,6 +10,7 @@ import {
 import * as camera from "./camera"
 import * as window from "./window"
 import * as node from "./node"
+import * as boundingBoxes from "./bounding_boxes"
 
 export type Event =
     | node.Drag
@@ -19,15 +20,22 @@ export type Event =
     | PointerDown
     | PointerUp
     | PointerMove
+    | boundingBoxes.Recreate
 
-export const update = (model: Model, event: Event): Model => {
+export type Dispatch = (event: Event) => void
+
+export const update = (
+    dispatch: Dispatch,
+    model: Model,
+    event: Exclude<Event, boundingBoxes.Recreate>
+): Model => {
     switch (event.kind) {
         case "node/drag":
             return node.drag(model, event)
         case "camera/drag":
-            return camera.drag(model, event)
+            return camera.drag(dispatch, model, event)
         case "camera/zoom":
-            return camera.zoom(model, event)
+            return camera.zoom(dispatch, model, event)
         case "window/resize":
             return window.resize(model, event)
         case "pointer/down":
@@ -35,6 +43,6 @@ export const update = (model: Model, event: Event): Model => {
         case "pointer/up":
             return pointerUp(model, event)
         case "pointer/move":
-            return pointerMove(model, event)
+            return pointerMove(dispatch, model, event)
     }
 }

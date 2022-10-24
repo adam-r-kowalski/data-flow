@@ -3,6 +3,7 @@ import { HasCamera } from "./camera"
 import * as camera from "./camera"
 import { HasNodes } from "./node"
 import * as node from "./node"
+import * as boundingBoxes from "./bounding_boxes"
 
 export interface Pointer {
     id: number
@@ -173,7 +174,10 @@ export const pointerUp = <M extends HasPointers>(
     }
 }
 
+type Dispatch = (event: boundingBoxes.Recreate) => void
+
 export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
+    dispatch: Dispatch,
     model: M,
     { pointer }: PointerMove
 ): M => {
@@ -189,6 +193,7 @@ export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
             }
             if (model.pointers.target.kind === PointerTargetKind.BACKGROUND) {
                 return camera.drag(
+                    dispatch,
                     { ...model, pointers },
                     { kind: "camera/drag", drag: scale(drag, -1) }
                 )
@@ -215,6 +220,7 @@ export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
                 distance: newDistance,
             }
             return camera.zoom(
+                dispatch,
                 { ...model, pointers },
                 {
                     kind: "camera/zoom",

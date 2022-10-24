@@ -34,6 +34,10 @@ declare module "solid-js" {
     }
 }
 
+export interface Recreate {
+    kind: "bounding-box/recreate"
+}
+
 export const recreate = (boxes: BoundingBoxes): BoundingBoxes => {
     const newBoxes: BoundingBoxes = {}
     for (const [uuid, box] of Object.entries(boxes)) {
