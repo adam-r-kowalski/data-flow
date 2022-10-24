@@ -1,7 +1,6 @@
 import { midpoint, distance, Vec2, sub, scale } from "./vec2"
 import { HasCamera } from "./camera"
 import * as camera from "./camera"
-import { HasBoundingBoxes } from "./bounding_boxes"
 import { HasNodes } from "./node"
 import * as node from "./node"
 
@@ -174,9 +173,7 @@ export const pointerUp = <M extends HasPointers>(
     }
 }
 
-export const pointerMove = <
-    M extends HasPointers & HasCamera & HasBoundingBoxes & HasNodes
->(
+export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
     model: M,
     { pointer }: PointerMove
 ): M => {
@@ -221,8 +218,8 @@ export const pointerMove = <
                 { ...model, pointers },
                 {
                     kind: "camera/zoom",
-                    delta: newDistance - pointers.distance,
-                    pan: sub(newMidpoint, pointers.midpoint),
+                    delta: model.pointers.distance - newDistance,
+                    pan: sub(model.pointers.midpoint, newMidpoint),
                     pos: newMidpoint,
                 }
             )

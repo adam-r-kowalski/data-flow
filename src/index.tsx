@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js"
+import { createSignal, For, onCleanup } from "solid-js"
 import { render } from "solid-js/web"
 
 import { Background } from "./Background"
@@ -19,52 +19,45 @@ const App = () => {
         setBoxes((prev) => ({ ...prev, [uuid]: box }))
     }
     const dispatch = (event: Event) => window.postMessage(event)
-    window.addEventListener("message", (message: MessageEvent<Event>) => {
+    const onMessage = (message: MessageEvent<Event>) => {
         const event: Event = message.data
         setModel((prev) => update(prev, event))
-        setBoxes(boundingBoxes.recreate)
         switch (event.kind) {
             case "camera/drag":
             case "camera/zoom":
+            case "pointer/move":
                 setBoxes(boundingBoxes.recreate)
+                break
             default:
                 break
         }
-    })
-    window.addEventListener("resize", () =>
+    }
+    const onResize = () =>
         dispatch({
             kind: "window/resize",
             window: [window.innerWidth, window.innerHeight],
         })
-    )
-    document.addEventListener(
-        "wheel",
-        (e) => {
-            e.preventDefault()
-            e.ctrlKey
-                ? dispatch({
-                      kind: "camera/zoom",
-                      delta: e.deltaY,
-                      pos: [e.clientX, e.clientY],
-                      pan: [0, 0],
-                  })
-                : dispatch({
-                      kind: "camera/drag",
-                      drag: [e.deltaX, e.deltaY],
-                  })
-        },
-        {
-            passive: false,
-        }
-    )
-    document.addEventListener("contextmenu", (e) => e.preventDefault())
-    document.addEventListener("pointerup", (e) =>
+    const onWheel = (e: WheelEvent) => {
+        e.preventDefault()
+        e.ctrlKey
+            ? dispatch({
+                  kind: "camera/zoom",
+                  delta: e.deltaY,
+                  pos: [e.clientX, e.clientY],
+                  pan: [0, 0],
+              })
+            : dispatch({
+                  kind: "camera/drag",
+                  drag: [-e.deltaX, -e.deltaY],
+              })
+    }
+    const onContextMenu = (e: MouseEvent) => e.preventDefault()
+    const onPointerUp = (e: PointerEvent) =>
         dispatch({
             kind: "pointer/up",
             id: e.pointerId,
         })
-    )
-    document.addEventListener("pointermove", (e) => {
+    const onPointerMove = (e: PointerEvent) =>
         dispatch({
             kind: "pointer/move",
             pointer: {
@@ -72,6 +65,19 @@ const App = () => {
                 pos: [e.clientX, e.clientY],
             },
         })
+    window.addEventListener("message", onMessage)
+    window.addEventListener("resize", onResize)
+    document.addEventListener("wheel", onWheel, { passive: false })
+    document.addEventListener("contextmenu", onContextMenu)
+    document.addEventListener("pointerup", onPointerUp)
+    document.addEventListener("pointermove", onPointerMove)
+    onCleanup(() => {
+        window.removeEventListener("message", onMessage)
+        window.removeEventListener("resize", onResize)
+        document.removeEventListener("wheel", onWheel)
+        document.removeEventListener("contextmenu", onContextMenu)
+        document.removeEventListener("pointerup", onPointerUp)
+        document.removeEventListener("pointermove", onPointerMove)
     })
     return (
         <div>
