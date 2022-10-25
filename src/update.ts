@@ -2,10 +2,10 @@ import { Model } from "./model"
 import * as pointer from "./pointer"
 import * as camera from "./camera"
 import * as window from "./window"
-import * as node from "./node"
+import * as graph from "./graph"
 
 export type Event =
-    | node.Drag
+    | graph.Drag
     | camera.Drag
     | camera.Zoom
     | window.Resize
@@ -18,7 +18,7 @@ export type Dispatch = (event: Event) => void
 export const update = (model: Model, event: Event): Model => {
     switch (event.kind) {
         case "node/drag":
-            return node.drag(model, event)
+            return graph.drag(model, event)
         case "camera/drag":
             return camera.drag(model, event)
         case "camera/zoom":
