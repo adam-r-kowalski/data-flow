@@ -1,18 +1,11 @@
 import { test, expect } from "vitest"
 import * as fc from "fast-check"
 import { Arbitrary } from "fast-check"
-import { midpoint, distance, Vec2, sub } from "../src/vec2"
-import {
-    Pointer,
-    pointerDown,
-    pointerMove,
-    PointerMoveKind,
-    Pointers,
-    PointersKind,
-    PointerTarget,
-    PointerTargetKind,
-    pointerUp,
-} from "../src/pointers"
+import { distance, midpoint, sub, Vec2 } from "../src/vec2"
+import { Pointer, PointerTarget, TargetKind } from "../src/pointer"
+import * as pointer from "../src/pointer"
+import * as camera from "../src/camera"
+import "./almostEqual"
 
 const Vec2Arb: Arbitrary<Vec2> = fc.tuple(fc.integer(), fc.integer())
 
@@ -25,18 +18,41 @@ const PointersArb = (n: number): Arbitrary<Pointer[]> =>
         .array(PointerArb, { minLength: n, maxLength: n })
         .filter((pointers) => new Set(pointers.map(({ id }) => id)).size === n)
 
-const background: PointerTarget = { kind: PointerTargetKind.BACKGROUND }
+const target: PointerTarget = { kind: TargetKind.BACKGROUND }
 
 test("pointer down with no pointers", () => {
     fc.assert(
-        fc.property(PointerArb, (pointer) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, pointer, background)
-            expect(pointers).toEqual({
-                kind: PointersKind.ONE_POINTER,
-                pointer,
-                target: background,
-            })
+        fc.property(PointerArb, (p1) => {
+            const kind = "pointer/down"
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            const expected = {
+                pointers: {
+                    kind: pointer.Kind.ONE,
+                    pointer: p1,
+                    target: target,
+                },
+            }
+            expect(actual).toAlmostEqual(expected)
+        })
+    )
+})
+
+test("pointer down with no pointers where target is node", () => {
+    fc.assert(
+        fc.property(PointerArb, (p1) => {
+            const kind = "pointer/down"
+            const target = { kind: TargetKind.NODE, uuid: "node" }
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            const expected = {
+                pointers: {
+                    kind: pointer.Kind.ONE,
+                    pointer: p1,
+                    target: target,
+                },
+            }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -44,15 +60,19 @@ test("pointer down with no pointers", () => {
 test("pointer down with one pointer", () => {
     fc.assert(
         fc.property(PointersArb(2), ([p1, p2]) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerDown(pointers, p2, background)
-            expect(pointers).toEqual({
-                kind: PointersKind.TWO_POINTERS,
-                pointers: { [p1.id]: p1, [p2.id]: p2 },
-                midpoint: midpoint(p1.pos, p2.pos),
-                distance: distance(p1.pos, p2.pos),
-            })
+            const kind = "pointer/down"
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            actual = pointer.down(actual, { kind, pointer: p2, target })
+            const expected = {
+                pointers: {
+                    kind: pointer.Kind.TWO,
+                    pointers: { [p1.id]: p1, [p2.id]: p2 },
+                    midpoint: midpoint(p1.pos, p2.pos),
+                    distance: distance(p1.pos, p2.pos),
+                },
+            }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -60,14 +80,18 @@ test("pointer down with one pointer", () => {
 test("pointer down with two pointers", () => {
     fc.assert(
         fc.property(PointersArb(3), ([p1, p2, p3]) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerDown(pointers, p2, background)
-            pointers = pointerDown(pointers, p3, background)
-            expect(pointers).toEqual({
-                kind: PointersKind.THREE_OR_MORE_POINTERS,
-                pointers: { [p1.id]: p1, [p2.id]: p2, [p3.id]: p3 },
-            })
+            const kind = "pointer/down"
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            actual = pointer.down(actual, { kind, pointer: p2, target })
+            actual = pointer.down(actual, { kind, pointer: p3, target })
+            const expected = {
+                pointers: {
+                    kind: pointer.Kind.THREE_OR_MORE,
+                    pointers: { [p1.id]: p1, [p2.id]: p2, [p3.id]: p3 },
+                },
+            }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -75,20 +99,24 @@ test("pointer down with two pointers", () => {
 test("pointer down with three pointers", () => {
     fc.assert(
         fc.property(PointersArb(4), ([p1, p2, p3, p4]) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerDown(pointers, p2, background)
-            pointers = pointerDown(pointers, p3, background)
-            pointers = pointerDown(pointers, p4, background)
-            expect(pointers).toEqual({
-                kind: PointersKind.THREE_OR_MORE_POINTERS,
+            const kind = "pointer/down"
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            actual = pointer.down(actual, { kind, pointer: p2, target })
+            actual = pointer.down(actual, { kind, pointer: p3, target })
+            actual = pointer.down(actual, { kind, pointer: p4, target })
+            const expected = {
                 pointers: {
-                    [p1.id]: p1,
-                    [p2.id]: p2,
-                    [p3.id]: p3,
-                    [p4.id]: p4,
+                    kind: pointer.Kind.THREE_OR_MORE,
+                    pointers: {
+                        [p1.id]: p1,
+                        [p2.id]: p2,
+                        [p3.id]: p3,
+                        [p4.id]: p4,
+                    },
                 },
-            })
+            }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -96,20 +124,24 @@ test("pointer down with three pointers", () => {
 test("pointer up with four pointers", () => {
     fc.assert(
         fc.property(PointersArb(4), ([p1, p2, p3, p4]) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerDown(pointers, p2, background)
-            pointers = pointerDown(pointers, p3, background)
-            pointers = pointerDown(pointers, p4, background)
-            pointers = pointerUp(pointers, p1.id)
-            expect(pointers).toEqual({
-                kind: PointersKind.THREE_OR_MORE_POINTERS,
+            const kind = "pointer/down"
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            actual = pointer.down(actual, { kind, pointer: p2, target })
+            actual = pointer.down(actual, { kind, pointer: p3, target })
+            actual = pointer.down(actual, { kind, pointer: p4, target })
+            actual = pointer.up(actual, { kind: "pointer/up", id: p1.id })
+            const expected = {
                 pointers: {
-                    [p2.id]: p2,
-                    [p3.id]: p3,
-                    [p4.id]: p4,
+                    kind: pointer.Kind.THREE_OR_MORE,
+                    pointers: {
+                        [p2.id]: p2,
+                        [p3.id]: p3,
+                        [p4.id]: p4,
+                    },
                 },
-            })
+            }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -117,20 +149,24 @@ test("pointer up with four pointers", () => {
 test("pointer up with three pointers", () => {
     fc.assert(
         fc.property(PointersArb(3), ([p1, p2, p3]) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerDown(pointers, p2, background)
-            pointers = pointerDown(pointers, p3, background)
-            pointers = pointerUp(pointers, p1.id)
-            expect(pointers).toEqual({
-                kind: PointersKind.TWO_POINTERS,
+            const kind = "pointer/down"
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            actual = pointer.down(actual, { kind, pointer: p2, target })
+            actual = pointer.down(actual, { kind, pointer: p3, target })
+            actual = pointer.up(actual, { kind: "pointer/up", id: p1.id })
+            const expected = {
                 pointers: {
-                    [p2.id]: p2,
-                    [p3.id]: p3,
+                    kind: pointer.Kind.TWO,
+                    pointers: {
+                        [p2.id]: p2,
+                        [p3.id]: p3,
+                    },
+                    midpoint: midpoint(p2.pos, p3.pos),
+                    distance: distance(p2.pos, p3.pos),
                 },
-                midpoint: midpoint(p2.pos, p3.pos),
-                distance: distance(p2.pos, p3.pos),
-            })
+            }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -138,15 +174,19 @@ test("pointer up with three pointers", () => {
 test("pointer up with two pointers", () => {
     fc.assert(
         fc.property(PointersArb(2), ([p1, p2]) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerDown(pointers, p2, background)
-            pointers = pointerUp(pointers, p1.id)
-            expect(pointers).toEqual({
-                kind: PointersKind.ONE_POINTER,
-                pointer: p2,
-                target: background,
-            })
+            const kind = "pointer/down"
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            actual = pointer.down(actual, { kind, pointer: p2, target })
+            actual = pointer.up(actual, { kind: "pointer/up", id: p1.id })
+            const expected = {
+                pointers: {
+                    kind: pointer.Kind.ONE,
+                    pointer: p2,
+                    target,
+                },
+            }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -154,33 +194,42 @@ test("pointer up with two pointers", () => {
 test("pointer up with one pointer", () => {
     fc.assert(
         fc.property(PointerArb, (p1) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerUp(pointers, p1.id)
-            expect(pointers).toEqual({ kind: PointersKind.NO_POINTER })
+            const kind = "pointer/down"
+            let actual = { pointers: pointer.initial }
+            actual = pointer.down(actual, { kind, pointer: p1, target })
+            actual = pointer.up(actual, { kind: "pointer/up", id: p1.id })
+            const expected = { pointers: pointer.initial }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
 
 test("pointer up with no pointers throws", () => {
     fc.assert(
-        fc.property(PointerArb, (p) => {
-            const pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            expect(() => pointerUp(pointers, p.id)).toThrow(
-                "pointer up when no pointers are down"
-            )
+        fc.property(fc.integer(), (id) => {
+            let actual = { pointers: pointer.initial }
+            expect(() =>
+                pointer.up(actual, { kind: "pointer/up", id })
+            ).toThrow("pointer up when no pointers are down")
         })
     )
 })
 
-test("pointer move when no pointers down", () => {
+test("pointer move when no pointer.down", () => {
     fc.assert(
         fc.property(PointerArb, (p) => {
-            const pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            expect(pointerMove(pointers, p)).toEqual({
-                kind: PointerMoveKind.IGNORE,
-                pointers,
-            })
+            let actual = {
+                pointers: pointer.initial,
+                camera: camera.initial,
+                nodes: {},
+            }
+            actual = pointer.move(actual, { kind: "pointer/move", pointer: p })
+            const expected = {
+                pointers: pointer.initial,
+                camera: camera.initial,
+                nodes: {},
+            }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -188,19 +237,34 @@ test("pointer move when no pointers down", () => {
 test("pointer move when one pointer down", () => {
     fc.assert(
         fc.property(PointerArb, Vec2Arb, (p, pos) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p, background)
-            const result = pointerMove(pointers, { id: p.id, pos })
-            expect(result).toEqual({
-                kind: PointerMoveKind.DRAG,
-                pointers: {
-                    kind: PointersKind.ONE_POINTER,
-                    pointer: { id: p.id, pos },
-                    target: background,
-                },
-                delta: sub(pos, p.pos),
-                target: background,
+            let actual = {
+                pointers: pointer.initial,
+                camera: camera.initial,
+                nodes: {},
+            }
+            actual = pointer.down(actual, {
+                kind: "pointer/down",
+                pointer: p,
+                target,
             })
+            actual = pointer.move(actual, {
+                kind: "pointer/move",
+                pointer: { id: p.id, pos },
+            })
+            let expected = {
+                pointers: {
+                    kind: pointer.Kind.ONE,
+                    pointer: { id: p.id, pos },
+                    target,
+                },
+                camera: camera.initial,
+                nodes: {},
+            }
+            expected = camera.drag(expected, {
+                kind: "camera/drag",
+                drag: sub(p.pos, pos),
+            })
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -208,23 +272,42 @@ test("pointer move when one pointer down", () => {
 test("pointer move when two pointers down", () => {
     fc.assert(
         fc.property(PointersArb(2), Vec2Arb, ([p1, p2], pos) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerDown(pointers, p2, background)
-            const result = pointerMove(pointers, { id: p1.id, pos })
-            const expected = {
-                kind: PointerMoveKind.ZOOM,
+            let actual = {
+                pointers: pointer.initial,
+                camera: camera.initial,
+                nodes: {},
+            }
+            actual = pointer.down(actual, {
+                kind: "pointer/down",
+                pointer: p1,
+                target,
+            })
+            actual = pointer.down(actual, {
+                kind: "pointer/down",
+                pointer: p2,
+                target,
+            })
+            actual = pointer.move(actual, {
+                kind: "pointer/move",
+                pointer: { id: p1.id, pos },
+            })
+            let expected = {
                 pointers: {
-                    kind: PointersKind.TWO_POINTERS,
+                    kind: pointer.Kind.TWO,
                     pointers: { [p1.id]: { id: p1.id, pos }, [p2.id]: p2 },
                     midpoint: midpoint(pos, p2.pos),
                     distance: distance(pos, p2.pos),
                 },
-                zoom: distance(pos, p2.pos) - distance(p1.pos, p2.pos),
-                pan: sub(midpoint(pos, p2.pos), midpoint(p1.pos, p2.pos)),
-                midpoint: midpoint(pos, p2.pos),
+                camera: camera.initial,
+                nodes: {},
             }
-            expect(result).toEqual(expected)
+            expected = camera.zoom(expected, {
+                kind: "camera/zoom",
+                delta: distance(p1.pos, p2.pos) - distance(pos, p2.pos),
+                pan: sub(midpoint(p1.pos, p2.pos), midpoint(pos, p2.pos)),
+                pos: midpoint(pos, p2.pos),
+            })
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -232,23 +315,43 @@ test("pointer move when two pointers down", () => {
 test("pointer move when three pointers down", () => {
     fc.assert(
         fc.property(PointersArb(3), Vec2Arb, ([p1, p2, p3], pos) => {
-            let pointers: Pointers = { kind: PointersKind.NO_POINTER }
-            pointers = pointerDown(pointers, p1, background)
-            pointers = pointerDown(pointers, p2, background)
-            pointers = pointerDown(pointers, p3, background)
-            const result = pointerMove(pointers, { id: p1.id, pos })
+            let actual = {
+                pointers: pointer.initial,
+                camera: camera.initial,
+                nodes: {},
+            }
+            actual = pointer.down(actual, {
+                kind: "pointer/down",
+                pointer: p1,
+                target,
+            })
+            actual = pointer.down(actual, {
+                kind: "pointer/down",
+                pointer: p2,
+                target,
+            })
+            actual = pointer.down(actual, {
+                kind: "pointer/down",
+                pointer: p3,
+                target,
+            })
+            actual = pointer.move(actual, {
+                kind: "pointer/move",
+                pointer: { id: p1.id, pos },
+            })
             const expected = {
-                kind: PointerMoveKind.IGNORE,
                 pointers: {
-                    kind: PointersKind.THREE_OR_MORE_POINTERS,
+                    kind: pointer.Kind.THREE_OR_MORE,
                     pointers: {
                         [p1.id]: { id: p1.id, pos },
                         [p2.id]: p2,
                         [p3.id]: p3,
                     },
                 },
+                camera: camera.initial,
+                nodes: {},
             }
-            expect(result).toEqual(expected)
+            expect(actual).toEqual(expected)
         })
     )
 })
