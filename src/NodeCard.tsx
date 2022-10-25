@@ -1,16 +1,16 @@
 import { For } from "solid-js"
 import { Node } from "./node"
 import { Down, TargetKind } from "./pointer"
-import { BoundingBox, track } from "./bounding_boxes"
+import { resizeObserver } from "./resize_observer"
 
-0 && track
+0 && resizeObserver
 
 type Dispatch = (event: Down) => void
 
 interface Props {
     node: Node
     dispatch: Dispatch
-    onBoundingBox: (uuid: string, box: BoundingBox) => void
+    onEntry: (uuid: string, entry: ResizeObserverEntry) => void
 }
 
 export const NodeCard = (props: Props) => {
@@ -64,8 +64,8 @@ export const NodeCard = (props: Props) => {
                                         "-webkit-backdrop-filter": "blur(4px)",
                                         "border-radius": "5px",
                                     }}
-                                    use:track={(box) =>
-                                        props.onBoundingBox(input.uuid, box)
+                                    use:resizeObserver={(entry) =>
+                                        props.onEntry(input.uuid, entry)
                                     }
                                 />
                                 <div
@@ -141,8 +141,8 @@ export const NodeCard = (props: Props) => {
                                         "-webkit-backdrop-filter": "blur(4px)",
                                         "border-radius": "5px",
                                     }}
-                                    use:track={(box) =>
-                                        props.onBoundingBox(output.uuid, box)
+                                    use:resizeObserver={(entry) =>
+                                        props.onEntry(output.uuid, entry)
                                     }
                                 />
                             </div>

@@ -1,12 +1,10 @@
 import { Camera } from "./camera"
-import { Edges } from "./edges"
-import { Nodes } from "./node"
-import { Pointers } from "./pointers"
+import { Graph } from "./graph"
+import { Pointers } from "./pointer"
 import { Vec2 } from "./vec2"
 
 export interface Model {
-    nodes: Nodes
-    edges: Edges
+    graph: Graph
     camera: Camera
     pointers: Pointers
     window: Vec2

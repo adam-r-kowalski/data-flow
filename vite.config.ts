@@ -13,4 +13,7 @@ export default defineConfig({
     resolve: {
         conditions: ["development", "browser"],
     },
+    test: {
+        environment: "happy-dom",
+    },
 })

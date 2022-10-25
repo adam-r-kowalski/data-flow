@@ -1,8 +1,8 @@
 import { midpoint, distance, Vec2, sub, scale } from "./vec2"
 import { HasCamera } from "./camera"
 import * as camera from "./camera"
-import { HasNodes } from "./node"
-import * as node from "./node"
+import { HasGraph } from "./graph"
+import * as graph from "./graph"
 
 export interface Pointer {
     id: number
@@ -166,7 +166,7 @@ export const up = <M extends HasPointers>(model: M, { id }: Up): M => {
     }
 }
 
-export const move = <M extends HasPointers & HasCamera & HasNodes>(
+export const move = <M extends HasPointers & HasCamera & HasGraph>(
     model: M,
     { pointer }: Move
 ): M => {
@@ -187,7 +187,7 @@ export const move = <M extends HasPointers & HasCamera & HasNodes>(
                 )
             } else {
                 const uuid = model.pointers.target.uuid
-                return node.drag(
+                return graph.drag(
                     { ...model, pointers },
                     { kind: "node/drag", uuid, drag }
                 )
