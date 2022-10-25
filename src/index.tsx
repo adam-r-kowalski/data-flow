@@ -1,14 +1,19 @@
-import { createSignal, onCleanup } from "solid-js"
+import { createEffect, createSignal, onCleanup } from "solid-js"
 import { render } from "solid-js/web"
 
 import { Background } from "./Background"
-import { demoModel } from "./demo"
+//import { demoModel } from "./demo"
+import { bigDemoModel } from "./big_demo"
 import { Event, update } from "./update"
 import { Model } from "./model"
 import * as graph from "./graph"
 
 const App = () => {
-    const [model, setModel] = createSignal<Model>(demoModel)
+    const [slider, setSlider] = createSignal(25)
+    const [model, setModel] = createSignal<Model>(bigDemoModel(slider()))
+
+    createEffect(() => setModel(bigDemoModel(slider())))
+
     const dispatch = (event: Event) => window.postMessage(event)
     const onMessage = (message: MessageEvent<Event>) => {
         setModel((prev) => update(prev, message.data))
@@ -61,6 +66,7 @@ const App = () => {
         document.removeEventListener("pointerup", onPointerUp)
         document.removeEventListener("pointermove", onPointerMove)
     })
+
     return (
         <div>
             <Background dispatch={dispatch} />
@@ -70,6 +76,38 @@ const App = () => {
                 window={model().window}
                 dispatch={dispatch}
             />
+            <div
+                style={{
+                    position: "absolute",
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    "justify-content": "center",
+                    "align-items": "end",
+                    "pointer-events": "none",
+                }}
+            >
+                <div
+                    style={{
+                        display: "flex",
+                        "flex-direction": "column",
+                        "justify-content": "center",
+                        "align-items": "center",
+                        "margin-bottom": "30px",
+                        "pointer-events": "all",
+                        "font-size": "2em",
+                    }}
+                >
+                    <div>{slider()}</div>
+                    <input
+                        type="range"
+                        min={0}
+                        max={500}
+                        onInput={(e) => setSlider(e.target.value)}
+                        value={slider()}
+                    />
+                </div>
+            </div>
         </div>
     )
 }
