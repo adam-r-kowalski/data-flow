@@ -221,13 +221,19 @@ test("pointer move when no pointer.down", () => {
             let actual = {
                 pointers: pointer.initial,
                 camera: camera.initial,
-                nodes: {},
+                graph: {
+                    nodes: {},
+                    edges: {},
+                },
             }
             actual = pointer.move(actual, { kind: "pointer/move", pointer: p })
             const expected = {
                 pointers: pointer.initial,
                 camera: camera.initial,
-                nodes: {},
+                graph: {
+                    nodes: {},
+                    edges: {},
+                },
             }
             expect(actual).toAlmostEqual(expected)
         })
@@ -240,7 +246,10 @@ test("pointer move when one pointer down", () => {
             let actual = {
                 pointers: pointer.initial,
                 camera: camera.initial,
-                nodes: {},
+                graph: {
+                    nodes: {},
+                    edges: {},
+                },
             }
             actual = pointer.down(actual, {
                 kind: "pointer/down",
@@ -258,7 +267,10 @@ test("pointer move when one pointer down", () => {
                     target,
                 },
                 camera: camera.initial,
-                nodes: {},
+                graph: {
+                    nodes: {},
+                    edges: {},
+                },
             }
             expected = camera.drag(expected, {
                 kind: "camera/drag",
@@ -275,7 +287,10 @@ test("pointer move when two pointers down", () => {
             let actual = {
                 pointers: pointer.initial,
                 camera: camera.initial,
-                nodes: {},
+                graph: {
+                    nodes: {},
+                    edges: {},
+                },
             }
             actual = pointer.down(actual, {
                 kind: "pointer/down",
@@ -299,7 +314,10 @@ test("pointer move when two pointers down", () => {
                     distance: distance(pos, p2.pos),
                 },
                 camera: camera.initial,
-                nodes: {},
+                graph: {
+                    nodes: {},
+                    edges: {},
+                },
             }
             expected = camera.zoom(expected, {
                 kind: "camera/zoom",
@@ -318,7 +336,10 @@ test("pointer move when three pointers down", () => {
             let actual = {
                 pointers: pointer.initial,
                 camera: camera.initial,
-                nodes: {},
+                graph: {
+                    nodes: {},
+                    edges: {},
+                },
             }
             actual = pointer.down(actual, {
                 kind: "pointer/down",
@@ -349,7 +370,10 @@ test("pointer move when three pointers down", () => {
                     },
                 },
                 camera: camera.initial,
-                nodes: {},
+                graph: {
+                    nodes: {},
+                    edges: {},
+                },
             }
             expect(actual).toEqual(expected)
         })
