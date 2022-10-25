@@ -4,13 +4,15 @@ import { render } from "solid-js/web"
 import { Background } from "./Background"
 import { NodeCard } from "./NodeCard"
 import { BezierCurves } from "./BezierCurves"
-import { Menu } from "./Menu"
 import { demoModel } from "./demo"
 import { Event, update } from "./update"
 import * as camera from "./camera"
 import { BoundingBox, BoundingBoxes } from "./bounding_boxes"
 import * as boundingBoxes from "./bounding_boxes"
 import { Model } from "./model"
+import { mutationObserver } from "./mutation_observer"
+
+0 && mutationObserver
 
 const App = () => {
     const [model, setModel] = createSignal<Model>(demoModel)
@@ -20,13 +22,7 @@ const App = () => {
     }
     const dispatch = (event: Event) => window.postMessage(event)
     const onMessage = (message: MessageEvent<Event>) => {
-        const event: Event = message.data
-        switch (event.kind) {
-            case "bounding-box/recreate":
-                return setBoxes(boundingBoxes.recreate)
-            default:
-                return setModel((prev) => update(dispatch, prev, event))
-        }
+        setModel((prev) => update(prev, message.data))
     }
     const onResize = () =>
         dispatch({
@@ -89,6 +85,7 @@ const App = () => {
                     position: "absolute",
                     transform: camera.transform(model().camera),
                 }}
+                use:mutationObserver={() => setBoxes(boundingBoxes.recreate)}
             >
                 <For each={Object.values(model().nodes)}>
                     {(node) => (
@@ -100,7 +97,6 @@ const App = () => {
                     )}
                 </For>
             </div>
-            <Menu window={model().window} />
         </div>
     )
 }

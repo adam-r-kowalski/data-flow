@@ -1,11 +1,11 @@
 import { For } from "solid-js"
 import { Node } from "./node"
-import { PointerDown, PointerTargetKind } from "./pointers"
+import { Down, TargetKind } from "./pointer"
 import { BoundingBox, track } from "./bounding_boxes"
 
 0 && track
 
-type Dispatch = (event: PointerDown) => void
+type Dispatch = (event: Down) => void
 
 interface Props {
     node: Node
@@ -24,7 +24,7 @@ export const NodeCard = (props: Props) => {
                         pos: [e.clientX, e.clientY],
                     },
                     target: {
-                        kind: PointerTargetKind.NODE,
+                        kind: TargetKind.NODE,
                         uuid: props.node.uuid,
                     },
                 })

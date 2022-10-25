@@ -3,104 +3,99 @@ import { HasCamera } from "./camera"
 import * as camera from "./camera"
 import { HasNodes } from "./node"
 import * as node from "./node"
-import * as boundingBoxes from "./bounding_boxes"
 
 export interface Pointer {
     id: number
     pos: Vec2
 }
 
-export enum PointerTargetKind {
+export enum TargetKind {
     NODE,
     BACKGROUND,
 }
 
-export interface PointerTargetNode {
-    kind: PointerTargetKind.NODE
+export interface TargetNode {
+    kind: TargetKind.NODE
     uuid: string
 }
 
-export interface PointerTargetBackground {
-    kind: PointerTargetKind.BACKGROUND
+export interface TargetBackground {
+    kind: TargetKind.BACKGROUND
 }
 
-export type PointerTarget = PointerTargetNode | PointerTargetBackground
+export type PointerTarget = TargetNode | TargetBackground
 
-export interface PointerDown {
+export interface Down {
     kind: "pointer/down"
     pointer: Pointer
     target: PointerTarget
 }
 
-export interface PointerUp {
+export interface Up {
     kind: "pointer/up"
     id: number
 }
 
-export interface PointerMove {
+export interface Move {
     kind: "pointer/move"
     pointer: Pointer
 }
 
-export enum PointersKind {
-    NO_POINTER,
-    ONE_POINTER,
-    TWO_POINTERS,
-    THREE_OR_MORE_POINTERS,
+export enum Kind {
+    ZERO,
+    ONE,
+    TWO,
+    THREE_OR_MORE,
 }
 
-interface NoPointer {
-    kind: PointersKind.NO_POINTER
+interface Zero {
+    kind: Kind.ZERO
 }
 
-interface OnePointer {
-    kind: PointersKind.ONE_POINTER
+interface One {
+    kind: Kind.ONE
     pointer: Pointer
     target: PointerTarget
 }
 
-interface TwoPointers {
-    kind: PointersKind.TWO_POINTERS
+interface Two {
+    kind: Kind.TWO
     pointers: { [id: number]: Pointer }
     midpoint: Vec2
     distance: number
 }
 
-interface ThreeOrMorePointers {
-    kind: PointersKind.THREE_OR_MORE_POINTERS
+interface ThreeOrMore {
+    kind: Kind.THREE_OR_MORE
     pointers: { [id: number]: Pointer }
 }
 
-export type Pointers =
-    | NoPointer
-    | OnePointer
-    | TwoPointers
-    | ThreeOrMorePointers
+export type Pointers = Zero | One | Two | ThreeOrMore
 
-interface HasPointers {
+export interface HasPointers {
     pointers: Pointers
 }
 
-export const pointerDown = <M extends HasPointers>(
+export const down = <M extends HasPointers>(
     model: M,
-    { pointer, target }: PointerDown
+    { pointer, target }: Down
 ): M => {
     switch (model.pointers.kind) {
-        case PointersKind.NO_POINTER:
+        case Kind.ZERO:
             return {
                 ...model,
                 pointers: {
-                    kind: PointersKind.ONE_POINTER,
+                    kind: Kind.ONE,
                     pointer,
                     target,
                 },
             }
-        case PointersKind.ONE_POINTER:
+        case Kind.ONE:
             const [p1, p2] = [model.pointers.pointer, pointer]
             return {
                 ...model,
                 pointers: {
-                    kind: PointersKind.TWO_POINTERS,
+                    kind: Kind.TWO,
                     pointers: {
                         [p1.id]: p1,
                         [p2.id]: p2,
@@ -109,12 +104,12 @@ export const pointerDown = <M extends HasPointers>(
                     distance: distance(p1.pos, p2.pos),
                 },
             }
-        case PointersKind.TWO_POINTERS:
-        case PointersKind.THREE_OR_MORE_POINTERS:
+        case Kind.TWO:
+        case Kind.THREE_OR_MORE:
             return {
                 ...model,
                 pointers: {
-                    kind: PointersKind.THREE_OR_MORE_POINTERS,
+                    kind: Kind.THREE_OR_MORE,
                     pointers: {
                         ...model.pointers.pointers,
                         [pointer.id]: pointer,
@@ -124,19 +119,16 @@ export const pointerDown = <M extends HasPointers>(
     }
 }
 
-export const pointerUp = <M extends HasPointers>(
-    model: M,
-    { id }: PointerUp
-): M => {
+export const up = <M extends HasPointers>(model: M, { id }: Up): M => {
     switch (model.pointers.kind) {
-        case PointersKind.THREE_OR_MORE_POINTERS: {
+        case Kind.THREE_OR_MORE: {
             const { [id]: _, ...rest } = model.pointers.pointers
             const values = Object.values(rest)
             if (values.length >= 3) {
                 return {
                     ...model,
                     pointers: {
-                        kind: PointersKind.THREE_OR_MORE_POINTERS,
+                        kind: Kind.THREE_OR_MORE,
                         pointers: rest,
                     },
                 }
@@ -145,7 +137,7 @@ export const pointerUp = <M extends HasPointers>(
                 return {
                     ...model,
                     pointers: {
-                        kind: PointersKind.TWO_POINTERS,
+                        kind: Kind.TWO,
                         pointers: rest,
                         midpoint: midpoint(p1.pos, p2.pos),
                         distance: distance(p1.pos, p2.pos),
@@ -153,47 +145,43 @@ export const pointerUp = <M extends HasPointers>(
                 }
             }
         }
-        case PointersKind.TWO_POINTERS: {
+        case Kind.TWO: {
             const { [id]: _, ...rest } = model.pointers.pointers
             const [p] = Object.values(rest)
             return {
                 ...model,
                 pointers: {
-                    kind: PointersKind.ONE_POINTER,
+                    kind: Kind.ONE,
                     pointer: p,
                     target: {
-                        kind: PointerTargetKind.BACKGROUND,
+                        kind: TargetKind.BACKGROUND,
                     },
                 },
             }
         }
-        case PointersKind.ONE_POINTER:
-            return { ...model, pointers: { kind: PointersKind.NO_POINTER } }
-        case PointersKind.NO_POINTER:
+        case Kind.ONE:
+            return { ...model, pointers: { kind: Kind.ZERO } }
+        case Kind.ZERO:
             throw "pointer up when no pointers are down"
     }
 }
 
-type Dispatch = (event: boundingBoxes.Recreate) => void
-
-export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
-    dispatch: Dispatch,
+export const move = <M extends HasPointers & HasCamera & HasNodes>(
     model: M,
-    { pointer }: PointerMove
+    { pointer }: Move
 ): M => {
     switch (model.pointers.kind) {
-        case PointersKind.NO_POINTER:
+        case Kind.ZERO:
             return model
-        case PointersKind.ONE_POINTER: {
+        case Kind.ONE: {
             const drag = sub(pointer.pos, model.pointers.pointer.pos)
             const pointers = {
-                kind: PointersKind.ONE_POINTER,
+                kind: Kind.ONE,
                 pointer,
                 target: model.pointers.target,
             }
-            if (model.pointers.target.kind === PointerTargetKind.BACKGROUND) {
+            if (model.pointers.target.kind === TargetKind.BACKGROUND) {
                 return camera.drag(
-                    dispatch,
                     { ...model, pointers },
                     { kind: "camera/drag", drag: scale(drag, -1) }
                 )
@@ -205,7 +193,7 @@ export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
                 )
             }
         }
-        case PointersKind.TWO_POINTERS: {
+        case Kind.TWO: {
             const newPointers = {
                 ...model.pointers.pointers,
                 [pointer.id]: pointer,
@@ -214,13 +202,12 @@ export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
             const newMidpoint = midpoint(p1.pos, p2.pos)
             const newDistance = distance(p1.pos, p2.pos)
             const pointers = {
-                kind: PointersKind.TWO_POINTERS,
+                kind: Kind.TWO,
                 pointers: newPointers,
                 midpoint: newMidpoint,
                 distance: newDistance,
             }
             return camera.zoom(
-                dispatch,
                 { ...model, pointers },
                 {
                     kind: "camera/zoom",
@@ -230,11 +217,11 @@ export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
                 }
             )
         }
-        case PointersKind.THREE_OR_MORE_POINTERS:
+        case Kind.THREE_OR_MORE:
             return {
                 ...model,
                 pointers: {
-                    kind: PointersKind.THREE_OR_MORE_POINTERS,
+                    kind: Kind.THREE_OR_MORE,
                     pointers: {
                         ...model.pointers.pointers,
                         [pointer.id]: pointer,
@@ -243,3 +230,5 @@ export const pointerMove = <M extends HasPointers & HasCamera & HasNodes>(
             }
     }
 }
+
+export const initial: Pointers = { kind: Kind.ZERO }

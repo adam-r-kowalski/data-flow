@@ -1,5 +1,5 @@
 import { Model } from "./model"
-import { PointersKind } from "./pointers"
+import { Kind } from "./pointer"
 
 export const demoModel: Model = {
     nodes: {
@@ -44,6 +44,6 @@ export const demoModel: Model = {
         },
     },
     camera: { zoom: 1, pos: [0, 0] },
-    pointers: { kind: PointersKind.NO_POINTER },
+    pointers: { kind: Kind.ZERO },
     window: [window.innerWidth, window.innerHeight],
 }

@@ -1,7 +1,7 @@
-import { PointerDown, PointerTargetKind } from "./pointers"
+import { Down, TargetKind } from "./pointer"
 
 interface Props {
-    dispatch: (event: PointerDown) => void
+    dispatch: (event: Down) => void
 }
 
 export const Background = (props: Props) => {
@@ -14,7 +14,7 @@ export const Background = (props: Props) => {
                         id: e.pointerId,
                         pos: [e.clientX, e.clientY],
                     },
-                    target: { kind: PointerTargetKind.BACKGROUND },
+                    target: { kind: TargetKind.BACKGROUND },
                 })
             }
             style={{

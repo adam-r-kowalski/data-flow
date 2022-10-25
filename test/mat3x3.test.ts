@@ -14,40 +14,16 @@ import {
     vecMul,
 } from "../src/mat3x3"
 import { length } from "../src/vec3"
+import "./almostEqual"
 
 const N = fc.integer({ min: -10000, max: 10000 })
 
 const Mat = fc.tuple(N, N, N, N, N, N, N, N, N)
 
-expect.extend({
-    almostEqual(received: Mat3x3, expected: Mat3x3, tolerance: number = 1e-10) {
-        for (let i = 0; i < 9; ++i) {
-            if (Math.abs(received[i] - expected[i]) > tolerance) {
-                return {
-                    pass: false,
-                    message: () =>
-                        `received[${i}] !== expected[${i}] (${received[i]}, ${expected[i]})`,
-                }
-            }
-        }
-        return { pass: true, message: () => "" }
-    },
-})
-
-interface CustomMatchers<R = unknown> {
-    almostEqual(mat: Mat3x3): R
-}
-
-declare global {
-    namespace Vi {
-        interface JestAssertion extends CustomMatchers {}
-    }
-}
-
 test("AI = A", () => {
     fc.assert(
         fc.property(Mat, (a) => {
-            expect(matMul(a, one)).almostEqual(a)
+            expect(matMul(a, one)).toAlmostEqual(a)
         })
     )
 })
@@ -55,7 +31,7 @@ test("AI = A", () => {
 test("IA = A", () => {
     fc.assert(
         fc.property(Mat, (a) => {
-            expect(matMul(one, a)).almostEqual(a)
+            expect(matMul(one, a)).toAlmostEqual(a)
         })
     )
 })
@@ -63,7 +39,9 @@ test("IA = A", () => {
 test("(AB)C = A(BC)", () => {
     fc.assert(
         fc.property(Mat, Mat, Mat, (a, b, c) => {
-            expect(matMul(matMul(a, b), c)).almostEqual(matMul(a, matMul(b, c)))
+            expect(matMul(matMul(a, b), c)).toAlmostEqual(
+                matMul(a, matMul(b, c))
+            )
         })
     )
 })
@@ -71,7 +49,7 @@ test("(AB)C = A(BC)", () => {
 test("A(B + C) == AB + AC", () => {
     fc.assert(
         fc.property(Mat, Mat, Mat, (a, b, c) => {
-            expect(matMul(a, add(b, c))).almostEqual(
+            expect(matMul(a, add(b, c))).toAlmostEqual(
                 add(matMul(a, b), matMul(a, c))
             )
         })
@@ -81,7 +59,7 @@ test("A(B + C) == AB + AC", () => {
 test("(B + C)A == BA + CA", () => {
     fc.assert(
         fc.property(Mat, Mat, Mat, (a, b, c) => {
-            expect(matMul(add(b, c), a)).almostEqual(
+            expect(matMul(add(b, c), a)).toAlmostEqual(
                 add(matMul(b, a), matMul(c, a))
             )
         })
@@ -91,7 +69,7 @@ test("(B + C)A == BA + CA", () => {
 test("OA == O", () => {
     fc.assert(
         fc.property(Mat, (a) => {
-            expect(matMul(zero, a)).almostEqual(zero)
+            expect(matMul(zero, a)).toAlmostEqual(zero)
         })
     )
 })
@@ -101,7 +79,7 @@ test("translate and scale", () => {
         fc.property(N, N, N, (x, y, s) => {
             const actual = matMul(translate(x, y), scale(s))
             const expected: Mat3x3 = [s, 0, x, 0, s, y, 0, 0, 1]
-            expect(actual).almostEqual(expected)
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
@@ -111,7 +89,7 @@ test("AA^-1 == I", () => {
         fc.property(
             Mat.filter((a) => determinant(a) !== 0),
             (a) => {
-                expect(matMul(a, inverse(a))).almostEqual(one)
+                expect(matMul(a, inverse(a))).toAlmostEqual(one)
             }
         )
     )
@@ -122,7 +100,7 @@ test("A^-1A == I", () => {
         fc.property(
             Mat.filter((a) => determinant(a) !== 0),
             (a) => {
-                expect(matMul(inverse(a), a)).almostEqual(one)
+                expect(matMul(inverse(a), a)).toAlmostEqual(one)
             }
         )
     )
