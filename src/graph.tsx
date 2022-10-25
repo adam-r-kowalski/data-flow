@@ -25,7 +25,7 @@ interface BoundingBox {
     el: HTMLElement
 }
 
-type BoundingBoxes = { [uuid: string]: BoundingBox }
+export type BoundingBoxes = { [uuid: string]: BoundingBox }
 
 interface Props {
     graph: Graph

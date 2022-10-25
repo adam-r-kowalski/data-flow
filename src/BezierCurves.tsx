@@ -1,6 +1,6 @@
 import { For } from "solid-js"
-import { BoundingBoxes } from "./bounding_boxes"
 import { Edges } from "./edges"
+import { BoundingBoxes } from "./graph"
 import { Vec2 } from "./vec2"
 
 export interface Point {

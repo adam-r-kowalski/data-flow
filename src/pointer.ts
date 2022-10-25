@@ -162,7 +162,7 @@ export const up = <M extends HasPointers>(model: M, { id }: Up): M => {
         case Kind.ONE:
             return { ...model, pointers: { kind: Kind.ZERO } }
         case Kind.ZERO:
-            throw "pointer up when no pointers are down"
+            return model
     }
 }
 

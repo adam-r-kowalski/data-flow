@@ -204,13 +204,13 @@ test("pointer up with one pointer", () => {
     )
 })
 
-test("pointer up with no pointers throws", () => {
+test("pointer up with no pointers", () => {
     fc.assert(
         fc.property(fc.integer(), (id) => {
             let actual = { pointers: pointer.initial }
-            expect(() =>
-                pointer.up(actual, { kind: "pointer/up", id })
-            ).toThrow("pointer up when no pointers are down")
+            actual = pointer.up(actual, { kind: "pointer/up", id })
+            const expected = { pointers: pointer.initial }
+            expect(actual).toAlmostEqual(expected)
         })
     )
 })
