@@ -39,8 +39,7 @@ export const View = (props: Props) => {
                 "border-radius": "10px",
                 padding: "20px",
                 gap: "20px",
-                background: "#1572A1",
-                "box-shadow": "20px 20px 60px #126189,-20px -20px 60px #1883b9",
+                background: "#007599",
                 cursor: "default",
             }}
             use:drag={({ x, y }) =>
@@ -71,11 +70,11 @@ export const View = (props: Props) => {
                                 style={{
                                     width: "44px",
                                     height: "44px",
-                                    background: "rgba(255, 255, 255, 0.25)",
+                                    background: "#0093c0",
                                     "border-radius": "10px",
                                 }}
                             />
-                            <div>{input}</div>
+                            <div style={{ color: "white" }}>{input}</div>
                         </div>
                     )}
                 </For>
@@ -88,14 +87,22 @@ export const View = (props: Props) => {
                     gap: "10px",
                 }}
             >
-                <h3 style={{ "text-align": "center", margin: 0, padding: 0 }}>
+                <h3
+                    style={{
+                        "text-align": "center",
+                        margin: 0,
+                        padding: 0,
+                        color: "white",
+                    }}
+                >
                     {props.node.name}
                 </h3>
                 <div
                     style={{
-                        background: "rgba(255, 255, 255, 0.25)",
+                        background: "#0093c0",
                         "border-radius": "10px",
                         padding: "20px",
+                        color: "white",
                     }}
                 >
                     {props.node.value}
@@ -117,12 +124,12 @@ export const View = (props: Props) => {
                                 gap: "10px",
                             }}
                         >
-                            <div>{output}</div>
+                            <div style={{ color: "white" }}>{output}</div>
                             <div
                                 style={{
                                     width: "44px",
                                     height: "44px",
-                                    background: "rgba(255, 255, 255, 0.25)",
+                                    background: "#0093c0",
                                     "border-radius": "10px",
                                 }}
                             />
