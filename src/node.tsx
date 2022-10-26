@@ -1,5 +1,5 @@
 import { For } from "solid-js"
-import { Delta, drag } from "./drag"
+import { drag } from "./drag"
 
 0 && drag
 
@@ -12,12 +12,20 @@ export interface Node {
     outputs: string[]
 }
 
-interface Props {
-    node: Node
-    onDrag: (uuid: string, delta: Delta) => void
+export interface Drag {
+    uuid: string
+    x: number
+    y: number
 }
 
-export const NodeCard = (props: Props) => {
+export type OnDrag = (drag: Drag) => void
+
+interface Props {
+    node: Node
+    onDrag: OnDrag
+}
+
+export const View = (props: Props) => {
     const transform = () => {
         const [x, y] = props.node.position
         return `translate(${x}px, ${y}px)`
@@ -25,19 +33,26 @@ export const NodeCard = (props: Props) => {
     return (
         <div
             style={{
+                display: "flex",
                 position: "absolute",
                 transform: transform(),
-                background: "rgba(255, 255, 255, 0.25)",
-                "box-shadow": "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-                "backdrop-filter": "blur(4px)",
-                "-webkit-backdrop-filter": "blur(4px)",
-                border: "1px solid rgba(255, 255, 255, 0.18)",
-                display: "flex",
-                "border-radius": "25px",
+                "border-radius": "10px",
                 padding: "20px",
                 gap: "20px",
+                background: "rgba(255, 255, 255, 0.25)",
+                "box-shadow": "0 8px 32px 0 rgba( 31, 38, 135, 0.37 )",
+                "backdrop-filter": "blur( 4px )",
+                "-webkit-backdrop-filter": "blur(4px)",
+                border: "1px solid rgba( 255, 255, 255, 0.18 )",
+                cursor: "default",
             }}
-            use:drag={(delta) => props.onDrag(props.node.uuid, delta)}
+            use:drag={({ x, y }) =>
+                props.onDrag({
+                    uuid: props.node.uuid,
+                    x,
+                    y,
+                })
+            }
         >
             <div
                 style={{
@@ -61,8 +76,6 @@ export const NodeCard = (props: Props) => {
                                     height: "44px",
                                     background: "rgba(255, 255, 255, 0.25)",
                                     "border-radius": "10px",
-                                    "backdrop-filter": "blur(4px)",
-                                    "-webkit-backdrop-filter": "blur(4px)",
                                 }}
                             />
                             <div>{input}</div>
@@ -84,8 +97,6 @@ export const NodeCard = (props: Props) => {
                 <div
                     style={{
                         background: "rgba(255, 255, 255, 0.25)",
-                        "backdrop-filter": "blur(4px)",
-                        "-webkit-backdrop-filter": "blur(4px)",
                         "border-radius": "10px",
                         padding: "20px",
                     }}
@@ -116,8 +127,6 @@ export const NodeCard = (props: Props) => {
                                     height: "44px",
                                     background: "rgba(255, 255, 255, 0.25)",
                                     "border-radius": "10px",
-                                    "backdrop-filter": "blur(4px)",
-                                    "-webkit-backdrop-filter": "blur(4px)",
                                 }}
                             />
                         </div>

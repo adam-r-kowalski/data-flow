@@ -23,9 +23,12 @@ export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
     const [pointer, setPointer] = createSignal(empty)
     const callback = accessor()
     const onPointerDown = (e: PointerEvent) => setPointer(e)
-    const onPointerUp = () => setPointer(empty)
+    const onPointerUp = (e: PointerEvent) => {
+        if (pointer().pointerId !== e.pointerId) return
+        setPointer(empty)
+    }
     const onPointerMove = (e: PointerEvent) => {
-        if (pointer().pointerId === -1) return
+        if (pointer().pointerId !== e.pointerId) return
         const x = e.clientX - pointer().clientX
         const y = e.clientY - pointer().clientY
         callback({ x, y })
