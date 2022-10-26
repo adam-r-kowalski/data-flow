@@ -18,9 +18,7 @@ export const Scene = (props: Props) => {
             <div
                 style={{
                     position: "absolute",
-                    "background-color": "#0093E9",
-                    "background-image":
-                        "linear-gradient(180deg, #0093E9 0%, #80D0C7 100%)",
+                    "background-color": "#1572A1",
                     width: "100vw",
                     height: "100vh",
                 }}

@@ -39,11 +39,8 @@ export const View = (props: Props) => {
                 "border-radius": "10px",
                 padding: "20px",
                 gap: "20px",
-                background: "rgba(255, 255, 255, 0.25)",
-                "box-shadow": "0 8px 32px 0 rgba( 31, 38, 135, 0.37 )",
-                "backdrop-filter": "blur( 4px )",
-                "-webkit-backdrop-filter": "blur(4px)",
-                border: "1px solid rgba( 255, 255, 255, 0.18 )",
+                background: "#1572A1",
+                "box-shadow": "20px 20px 60px #126189,-20px -20px 60px #1883b9",
                 cursor: "default",
             }}
             use:drag={({ x, y }) =>
