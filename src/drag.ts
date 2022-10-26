@@ -1,6 +1,6 @@
 import { Accessor, createSignal, onCleanup } from "solid-js"
 
-interface Delta {
+export interface Delta {
     x: number
     y: number
 }
