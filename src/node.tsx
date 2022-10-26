@@ -5,9 +5,21 @@ import { drag } from "./drag"
 0 && drag
 
 export const Node = () => {
+    const initX = () => {
+        const width = window.innerWidth
+        const allowed = width * 0.7
+        const padding = (width - allowed) / 2
+        return Math.random() * allowed + padding
+    }
+    const initY = () => {
+        const height = window.innerHeight
+        const allowed = height * 0.7
+        const padding = (height - allowed) / 2
+        return Math.random() * allowed + padding
+    }
     const [pos, setPos] = createSignal({
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
+        x: initX(),
+        y: initY(),
     })
     return (
         <div
