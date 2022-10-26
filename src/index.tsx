@@ -1,48 +1,36 @@
-import { createSignal, Index } from "solid-js"
+import { onCleanup } from "solid-js"
+import { createStore } from "solid-js/store"
 import { render } from "solid-js/web"
-import { Node } from "./node"
+
+import { initial } from "./graph"
+import { Drag } from "./node"
+import * as nodes from "./nodes"
 import { Scene } from "./scene"
 
 const App = () => {
-    const [slider, setSlider] = createSignal(25)
-    const names = () => Array.from({ length: slider() })
+    const [graph, setGraph] = createStore(initial(500))
+    const onWheel = (e: WheelEvent) => e.preventDefault()
+    const onScroll = (e: Event) => {
+        e.preventDefault()
+        window.scrollTo(0, 0)
+    }
+    const onDrag = (drag: Drag) => {
+        setGraph("nodes", drag.uuid, "position", ([x, y]): [number, number] => [
+            x + drag.x,
+            y + drag.y,
+        ])
+    }
+    document.addEventListener("wheel", onWheel, { passive: false })
+    document.addEventListener("scroll", onScroll)
+    onCleanup(() => {
+        document.removeEventListener("wheel", onWheel)
+        document.removeEventListener("scroll", onScroll)
+    })
     return (
         <>
             <Scene>
-                <Index each={names()}>{() => <Node />}</Index>
+                <nodes.View nodes={graph.nodes} onDrag={onDrag} />
             </Scene>
-            <div
-                style={{
-                    position: "absolute",
-                    width: `${window.innerWidth}px`,
-                    height: `${window.innerHeight}px`,
-                    display: "flex",
-                    "justify-content": "center",
-                    "align-items": "end",
-                    "pointer-events": "none",
-                }}
-            >
-                <div
-                    style={{
-                        "margin-bottom": "30px",
-                        display: "flex",
-                        "flex-direction": "column",
-                        "align-items": "center",
-                        "backdrop-filter": "blur(4px)",
-                        "-webkit-backdrop-filter": "blur(4px)",
-                    }}
-                >
-                    <input
-                        type="range"
-                        style={{ "pointer-events": "all" }}
-                        value={slider()}
-                        min={1}
-                        max={10000}
-                        onInput={(e) => setSlider(e.target.value)}
-                    />
-                    <div style={{ "font-size": "2em" }}>{slider()}</div>
-                </div>
-            </div>
         </>
     )
 }
