@@ -18,7 +18,7 @@ export const Scene = (props: Props) => {
             <div
                 style={{
                     position: "absolute",
-                    "background-color": "#1572A1",
+                    "background-color": "#014e65",
                     width: "100vw",
                     height: "100vh",
                 }}
