@@ -18,7 +18,10 @@ const transform = (e: PointerEvent): Pointer => ({
 export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
     const [pointer, setPointer] = createSignal(empty)
     const callback = accessor()
-    const onPointerDown = (e: PointerEvent) => setPointer(transform(e))
+    const onPointerDown = (e: PointerEvent) => {
+        setPointer(transform(e))
+        e.stopPropagation()
+    }
     const onPointerUp = (e: PointerEvent) => {
         if (pointer().id !== e.pointerId) return
         setPointer(empty)

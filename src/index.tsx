@@ -1,21 +1,23 @@
-import { onCleanup } from "solid-js"
 import { render } from "solid-js/web"
 
-import * as graph from "./graph"
+import { DataFlow } from "./data_flow"
 
-const App = () => {
-    const onWheel = (e: WheelEvent) => e.preventDefault()
-    const onScroll = (e: Event) => {
-        e.preventDefault()
-        window.scrollTo(0, 0)
-    }
-    document.addEventListener("wheel", onWheel, { passive: false })
-    document.addEventListener("scroll", onScroll)
-    onCleanup(() => {
-        document.removeEventListener("wheel", onWheel)
-        document.removeEventListener("scroll", onScroll)
-    })
-    return <graph.View />
-}
+const App = () => (
+    <div
+        style={{
+            display: "flex",
+            "flex-direction": "column",
+            gap: "20px",
+            width: "100vw",
+            height: "100vh",
+            "min-height": "700px",
+            "justify-content": "center",
+            "align-items": "center",
+        }}
+    >
+        <DataFlow width={300} height={300} />
+        <DataFlow width={300} height={300} />
+    </div>
+)
 
 render(() => <App />, document.getElementById("root")!)
