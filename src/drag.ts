@@ -1,38 +1,33 @@
 import { Accessor, createSignal, onCleanup } from "solid-js"
+import { sub, Vec2, zero } from "./vec2"
 
-export interface Delta {
-    x: number
-    y: number
-}
-
-type OnDrag = (delta: Delta) => void
+type OnDrag = (delta: Vec2) => void
 
 interface Pointer {
-    pointerId: number
-    clientX: number
-    clientY: number
+    id: number
+    position: Vec2
 }
 
-const empty: Pointer = {
-    pointerId: -1,
-    clientX: 0,
-    clientY: 0,
-}
+const empty: Pointer = { id: -1, position: zero }
+
+const transform = (e: PointerEvent): Pointer => ({
+    id: e.pointerId,
+    position: [e.clientX, e.clientY],
+})
 
 export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
     const [pointer, setPointer] = createSignal(empty)
     const callback = accessor()
-    const onPointerDown = (e: PointerEvent) => setPointer(e)
+    const onPointerDown = (e: PointerEvent) => setPointer(transform(e))
     const onPointerUp = (e: PointerEvent) => {
-        if (pointer().pointerId !== e.pointerId) return
+        if (pointer().id !== e.pointerId) return
         setPointer(empty)
     }
     const onPointerMove = (e: PointerEvent) => {
-        if (pointer().pointerId !== e.pointerId) return
-        const x = e.clientX - pointer().clientX
-        const y = e.clientY - pointer().clientY
-        callback({ x, y })
-        setPointer(e)
+        if (pointer().id !== e.pointerId) return
+        const p = transform(e)
+        callback(sub(pointer().position, p.position))
+        setPointer(p)
     }
     el.addEventListener("pointerdown", onPointerDown)
     document.addEventListener("pointerup", onPointerUp)
