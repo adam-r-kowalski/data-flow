@@ -1,4 +1,4 @@
-import { createSignal, For } from "solid-js"
+import { createEffect, createSignal, For } from "solid-js"
 import { createStore } from "solid-js/store"
 
 import { drag } from "./drag"
@@ -39,11 +39,18 @@ interface Edge {
 
 type Edges = { [uuid: UUID]: Edge }
 
+interface Graph {
+    nodes: Nodes
+    edges: Edges
+}
+
 interface NodeCardProps {
     node: Node
     onMutation: (uuid: UUID) => void
     onDrag: (uuid: UUID, delta: Vec2) => void
     onRef: (uuid: UUID, el: HTMLElement) => void
+    onClickInput: (uuid: UUID) => void
+    onClickOutput: (uuid: UUID) => void
 }
 
 const NodeCard = (props: NodeCardProps) => {
@@ -84,6 +91,7 @@ const NodeCard = (props: NodeCardProps) => {
                                 "align-items": "center",
                                 gap: "5px",
                             }}
+                            onClick={() => props.onClickInput(input.uuid)}
                         >
                             <div
                                 style={{
@@ -134,6 +142,7 @@ const NodeCard = (props: NodeCardProps) => {
                                 "align-items": "center",
                                 gap: "5px",
                             }}
+                            onClick={() => props.onClickOutput(output.uuid)}
                         >
                             <div>{output.name}</div>
                             <div
@@ -159,11 +168,10 @@ interface Props {
     height: number
 }
 
-export const DataFlow = (props: Props) => {
-    const [cameraPosition, setCameraPosition] = createSignal<Vec2>([0, 0])
-    const [nodes, setNodes] = createStore<Nodes>({
+const initialGraph = (): Graph => ({
+    nodes: {
         "node-0": {
-            uuid: "node-0",
+            uuid: `node-0`,
             name: "num",
             position: [50, 50],
             inputs: [],
@@ -189,8 +197,8 @@ export const DataFlow = (props: Props) => {
             outputs: [{ uuid: "node-2_output-0", name: "out" }],
             body: 42,
         },
-    })
-    const [edges, setEdges] = createStore<Edges>({
+    },
+    edges: {
         "edge-0": {
             uuid: "edge-0",
             input: "node-2_input-0",
@@ -201,7 +209,12 @@ export const DataFlow = (props: Props) => {
             input: "node-2_input-1",
             output: "node-1_output-0",
         },
-    })
+    },
+})
+
+export const DataFlow = (props: Props) => {
+    const [cameraPosition, setCameraPosition] = createSignal<Vec2>([0, 0])
+    const [graph, setGraph] = createStore<Graph>(initialGraph())
     const cameraTransform = () => {
         const [x, y] = cameraPosition()
         return `translate(${x}px, ${y}px)`
@@ -217,11 +230,11 @@ export const DataFlow = (props: Props) => {
         setBoxes(newBoxes)
     }
     const onDragNode = (uuid: string, delta: Vec2) => {
-        setNodes(uuid, "position", (position) => add(position, delta))
+        setGraph("nodes", uuid, "position", (position) => add(position, delta))
     }
     const onRef = (uuid: string, el: HTMLElement) => (refs[uuid] = el)
     const onMutation = (uuid: string) => {
-        const node = nodes[uuid]
+        const node = graph.nodes[uuid]
         for (const input of node.inputs) {
             const rect = refs[input.uuid].getBoundingClientRect()
             setBoxes(input.uuid, rect)
@@ -242,7 +255,7 @@ export const DataFlow = (props: Props) => {
     const curves = () => {
         const { x: xOffset, y: yOffset } = ref!.getBoundingClientRect()
         const paths: Path[] = []
-        for (const edge of Object.values(edges)) {
+        for (const edge of Object.values(graph.edges)) {
             const inputBox = boxes[edge.input]
             const outputBox = boxes[edge.output]
             if (!inputBox || !outputBox) continue
@@ -268,6 +281,80 @@ export const DataFlow = (props: Props) => {
         return paths
     }
 
+    let i = 3
+    const onDblClick = (e: MouseEvent) => {
+        const uuid = `node-${i++}`
+        const { x, y } = ref!.getBoundingClientRect()
+        const [cx, cy] = cameraPosition()
+        setGraph("nodes", uuid, {
+            uuid,
+            name: "node",
+            position: [e.clientX - x - cx, e.clientY - y - cy],
+            inputs: [
+                { uuid: `${uuid}_input-0`, name: "in 0" },
+                { uuid: `${uuid}_input-1`, name: "in 1" },
+            ],
+            outputs: [{ uuid: `${uuid}_output-0`, name: "out" }],
+            body: 42,
+        })
+    }
+
+    interface Selected {
+        input: UUID | undefined
+        output: UUID | undefined
+    }
+
+    const [selected, setSelected] = createStore<Selected>({
+        input: undefined,
+        output: undefined,
+    })
+
+    let j = 1
+    const onClickInput = (uuid: UUID) => {
+        if (selected.output) {
+            const edgeUuid = `edge-${j++}`
+            const edge = {
+                uuid: edgeUuid,
+                input: uuid,
+                output: selected.output,
+            }
+            setSelected("output", undefined)
+            setGraph("edges", uuid, edge)
+        } else {
+            setSelected("input", uuid)
+        }
+    }
+    const onClickOutput = (uuid: UUID) => {
+        if (selected.input) {
+            const edgeUuid = `edge-${j++}`
+            const edge = {
+                uuid: edgeUuid,
+                input: selected.input,
+                output: uuid,
+            }
+            setSelected("input", undefined)
+            setGraph("edges", uuid, edge)
+        } else {
+            setSelected("output", uuid)
+        }
+    }
+
+    const selectedInputCircle = () => {
+        if (!selected.input) return { x: -100, y: -100 }
+        const box = boxes[selected.input]
+        const { x, y } = ref!.getBoundingClientRect()
+        const r = box.width / 2
+        return { x: box.x - x + r, y: box.y - y + r }
+    }
+
+    const selectedOutputCircle = () => {
+        if (!selected.output) return { x: -100, y: -100 }
+        const box = boxes[selected.output]
+        const { x, y } = ref!.getBoundingClientRect()
+        const r = box.width / 2
+        return { x: box.x - x + r, y: box.y - y + r }
+    }
+
     return (
         <div
             style={{
@@ -278,11 +365,10 @@ export const DataFlow = (props: Props) => {
                 position: "relative",
                 "flex-shrink": 0,
                 "background-color": "#0093E9",
-                "background-image":
-                    "linear-gradient(180deg, #0093E9 0%, #80D0C7 100%)",
             }}
             use:drag={onDragCamera}
             ref={ref}
+            onDblClick={onDblClick}
         >
             <svg
                 style={{
@@ -316,16 +402,30 @@ export const DataFlow = (props: Props) => {
                         </>
                     )}
                 </For>
+                <circle
+                    cx={selectedInputCircle().x}
+                    cy={selectedInputCircle().y}
+                    r={10}
+                    fill="rgb(0, 255, 125)"
+                />
+                <circle
+                    cx={selectedOutputCircle().x}
+                    cy={selectedOutputCircle().y}
+                    r={10}
+                    fill="rgb(0, 255, 125)"
+                />
             </svg>
 
             <div style={{ transform: cameraTransform() }}>
-                <For each={Object.values(nodes)}>
+                <For each={Object.values(graph.nodes)}>
                     {(node) => (
                         <NodeCard
                             node={node}
                             onMutation={onMutation}
                             onRef={onRef}
                             onDrag={onDragNode}
+                            onClickInput={onClickInput}
+                            onClickOutput={onClickOutput}
                         />
                     )}
                 </For>
