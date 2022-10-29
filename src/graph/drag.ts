@@ -1,18 +1,27 @@
 import { Accessor, createSignal, onCleanup } from "solid-js"
-import { sub, Vec2, zero } from "./vec2"
 
-type OnDrag = (delta: Vec2) => void
+export interface Delta {
+    dx: number
+    dy: number
+}
+
+export type OnDrag = (delta: Delta) => void
+
+interface Position {
+    x: number
+    y: number
+}
 
 interface Pointer {
     id: number
-    position: Vec2
+    position: Position
 }
 
-const empty: Pointer = { id: -1, position: zero }
+const empty: Pointer = { id: -1, position: { x: 0, y: 0 } }
 
 const transform = (e: PointerEvent): Pointer => ({
     id: e.pointerId,
-    position: [e.clientX, e.clientY],
+    position: { x: e.clientX, y: e.clientY },
 })
 
 export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
@@ -29,7 +38,10 @@ export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
     const onPointerMove = (e: PointerEvent) => {
         if (pointer().id !== e.pointerId) return
         const p = transform(e)
-        callback(sub(pointer().position, p.position))
+        callback({
+            dx: pointer().position.x - p.position.x,
+            dy: pointer().position.y - p.position.y,
+        })
         setPointer(p)
     }
     el.addEventListener("pointerdown", onPointerDown)
