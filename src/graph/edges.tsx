@@ -1,13 +1,15 @@
 import { JSXElement } from "solid-js"
+import { useCamera } from "./camera"
 
 interface Props {
-    x: number
-    y: number
     children?: JSXElement
 }
 
 export const Edges = (props: Props) => {
-    const translate = () => `translate(${props.x} ${props.y})`
+    const camera = useCamera()!
+    const translate = () => `translate(${camera().x} ${camera().y})`
+    const scale = () => `scale(${camera().zoom} ${camera().zoom})`
+    const transform = () => `${translate()} ${scale()}`
     return (
         <svg
             style={{
@@ -17,7 +19,7 @@ export const Edges = (props: Props) => {
                 "pointer-events": "none",
             }}
         >
-            <g transform={translate()}>{props.children}</g>
+            <g transform={transform()}>{props.children}</g>
         </svg>
     )
 }

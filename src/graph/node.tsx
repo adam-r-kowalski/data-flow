@@ -1,4 +1,5 @@
 import { JSX, JSXElement } from "solid-js"
+import { useCamera } from "./camera"
 
 import { drag, OnDrag } from "./drag"
 import { usePorts } from "./ports"
@@ -17,6 +18,7 @@ interface Props {
 export const Node = (props: Props) => {
     const translate = () => `translate(${props.x}px, ${props.y}px)`
     const { applyDeltasToRects } = usePorts()!
+    const camera = useCamera()!
     return (
         <PortGroupProvider>
             {(() => {
@@ -30,7 +32,11 @@ export const Node = (props: Props) => {
                             },
                             ...props.style,
                         }}
-                        use:drag={(delta) => {
+                        use:drag={({ dx, dy }) => {
+                            const delta = {
+                                dx: dx / camera().zoom,
+                                dy: dy / camera().zoom,
+                            }
                             props.onDrag && props.onDrag(delta)
                             applyDeltasToRects(portIds(), delta)
                         }}
