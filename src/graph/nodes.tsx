@@ -1,15 +1,21 @@
 import { createEffect, JSXElement } from "solid-js"
+import { useCamera } from "./camera"
 import { usePorts } from "./ports"
 
 interface Props {
-    x: number
-    y: number
     children?: JSXElement
 }
 
 export const Nodes = (props: Props) => {
-    const translate = () => `translate(${props.x}px, ${props.y}px)`
+    const camera = useCamera()!
+    const translate = () => `translate(${camera().x}px, ${camera().y}px)`
+    const scale = () => `scale(${camera().zoom}, ${camera().zoom})`
+    const transform = () => `${translate()} ${scale()}`
     const { recreateAllRects } = usePorts()!
     createEffect(() => requestAnimationFrame(recreateAllRects))
-    return <div style={{ transform: translate() }}>{props.children}</div>
+    return (
+        <div style={{ transform: transform(), "transform-origin": "top left" }}>
+            {props.children}
+        </div>
+    )
 }
