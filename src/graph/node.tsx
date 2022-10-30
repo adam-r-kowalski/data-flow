@@ -17,7 +17,7 @@ interface Props {
 export const Node = (props: Props) => {
 	const [position, setPosition] = createSignal({x: props.x, y: props.y})
     const translate = () => `translate(${position().x}px, ${position().y}px)`
-    const { applyDeltasToRects } = usePorts()!
+    const { recreateSomeRects } = usePorts()!
     const camera = useCamera()!
     return (
         <PortGroupProvider>
@@ -41,7 +41,7 @@ export const Node = (props: Props) => {
 								x: pos.x - delta.dx,
 								y: pos.y - delta.dy,
 							}))
-                            applyDeltasToRects(portIds(), delta)
+                            recreateSomeRects(portIds())
                         }}
                     >
                         {props.children}

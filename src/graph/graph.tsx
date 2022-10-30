@@ -80,7 +80,15 @@ export const Graph = (props: Props) => {
                                             dy: e.deltaY,
                                         })
                                 } else {
-                                    const { offsetLeft: x, offsetTop: y } = root()!
+									const [x, y] = (() => {
+										const rootRect = root()!.getBoundingClientRect()
+										const frame = window.frameElement
+										if (!frame) {
+											return [rootRect.x, rootRect.y]
+										}
+										const frameRect = frame.getBoundingClientRect()
+										return [rootRect.x + frameRect.x, rootRect.y + frameRect.y]
+									})()
 									onZoom({
 										x: e.clientX - x,
 										y: e.clientY - y,

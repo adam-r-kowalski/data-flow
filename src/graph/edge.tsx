@@ -22,12 +22,11 @@ interface Props {
 }
 
 export const Edge = (props: Props) => {
-    const { ports, root } = usePorts()!
+    const { ports } = usePorts()!
     const port_data = (): Ports => {
-        const { x: rx, y: ry } = root()!.getBoundingClientRect()
         const transform = ({ x, y, width, height }: Rect): Port => {
-		const ox = x - rx
-		const oy = y - ry
+		const ox = x
+		const oy = y
 			return {
 				x: ox,
 				y: oy,
