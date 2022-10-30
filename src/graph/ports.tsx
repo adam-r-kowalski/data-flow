@@ -8,7 +8,7 @@ import {
 import { createMutable } from "solid-js/store"
 import { Delta } from "./drag"
 
-interface Rect {
+export interface Rect {
     x: number
     y: number
     width: number
@@ -52,9 +52,9 @@ export const PortsProvider = (props: Props) => {
     }
     const recreateAllRects = () => {
         batch(() => {
-            for (const [id, el] of Object.entries(refs)) {
-                ports[id] = el.getBoundingClientRect()
-            }
+				for (const [id, el] of Object.entries(refs)) {
+					ports[id] = el.getBoundingClientRect()
+				}
         })
     }
     const applyDeltasToRects = (port_ids: Set<string>, delta: Delta) => {

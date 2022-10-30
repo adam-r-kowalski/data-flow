@@ -1,8 +1,10 @@
-import { JSX, JSXElement } from "solid-js"
+import { createSignal, JSX, JSXElement } from "solid-js"
 
 import { PortsProvider, usePorts } from "./ports"
 import { Camera, CameraProvider } from "./camera"
-import { drag, OnDrag } from "./drag"
+import { Delta, drag } from "./drag"
+import { Mat3x3 } from "./mat3x3"
+import * as mat3x3 from "./mat3x3"
 
 0 && drag
 
@@ -10,25 +12,52 @@ export interface Zoom {
     x: number
     y: number
     delta: number
-    rootX: number
-    rootY: number
 }
 
-type OnZoom = (zoom: Zoom) => void
 
 interface Props {
-    width: number
-    height: number
-    camera: () => Camera
-    onDrag?: OnDrag
-    onZoom?: OnZoom
     style?: JSX.CSSProperties
     children?: JSXElement
 }
 
 export const Graph = (props: Props) => {
+    const [camera, setCamera] = createSignal<Camera>({ x: 0, y: 0, zoom: 1 })
+    const onDrag = (delta: Delta) => {
+        setCamera({
+            x: camera().x - delta.dx,
+            y: camera().y - delta.dy,
+            zoom: camera().zoom,
+        })
+    }
+    const clamp = (value: number, min: number, max: number) =>
+        Math.max(min, Math.min(max, value))
+    const onZoom = (zoom: Zoom) => {
+        const newZoom = clamp(camera().zoom * (1 - zoom.delta * 0.01), 0.1, 5)
+        const current: Mat3x3 = [
+            camera().zoom,
+            0,
+            camera().x,
+            0,
+            camera().zoom,
+            camera().y,
+            0,
+            0,
+            1,
+        ]
+        const transform = [
+            mat3x3.translate(zoom.x, zoom.y),
+            mat3x3.scale(newZoom / camera().zoom),
+            mat3x3.translate(-zoom.x, -zoom.y),
+            current,
+        ].reduce(mat3x3.matMul)
+        setCamera({
+            zoom: transform[0],
+            x: transform[2],
+            y: transform[5],
+        })
+    }
     return (
-        <CameraProvider camera={props.camera}>
+        <CameraProvider camera={camera}>
             <PortsProvider>
                 {(() => {
                     const { setRoot, root } = usePorts()!
@@ -36,38 +65,30 @@ export const Graph = (props: Props) => {
                         <div
                             style={{
                                 ...{
-                                    width: `${props.width}px`,
-                                    height: `${props.height}px`,
                                     overflow: "hidden",
                                     position: "relative",
                                 },
                                 ...props.style,
                             }}
                             ref={setRoot}
-                            use:drag={(delta) => {
-                                props.onDrag && props.onDrag(delta)
-                            }}
+                            use:drag={(delta) => onDrag(delta)}
                             onWheel={(e) => {
                                 e.preventDefault()
                                 if (!e.ctrlKey) {
-                                    props.onDrag &&
-                                        props.onDrag({
+                                        onDrag({
                                             dx: e.deltaX,
                                             dy: e.deltaY,
                                         })
                                 } else {
-                                    const { x, y } =
-                                        root()!.getBoundingClientRect()
-                                    props.onZoom &&
-                                        props.onZoom({
-                                            x: e.clientX,
-                                            y: e.clientY,
-                                            delta: e.deltaY,
-                                            rootX: x,
-                                            rootY: y,
-                                        })
+                                    const { offsetLeft: x, offsetTop: y } = root()!
+									onZoom({
+										x: e.clientX - x,
+										y: e.clientY - y,
+										delta: e.deltaY,
+									})
                                 }
                             }}
+                            onContextMenu={(e) => e.preventDefault()}
                         >
                             {props.children}
                         </div>

@@ -6,15 +6,16 @@ const App = () => {
     return (
         <div
             style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "50px",
-                margin: "50px",
+                display: "grid",
+                "grid-template-rows": "100%",
+                "grid-template-columns": "100%",
+                "column-gap": "10px",
+                "row-gap": "10px",
                 width: "100vw",
-                "align-items": "center",
+                height: "100vh",
+				padding: "50px"
             }}
         >
-            <DataFlow />
             <DataFlow />
         </div>
     )
