@@ -14,7 +14,6 @@ export interface Zoom {
     delta: number
 }
 
-
 interface Props {
     style?: JSX.CSSProperties
     children?: JSXElement
@@ -75,25 +74,30 @@ export const Graph = (props: Props) => {
                             onWheel={(e) => {
                                 e.preventDefault()
                                 if (!e.ctrlKey) {
-                                        onDrag({
-                                            dx: e.deltaX,
-                                            dy: e.deltaY,
-                                        })
+                                    onDrag({
+                                        dx: e.deltaX,
+                                        dy: e.deltaY,
+                                    })
                                 } else {
-									const [x, y] = (() => {
-										const rootRect = root()!.getBoundingClientRect()
-										const frame = window.frameElement
-										if (!frame) {
-											return [rootRect.x, rootRect.y]
-										}
-										const frameRect = frame.getBoundingClientRect()
-										return [rootRect.x + frameRect.x, rootRect.y + frameRect.y]
-									})()
-									onZoom({
-										x: e.clientX - x,
-										y: e.clientY - y,
-										delta: e.deltaY,
-									})
+                                    const [x, y] = (() => {
+                                        const rootRect =
+                                            root()!.getBoundingClientRect()
+                                        const frame = window.frameElement
+                                        if (!frame) {
+                                            return [rootRect.x, rootRect.y]
+                                        }
+                                        const frameRect =
+                                            frame.getBoundingClientRect()
+                                        return [
+                                            rootRect.x + frameRect.x,
+                                            rootRect.y + frameRect.y,
+                                        ]
+                                    })()
+                                    onZoom({
+                                        x: e.clientX - x,
+                                        y: e.clientY - y,
+                                        delta: e.deltaY,
+                                    })
                                 }
                             }}
                             onContextMenu={(e) => e.preventDefault()}

@@ -1,15 +1,13 @@
 import { createMemo, For } from "solid-js"
 import { createStore } from "solid-js/store"
 
-import { Graph, Nodes, Node, Port, Edges, Edge } from "./graph"
+import { Graph, Nodes, Node, Port, Edges, Edge, Curve } from "./graph"
 import * as model from "./model"
 
 export const DataFlow = () => {
-    const [graph, setGraph] = createStore(model.initial(1000))
+    const [graph] = createStore(model.initial(10))
     return (
-        <Graph
-            style={{ background: "tan", width: "100%", height: "100%" }}
-        >
+        <Graph style={{ background: "tan", width: "100%", height: "100%" }}>
             <Nodes>
                 <For each={Object.values(graph.nodes)}>
                     {(node) => {
@@ -116,18 +114,20 @@ export const DataFlow = () => {
                     {(edge) => {
                         return (
                             <Edge from={edge.output} to={edge.input}>
-                                {(rects) => {
+                                {(ports) => {
                                     const data = () => {
                                         const x0 =
-                                            rects().from.x + rects().from.width / 2
+                                            ports().from.x +
+                                            ports().from.width / 2
                                         const y0 =
-                                            rects().from.y + rects().from.height / 2
+                                            ports().from.y +
+                                            ports().from.height / 2
                                         const x1 = x0 + 50
                                         const x3 =
-                                            rects().to.x + rects().to.width / 2
+                                            ports().to.x + ports().to.width / 2
                                         const x2 = x3 - 50
                                         const y3 =
-                                            rects().to.y + rects().to.height / 2
+                                            ports().to.y + ports().to.height / 2
                                         return { x0, y0, x1, x2, x3, y3 }
                                     }
                                     const memoData = createMemo(() => data())
@@ -145,20 +145,7 @@ export const DataFlow = () => {
                                                 r={10}
                                                 fill="black"
                                             />
-                                            <path
-                                                d={`M${memoData().x0},${
-                                                    memoData().y0
-                                                } C${memoData().x1},${
-                                                    memoData().y0
-                                                } ${memoData().x2},${
-                                                    memoData().y3
-                                                } ${memoData().x3},${
-                                                    memoData().y3
-                                                }`}
-                                                stroke="black"
-                                                stroke-width={3}
-                                                fill="none"
-                                            />
+                                            <Curve ports={ports} />
                                         </>
                                     )
                                 }}

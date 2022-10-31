@@ -15,7 +15,7 @@ interface Props {
 }
 
 export const Node = (props: Props) => {
-	const [position, setPosition] = createSignal({x: props.x, y: props.y})
+    const [position, setPosition] = createSignal({ x: props.x, y: props.y })
     const translate = () => `translate(${position().x}px, ${position().y}px)`
     const { recreateSomeRects } = usePorts()!
     const camera = useCamera()!
@@ -37,10 +37,10 @@ export const Node = (props: Props) => {
                                 dx: dx / camera().zoom,
                                 dy: dy / camera().zoom,
                             }
-							setPosition(pos => ({
-								x: pos.x - delta.dx,
-								y: pos.y - delta.dy,
-							}))
+                            setPosition((pos) => ({
+                                x: pos.x - delta.dx,
+                                y: pos.y - delta.dy,
+                            }))
                             recreateSomeRects(portIds())
                         }}
                     >

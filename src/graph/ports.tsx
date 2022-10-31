@@ -24,7 +24,6 @@ type RecreateAllRects = () => void
 
 type RecreateSomeRects = (portIds: Set<string>) => void
 
-
 type SetRoot = (el: HTMLElement) => void
 
 interface Context {
@@ -52,9 +51,9 @@ export const PortsProvider = (props: Props) => {
         refs[id] = el
         ports[id] = el.getBoundingClientRect()
     }
-	const camera = useCamera()!
+    const camera = useCamera()!
     const recreateAllRects = () => {
-		const {x: ox, y: oy} = root()!.getBoundingClientRect()
+        const { x: ox, y: oy } = root()!.getBoundingClientRect()
         const transform = inverse([
             camera().zoom,
             0,
@@ -67,17 +66,20 @@ export const PortsProvider = (props: Props) => {
             1,
         ])
         batch(() => {
-				for (const [id, el] of Object.entries(refs)) {
-					const rect = el.getBoundingClientRect() 
-					const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
-					const [x1, y1] = vecMul(transform, [rect.x - ox + rect.width, rect.y - oy + rect.height, 1])
-					ports[id] = {x, y, width: x1 - x, height: y1 -y}
-				}
+            for (const [id, el] of Object.entries(refs)) {
+                const rect = el.getBoundingClientRect()
+                const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
+                const [x1, y1] = vecMul(transform, [
+                    rect.x - ox + rect.width,
+                    rect.y - oy + rect.height,
+                    1,
+                ])
+                ports[id] = { x, y, width: x1 - x, height: y1 - y }
+            }
         })
-
     }
     const recreateSomeRects = (port_ids: Set<string>) => {
-		const {x: ox, y: oy} = root()!.getBoundingClientRect()
+        const { x: ox, y: oy } = root()!.getBoundingClientRect()
         const transform = inverse([
             camera().zoom,
             0,
@@ -90,13 +92,17 @@ export const PortsProvider = (props: Props) => {
             1,
         ])
         batch(() => {
-				for (const id of port_ids) {
-					const el = refs[id]
-					const rect = el.getBoundingClientRect() 
-					const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
-					const [x1, y1] = vecMul(transform, [rect.x - ox + rect.width, rect.y - oy + rect.height, 1])
-					ports[id] = {x, y, width: x1 - x, height: y1 -y}
-				}
+            for (const id of port_ids) {
+                const el = refs[id]
+                const rect = el.getBoundingClientRect()
+                const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
+                const [x1, y1] = vecMul(transform, [
+                    rect.x - ox + rect.width,
+                    rect.y - oy + rect.height,
+                    1,
+                ])
+                ports[id] = { x, y, width: x1 - x, height: y1 - y }
+            }
         })
     }
     return (

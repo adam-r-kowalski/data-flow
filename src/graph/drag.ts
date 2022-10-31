@@ -1,5 +1,4 @@
-import { Accessor, createSignal } from "solid-js"
-import { delegateEvents } from "solid-js/web"
+import { Accessor, createSignal, onCleanup } from "solid-js"
 
 export interface Delta {
     dx: number
@@ -29,6 +28,7 @@ export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
     const [pointer, setPointer] = createSignal(empty)
     const callback = accessor()
     const onPointerDown = (e: PointerEvent) => {
+        console.log("element")
         setPointer(transform(e))
         window.addEventListener("pointerup", onPointerUp)
         window.addEventListener("pointermove", onPointerMove)
@@ -50,8 +50,10 @@ export const drag = (el: HTMLElement, accessor: Accessor<OnDrag>): void => {
         setPointer(p)
         e.stopPropagation()
     }
-    el.$$pointerdown = onPointerDown
-    delegateEvents(["pointerdown"])
+    el.addEventListener("pointerdown", onPointerDown)
+    onCleanup(() => {
+        el.removeEventListener("pointerdown", onPointerDown)
+    })
 }
 
 declare module "solid-js" {
