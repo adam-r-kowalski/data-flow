@@ -18,21 +18,18 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
 
-            - name: Install pnpm
-              uses: pnpm/action-setup@v2.2.4
-              with:
-                  version: 7
+            - name: Setup Yarn
+              uses: mskelton/setup-yarn@v1.2.1
 
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  node-version: 16
-                  cache: "pnpm"
+                  node-version: 18
 
             - name: Install and Build 🔧
               run: |
-                  pnpm install
-                  pnpm run build
+                  yarn install
+                  yarn run build
 
             - name: Deploy 🚀
               uses: JamesIves/github-pages-deploy-action@v4

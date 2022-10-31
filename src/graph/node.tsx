@@ -1,7 +1,7 @@
-import { JSX, JSXElement } from "solid-js"
+import { createSignal, JSX, JSXElement } from "solid-js"
 import { useCamera } from "./camera"
 
-import { drag, OnDrag } from "./drag"
+import { drag } from "./drag"
 import { usePorts } from "./ports"
 import { PortGroupProvider, usePortGroup } from "./port_group"
 
@@ -10,14 +10,14 @@ import { PortGroupProvider, usePortGroup } from "./port_group"
 interface Props {
     x: number
     y: number
-    onDrag?: OnDrag
     style?: JSX.CSSProperties
     children?: JSXElement
 }
 
 export const Node = (props: Props) => {
-    const translate = () => `translate(${props.x}px, ${props.y}px)`
-    const { applyDeltasToRects } = usePorts()!
+    const [position, setPosition] = createSignal({ x: props.x, y: props.y })
+    const translate = () => `translate(${position().x}px, ${position().y}px)`
+    const { recreateSomeRects } = usePorts()!
     const camera = useCamera()!
     return (
         <PortGroupProvider>
@@ -37,8 +37,11 @@ export const Node = (props: Props) => {
                                 dx: dx / camera().zoom,
                                 dy: dy / camera().zoom,
                             }
-                            props.onDrag && props.onDrag(delta)
-                            applyDeltasToRects(portIds(), delta)
+                            setPosition((pos) => ({
+                                x: pos.x - delta.dx,
+                                y: pos.y - delta.dy,
+                            }))
+                            recreateSomeRects(portIds())
                         }}
                     >
                         {props.children}

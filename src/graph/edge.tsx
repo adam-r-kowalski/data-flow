@@ -1,34 +1,45 @@
 import { JSXElement } from "solid-js"
-import { usePorts } from "./ports"
+import { Rect, usePorts } from "./ports"
 
-interface Rect {
+interface Port {
     x: number
     y: number
     width: number
     height: number
+    cx: number
+    cy: number
 }
 
-type Rects = [Rect, Rect]
+export interface Ports {
+    from: Port
+    to: Port
+}
 
 interface Props {
     from: string
     to: string
-    children: (rects: () => Rects) => JSXElement
+    children: (ports: () => Ports) => JSXElement
 }
 
 export const Edge = (props: Props) => {
-    const { ports, root } = usePorts()!
-    const rects = (): Rects => {
-        const { x: rx, y: ry } = root()!.getBoundingClientRect()
-        const offset = ({ x, y, width, height }: Rect): Rect => ({
-            x: x - rx,
-            y: y - ry,
-            width,
-            height,
-        })
-        const fromRect = offset(ports[props.from])
-        const toRect = offset(ports[props.to])
-        return [fromRect, toRect]
+    const { ports } = usePorts()!
+    const port_data = (): Ports => {
+        const transform = ({ x, y, width, height }: Rect): Port => {
+            const ox = x
+            const oy = y
+            return {
+                x: ox,
+                y: oy,
+                width,
+                height,
+                cx: ox + width / 2,
+                cy: oy + height / 2,
+            }
+        }
+        return {
+            from: transform(ports[props.from]),
+            to: transform(ports[props.to]),
+        }
     }
-    return props.children(rects)
+    return props.children(port_data)
 }

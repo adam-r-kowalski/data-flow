@@ -16,18 +16,15 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v3
 
-            - name: Install pnpm
-              uses: pnpm/action-setup@v2.2.4
-              with:
-                  version: 7
+            - name: Setup Yarn
+              uses: mskelton/setup-yarn@v1.2.1
 
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  node-version: 16
-                  cache: "pnpm"
+                  node-version: 18
 
             - name: Install and Test 🔧
               run: |
-                  pnpm install
-                  pnpm test
+                  yarn install
+                  yarn run test

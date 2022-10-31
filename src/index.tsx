@@ -6,15 +6,10 @@ const App = () => {
     return (
         <div
             style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "50px",
-                margin: "50px",
                 width: "100vw",
-                "align-items": "center",
+                height: "100vh",
             }}
         >
-            <DataFlow />
             <DataFlow />
         </div>
     )

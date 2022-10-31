@@ -1,66 +1,13 @@
-import { createSignal, For } from "solid-js"
+import { createMemo, For } from "solid-js"
 import { createStore } from "solid-js/store"
 
-import { Graph, Nodes, Node, Port, Edges, Edge } from "./graph"
-import { Delta } from "./graph/drag"
-import { Zoom } from "./graph/graph"
+import { Graph, Nodes, Node, Port, Edges, Edge, Curve } from "./graph"
 import * as model from "./model"
-import * as mat3x3 from "./mat3x3"
-import { Mat3x3 } from "./mat3x3"
 
 export const DataFlow = () => {
-    const [graph, setGraph] = createStore(model.initial(1000))
-    const [camera, setCamera] = createSignal({ x: 0, y: 0, zoom: 1 })
-    const onDragCamera = (delta: Delta) => {
-        setCamera({
-            x: camera().x - delta.dx,
-            y: camera().y - delta.dy,
-            zoom: camera().zoom,
-        })
-    }
-    const onDragNode = (id: string, delta: Delta) => {
-        setGraph("nodes", id, (node) => ({
-            ...node,
-            x: node.x - delta.dx,
-            y: node.y - delta.dy,
-        }))
-    }
-    const clamp = (value: number, min: number, max: number) =>
-        Math.max(min, Math.min(max, value))
-    const onZoom = (zoom: Zoom) => {
-        const newZoom = clamp(camera().zoom * (1 - zoom.delta * 0.01), 0.1, 5)
-        const current: Mat3x3 = [
-            camera().zoom,
-            0,
-            camera().x + zoom.rootX,
-            0,
-            camera().zoom,
-            camera().y + zoom.rootY,
-            0,
-            0,
-            1,
-        ]
-        const transform = [
-            mat3x3.translate(zoom.x, zoom.y),
-            mat3x3.scale(newZoom / camera().zoom),
-            mat3x3.translate(-zoom.x, -zoom.y),
-            current,
-        ].reduce(mat3x3.matMul)
-        setCamera({
-            zoom: transform[0],
-            x: transform[2] - zoom.rootX,
-            y: transform[5] - zoom.rootY,
-        })
-    }
+    const [graph] = createStore(model.initial(10))
     return (
-        <Graph
-            width={700}
-            height={700}
-            style={{ background: "tan" }}
-            onDrag={onDragCamera}
-            onZoom={onZoom}
-            camera={camera}
-        >
+        <Graph style={{ background: "tan", width: "100%", height: "100%" }}>
             <Nodes>
                 <For each={Object.values(graph.nodes)}>
                     {(node) => {
@@ -74,7 +21,6 @@ export const DataFlow = () => {
                                     display: "flex",
                                     gap: "20px",
                                 }}
-                                onDrag={(delta) => onDragNode(node.uuid, delta)}
                             >
                                 <div
                                     style={{
@@ -168,46 +114,38 @@ export const DataFlow = () => {
                     {(edge) => {
                         return (
                             <Edge from={edge.output} to={edge.input}>
-                                {(rects) => {
+                                {(ports) => {
                                     const data = () => {
                                         const x0 =
-                                            rects()[0].x + rects()[0].width / 2
+                                            ports().from.x +
+                                            ports().from.width / 2
                                         const y0 =
-                                            rects()[0].y + rects()[0].height / 2
+                                            ports().from.y +
+                                            ports().from.height / 2
                                         const x1 = x0 + 50
                                         const x3 =
-                                            rects()[1].x + rects()[1].width / 2
+                                            ports().to.x + ports().to.width / 2
                                         const x2 = x3 - 50
                                         const y3 =
-                                            rects()[1].y + rects()[1].height / 2
+                                            ports().to.y + ports().to.height / 2
                                         return { x0, y0, x1, x2, x3, y3 }
                                     }
+                                    const memoData = createMemo(() => data())
                                     return (
                                         <>
                                             <circle
-                                                cx={data().x0}
-                                                cy={data().y0}
+                                                cx={memoData().x0}
+                                                cy={memoData().y0}
                                                 r={10}
                                                 fill="black"
                                             />
                                             <circle
-                                                cx={data().x3}
-                                                cy={data().y3}
+                                                cx={memoData().x3}
+                                                cy={memoData().y3}
                                                 r={10}
                                                 fill="black"
                                             />
-                                            <path
-                                                d={`M${data().x0},${
-                                                    data().y0
-                                                } C${data().x1},${data().y0} ${
-                                                    data().x2
-                                                },${data().y3} ${data().x3},${
-                                                    data().y3
-                                                }`}
-                                                stroke="black"
-                                                stroke-width={3}
-                                                fill="none"
-                                            />
+                                            <Curve ports={ports} />
                                         </>
                                     )
                                 }}
