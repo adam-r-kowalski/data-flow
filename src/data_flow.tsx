@@ -5,7 +5,7 @@ import { Graph, Nodes, Node, Port, Edges, Edge, Curve } from "./graph"
 import * as model from "./model"
 
 export const DataFlow = () => {
-    const [graph] = createStore(model.initial(10))
+    const [graph] = createStore(model.initial(500))
     return (
         <Graph style={{ background: "tan", width: "100%", height: "100%" }}>
             <Nodes>

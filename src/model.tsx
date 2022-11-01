@@ -52,8 +52,8 @@ export const initial = (n: number): Graph => {
     const outputs: Outputs = {}
     const bodies: Bodies = {}
     for (let i = 0; i < n; i += 3) {
-        const x = Math.random() * window.innerWidth * 0.7 + 100
-        const y = Math.random() * window.innerHeight * 0.7 + 100
+        const x = Math.random() * window.innerWidth
+        const y = Math.random() * window.innerHeight
         nodes[`node-${i}`] = {
             uuid: `node-${i}`,
             name: "num",

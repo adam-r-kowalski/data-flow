@@ -1,11 +1,31 @@
-import { createSignal, JSX, JSXElement } from "solid-js"
-import { useCamera } from "./camera"
+import { JSX, JSXElement } from "solid-js"
 
-import { drag } from "./drag"
-import { usePorts } from "./ports"
+import { Pointers, PointersKind, TargetKind, usePointers } from "./pointers"
 import { PortGroupProvider, usePortGroup } from "./port_group"
+import { usePositions } from "./positions"
 
-0 && drag
+const onPointerDown = (
+    pointers: Pointers,
+    pointer: PointerEvent,
+    id: number,
+    portIds: Set<string>
+): Pointers => {
+    pointer.stopPropagation()
+    switch (pointers.kind) {
+        case PointersKind.ZERO:
+            return {
+                kind: PointersKind.ONE,
+                pointer,
+                target: {
+                    kind: TargetKind.NODE,
+                    id,
+                    portIds,
+                },
+            }
+        case PointersKind.ONE:
+            return pointers
+    }
+}
 
 interface Props {
     x: number
@@ -15,10 +35,12 @@ interface Props {
 }
 
 export const Node = (props: Props) => {
-    const [position, setPosition] = createSignal({ x: props.x, y: props.y })
+    const { positions, setPositions, nextId } = usePositions()!
+    const id = nextId()
+    setPositions(id, { x: props.x, y: props.y })
+    const position = () => positions[id] ?? { x: 0, y: 0 }
     const translate = () => `translate(${position().x}px, ${position().y}px)`
-    const { recreateSomeRects } = usePorts()!
-    const camera = useCamera()!
+    const [pointers, setPointers] = usePointers()!
     return (
         <PortGroupProvider>
             {(() => {
@@ -32,17 +54,11 @@ export const Node = (props: Props) => {
                             },
                             ...props.style,
                         }}
-                        use:drag={({ dx, dy }) => {
-                            const delta = {
-                                dx: dx / camera().zoom,
-                                dy: dy / camera().zoom,
-                            }
-                            setPosition((pos) => ({
-                                x: pos.x - delta.dx,
-                                y: pos.y - delta.dy,
-                            }))
-                            recreateSomeRects(portIds())
-                        }}
+                        onPointerDown={(e) =>
+                            setPointers(
+                                onPointerDown(pointers(), e, id, portIds())
+                            )
+                        }
                     >
                         {props.children}
                     </div>
