@@ -1,31 +1,8 @@
 import { JSX, JSXElement } from "solid-js"
 
-import { Pointers, PointersKind, TargetKind, usePointers } from "./pointers"
+import { TargetKind, usePointers } from "./pointers"
 import { PortGroupProvider, usePortGroup } from "./port_group"
 import { usePositions } from "./positions"
-
-const onPointerDown = (
-    pointers: Pointers,
-    pointer: PointerEvent,
-    id: number,
-    portIds: Set<string>
-): Pointers => {
-    pointer.stopPropagation()
-    switch (pointers.kind) {
-        case PointersKind.ZERO:
-            return {
-                kind: PointersKind.ONE,
-                pointer,
-                target: {
-                    kind: TargetKind.NODE,
-                    id,
-                    portIds,
-                },
-            }
-        case PointersKind.ONE:
-            return pointers
-    }
-}
 
 interface Props {
     x: number
@@ -40,7 +17,7 @@ export const Node = (props: Props) => {
     setPositions(id, { x: props.x, y: props.y })
     const position = () => positions[id] ?? { x: 0, y: 0 }
     const translate = () => `translate(${position().x}px, ${position().y}px)`
-    const [pointers, setPointers] = usePointers()!
+    const { onPointerDown } = usePointers()!
     return (
         <PortGroupProvider>
             {(() => {
@@ -54,11 +31,13 @@ export const Node = (props: Props) => {
                             },
                             ...props.style,
                         }}
-                        onPointerDown={(e) =>
-                            setPointers(
-                                onPointerDown(pointers(), e, id, portIds())
-                            )
-                        }
+                        onPointerDown={(e) => {
+                            onPointerDown(e, {
+                                kind: TargetKind.NODE,
+                                id,
+                                portIds: portIds(),
+                            })
+                        }}
                     >
                         {props.children}
                     </div>

@@ -2,13 +2,7 @@ import { createSignal, JSX, JSXElement, onCleanup } from "solid-js"
 
 import { PortsProvider, usePorts } from "./ports"
 import { Camera, CameraProvider } from "./camera"
-import {
-    Pointers,
-    PointersKind,
-    PointersProvider,
-    TargetKind,
-    usePointers,
-} from "./pointers"
+import { MoveKind, PointersProvider, TargetKind, usePointers } from "./pointers"
 import { Mat3x3 } from "./mat3x3"
 import * as mat3x3 from "./mat3x3"
 import { createStore } from "solid-js/store"
@@ -18,96 +12,6 @@ export interface Zoom {
     x: number
     y: number
     delta: number
-}
-
-const onPointerDown = (pointers: Pointers, pointer: PointerEvent): Pointers => {
-    switch (pointers.kind) {
-        case PointersKind.ZERO:
-            return {
-                kind: PointersKind.ONE,
-                pointer,
-                target: {
-                    kind: TargetKind.BACKGROUND,
-                },
-            }
-        case PointersKind.ONE:
-            throw "not implemented"
-    }
-}
-
-enum PointerMoveKind {
-    NONE,
-    BACKGROUND,
-    NODE,
-}
-
-interface PointerMoveNone {
-    kind: PointerMoveKind.NONE
-    pointers: Pointers
-}
-
-interface PointerMoveBackground {
-    kind: PointerMoveKind.BACKGROUND
-    pointers: Pointers
-    dx: number
-    dy: number
-}
-
-interface PointerMoveNode {
-    kind: PointerMoveKind.NODE
-    pointers: Pointers
-    dx: number
-    dy: number
-    id: number
-    portIds: Set<string>
-}
-
-type PointerMove = PointerMoveNone | PointerMoveBackground | PointerMoveNode
-
-const onPointerMove = (
-    pointers: Pointers,
-    pointer: PointerEvent
-): PointerMove => {
-    switch (pointers.kind) {
-        case PointersKind.ZERO:
-            return { kind: PointerMoveKind.NONE, pointers }
-        case PointersKind.ONE:
-            switch (pointers.target.kind) {
-                case TargetKind.BACKGROUND:
-                    return {
-                        kind: PointerMoveKind.BACKGROUND,
-                        pointers: {
-                            kind: PointersKind.ONE,
-                            pointer,
-                            target: { kind: TargetKind.BACKGROUND },
-                        },
-                        dx: pointers.pointer.clientX - pointer.clientX,
-                        dy: pointers.pointer.clientY - pointer.clientY,
-                    }
-                case TargetKind.NODE:
-                    return {
-                        kind: PointerMoveKind.NODE,
-                        pointers: {
-                            kind: PointersKind.ONE,
-                            pointer,
-                            target: pointers.target,
-                        },
-                        dx: pointers.pointer.clientX - pointer.clientX,
-                        dy: pointers.pointer.clientY - pointer.clientY,
-                        id: pointers.target.id,
-                        portIds: pointers.target.portIds,
-                    }
-            }
-    }
-}
-
-const onPointerUp = (pointers: Pointers, _: PointerEvent): Pointers => {
-    switch (pointers.kind) {
-        case PointersKind.ZERO:
-            return pointers
-        case PointersKind.ONE:
-            return { kind: PointersKind.ZERO }
-    }
 }
 
 interface Delta {
@@ -168,39 +72,42 @@ export const Graph = (props: Props) => {
                         {(() => {
                             const { setRoot, root, recreateSomeRects } =
                                 usePorts()!
-                            const [pointers, setPointers] = usePointers()!
+                            const {
+                                onPointerDown,
+                                onPointerMove,
+                                onPointerUp,
+                            } = usePointers()!
 
-                            const pu = (e: PointerEvent) => {
-                                setPointers(onPointerUp(pointers(), e))
-                            }
-                            document.addEventListener("pointerup", pu)
-                            const pm = (e: PointerEvent) => {
-                                const move = onPointerMove(pointers(), e)
-                                setPointers(move.pointers)
+                            document.addEventListener("pointerup", onPointerUp)
+                            const pointerMove = (e: PointerEvent) => {
+                                const move = onPointerMove(e)
+                                console.log("move")
                                 switch (move.kind) {
-                                    case PointerMoveKind.NONE:
-                                        break
-                                    case PointerMoveKind.BACKGROUND:
-                                        onDrag(move)
-                                        break
-                                    case PointerMoveKind.NODE:
-                                        console.log(
-                                            move.id,
-                                            move,
-                                            camera().zoom
-                                        )
+                                    case MoveKind.NONE:
+                                        return
+                                    case MoveKind.BACKGROUND:
+                                        return onDrag(move)
+                                    case MoveKind.NODE:
                                         setPositions(move.id, (pos) => ({
                                             x: pos.x - move.dx / camera().zoom,
                                             y: pos.y - move.dy / camera().zoom,
                                         }))
-                                        recreateSomeRects(move.portIds)
-                                        break
+                                        return recreateSomeRects(move.portIds)
                                 }
                             }
-                            document.addEventListener("pointermove", pm)
+                            document.addEventListener(
+                                "pointermove",
+                                pointerMove
+                            )
                             onCleanup(() => {
-                                document.removeEventListener("pointerup", pu)
-                                document.removeEventListener("pointermove", pm)
+                                document.removeEventListener(
+                                    "pointerup",
+                                    onPointerUp
+                                )
+                                document.removeEventListener(
+                                    "pointermove",
+                                    pointerMove
+                                )
                             })
                             return (
                                 <div
@@ -213,9 +120,9 @@ export const Graph = (props: Props) => {
                                     }}
                                     ref={setRoot}
                                     onPointerDown={(e) =>
-                                        setPointers(
-                                            onPointerDown(pointers(), e)
-                                        )
+                                        onPointerDown(e, {
+                                            kind: TargetKind.BACKGROUND,
+                                        })
                                     }
                                     onWheel={(e) => {
                                         e.preventDefault()
