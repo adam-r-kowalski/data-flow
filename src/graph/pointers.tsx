@@ -1,6 +1,6 @@
 import { createContext, createSignal, JSXElement, useContext } from "solid-js"
 
-import { sub, Vec2 } from "./vec2"
+import { sub, Vec2, midpoint, distance } from "./vec2"
 
 export enum PointersKind {
     ZERO,
@@ -46,7 +46,8 @@ type Data = { [id: number]: Pointer }
 interface Two {
     kind: PointersKind.TWO
     data: Data
-    center: Vec2
+    midpoint: Vec2
+    distance: number
 }
 
 interface ThreeOrMore {
@@ -75,7 +76,8 @@ const onPointerDown = (
                     [pointers.pointer.id]: pointers.pointer,
                     [pointer.id]: pointer,
                 },
-                center: [0, 0],
+                midpoint: midpoint(pointers.pointer.position, pointer.position),
+                distance: distance(pointers.pointer.position, pointer.position),
             }
         case PointersKind.TWO:
         case PointersKind.THREE_OR_MORE:
@@ -90,6 +92,7 @@ export enum MoveKind {
     NONE,
     BACKGROUND,
     NODE,
+    PINCH,
 }
 
 interface MoveNone {
@@ -108,7 +111,14 @@ interface MoveNode {
     portIds: Set<string>
 }
 
-type Move = MoveNone | MoveBackground | MoveNode
+interface MovePinch {
+    kind: MoveKind.PINCH
+    pan: Vec2
+    zoom: number
+    into: Vec2
+}
+
+type Move = MoveNone | MoveBackground | MoveNode | MovePinch
 
 const onPointerMove = (
     pointers: Pointers,
@@ -117,7 +127,7 @@ const onPointerMove = (
     switch (pointers.kind) {
         case PointersKind.ZERO:
             return [pointers, { kind: MoveKind.NONE }]
-        case PointersKind.ONE:
+        case PointersKind.ONE: {
             const target = pointers.target
             switch (target.kind) {
                 case TargetKind.BACKGROUND: {
@@ -138,7 +148,7 @@ const onPointerMove = (
                         pointer,
                         target,
                     }
-                    const move = {
+                    const move: Move = {
                         kind: MoveKind.NODE,
                         delta: sub(pointers.pointer.position, pointer.position),
                         id: target.id,
@@ -147,14 +157,32 @@ const onPointerMove = (
                     return [newPointers, move]
                 }
             }
-        case PointersKind.TWO:
-        case PointersKind.THREE_OR_MORE:
+        }
+        case PointersKind.TWO: {
+            const data = { ...pointers.data, [pointer.id]: pointer }
+            const [p1, p2] = Object.values(data)
             const newPointers: Pointers = {
-                ...pointers,
+                kind: PointersKind.TWO,
+                data,
+                midpoint: midpoint(p1.position, p2.position),
+                distance: distance(p1.position, p2.position),
+            }
+            const move: Move = {
+                kind: MoveKind.PINCH,
+                pan: sub(pointers.midpoint, newPointers.midpoint),
+                zoom: pointers.distance - newPointers.distance,
+                into: newPointers.midpoint,
+            }
+            return [newPointers, move]
+        }
+        case PointersKind.THREE_OR_MORE: {
+            const newPointers: Pointers = {
+                kind: PointersKind.THREE_OR_MORE,
                 data: { ...pointers.data, [pointer.id]: pointer },
             }
             const move: Move = { kind: MoveKind.NONE }
             return [newPointers, move]
+        }
     }
 }
 
@@ -176,7 +204,13 @@ const onPointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
         case PointersKind.THREE_OR_MORE: {
             const { [pointer.id]: _, ...rest } = pointers.data
             if (Object.keys(pointers.data).length === 3) {
-                return { kind: PointersKind.TWO, data: rest, center: [0, 0] }
+                const [p1, p2] = Object.values(rest)
+                return {
+                    kind: PointersKind.TWO,
+                    data: rest,
+                    midpoint: midpoint(p1.position, p2.position),
+                    distance: distance(p1.position, p2.position),
+                }
             }
             return { kind: PointersKind.THREE_OR_MORE, data: rest }
         }

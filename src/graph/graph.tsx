@@ -79,10 +79,12 @@ export const Graph = (props: Props) => {
                                 const move = onPointerMove(e)
                                 switch (move.kind) {
                                     case MoveKind.NONE:
-                                        return
-                                    case MoveKind.BACKGROUND:
-                                        return onDrag(move.delta)
-                                    case MoveKind.NODE:
+                                        break
+                                    case MoveKind.BACKGROUND: {
+                                        onDrag(move.delta)
+                                        break
+                                    }
+                                    case MoveKind.NODE: {
                                         setPositions(move.id, (pos) =>
                                             vec2.add(
                                                 pos,
@@ -92,7 +94,16 @@ export const Graph = (props: Props) => {
                                                 )
                                             )
                                         )
-                                        return recreateSomeRects(move.portIds)
+                                        recreateSomeRects(move.portIds)
+                                        break
+                                    }
+                                    case MoveKind.PINCH: {
+                                        onDrag(move.pan)
+                                        onZoom({
+                                            into: move.into,
+                                            delta: move.zoom,
+                                        })
+                                    }
                                 }
                             }
                             document.addEventListener(
