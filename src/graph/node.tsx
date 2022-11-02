@@ -14,7 +14,7 @@ interface Props {
 export const Node = (props: Props) => {
     const { positions, trackPosition } = usePositions()!
     const id = trackPosition(props.position)
-    const position = () => positions[id] ?? [0, 0]
+    const position = () => positions[id]
     const translate = () => `translate(${position()[0]}px, ${position()[1]}px)`
     const { onPointerDown } = usePointers()!
     return (

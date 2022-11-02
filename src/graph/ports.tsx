@@ -1,13 +1,9 @@
-import {
-    batch,
-    createContext,
-    createSignal,
-    JSXElement,
-    useContext,
-} from "solid-js"
+import { batch, createContext, JSXElement, useContext } from "solid-js"
 import { createMutable } from "solid-js/store"
+
 import { useCamera } from "./camera"
 import { inverse, vecMul } from "./mat3x3"
+import { useRoot } from "./root"
 import { Vec2 } from "./vec2"
 
 export interface Rect {
@@ -23,15 +19,11 @@ type RecreateAllRects = () => void
 
 type RecreateSomeRects = (portIds: Set<string>) => void
 
-type SetRoot = (el: HTMLElement) => void
-
 interface Context {
     ports: Ports
     setRef: SetRef
     recreateAllRects: RecreateAllRects
     recreateSomeRects: RecreateSomeRects
-    root: () => HTMLElement | undefined
-    setRoot: SetRoot
 }
 
 const PortsContext = createContext<Context>()
@@ -43,7 +35,7 @@ interface Props {
 }
 
 export const PortsProvider = (props: Props) => {
-    const [root, setRoot] = createSignal<HTMLElement | undefined>(undefined)
+    const { root } = useRoot()!
     const refs: Refs = {}
     const ports = createMutable<Ports>({})
     const setRef = (id: string, el: HTMLElement) => {
@@ -101,8 +93,6 @@ export const PortsProvider = (props: Props) => {
                 setRef,
                 recreateAllRects,
                 recreateSomeRects,
-                root,
-                setRoot,
             }}
         >
             {props.children}
