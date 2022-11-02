@@ -7,7 +7,8 @@ interface Props {
 
 export const Edges = (props: Props) => {
     const camera = useCamera()!
-    const translate = () => `translate(${camera().x} ${camera().y})`
+    const translate = () =>
+        `translate(${camera().position[0]} ${camera().position[1]})`
     const scale = () => `scale(${camera().zoom} ${camera().zoom})`
     const transform = () => `${translate()} ${scale()}`
     return (

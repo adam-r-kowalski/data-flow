@@ -7,15 +7,13 @@ interface Props extends JSX.PathSVGAttributes<SVGPathElement> {
 
 export const Curve = (props: Props) => {
     const d = () => {
-        const x0 = props.ports().from.cx
-        const x3 = props.ports().to.cx
+        const [x0, y0] = props.ports().from.center
+        const [x3, y3] = props.ports().to.center
         const right = x0 < x3
         const delta = Math.min(Math.abs(x3 - x0), 50)
         const x1 = right ? x0 + delta : x0 - delta
         const x2 = right ? x3 - delta : x3 + delta
-        const y0 = props.ports().from.cy
         const y1 = y0
-        const y3 = props.ports().to.cy
         const y2 = y3
         return `M${x0},${y0} C${x1},${y1} ${x2},${y2} ${x3},${y3}`
     }

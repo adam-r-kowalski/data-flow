@@ -1,8 +1,8 @@
 import { createContext, JSXElement, useContext } from "solid-js"
+import { Vec2 } from "./vec2"
 
 export interface Camera {
-    x: number
-    y: number
+    position: Vec2
     zoom: number
 }
 

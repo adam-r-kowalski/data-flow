@@ -8,12 +8,11 @@ import {
 import { createMutable } from "solid-js/store"
 import { useCamera } from "./camera"
 import { inverse, vecMul } from "./mat3x3"
+import { Vec2 } from "./vec2"
 
 export interface Rect {
-    x: number
-    y: number
-    width: number
-    height: number
+    position: Vec2
+    size: Vec2
 }
 
 type Ports = { [id: string]: Rect }
@@ -49,7 +48,11 @@ export const PortsProvider = (props: Props) => {
     const ports = createMutable<Ports>({})
     const setRef = (id: string, el: HTMLElement) => {
         refs[id] = el
-        ports[id] = el.getBoundingClientRect()
+        const { x, y, width, height } = el.getBoundingClientRect()
+        ports[id] = {
+            position: [x, y],
+            size: [width, height],
+        }
     }
     const camera = useCamera()!
     const recreateAllRects = () => {
@@ -57,10 +60,10 @@ export const PortsProvider = (props: Props) => {
         const transform = inverse([
             camera().zoom,
             0,
-            camera().x,
+            camera().position[0],
             0,
             camera().zoom,
-            camera().y,
+            camera().position[1],
             0,
             0,
             1,
@@ -74,7 +77,10 @@ export const PortsProvider = (props: Props) => {
                     rect.y - oy + rect.height,
                     1,
                 ])
-                ports[id] = { x, y, width: x1 - x, height: y1 - y }
+                ports[id] = {
+                    position: [x, y],
+                    size: [x1 - x, y1 - y],
+                }
             }
         })
     }
@@ -83,10 +89,10 @@ export const PortsProvider = (props: Props) => {
         const transform = inverse([
             camera().zoom,
             0,
-            camera().x,
+            camera().position[0],
             0,
             camera().zoom,
-            camera().y,
+            camera().position[1],
             0,
             0,
             1,
@@ -101,7 +107,10 @@ export const PortsProvider = (props: Props) => {
                     rect.y - oy + rect.height,
                     1,
                 ])
-                ports[id] = { x, y, width: x1 - x, height: y1 - y }
+                ports[id] = {
+                    position: [x, y],
+                    size: [x1 - x, y1 - y],
+                }
             }
         })
     }

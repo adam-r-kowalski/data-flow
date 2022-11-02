@@ -1,13 +1,11 @@
 import { JSXElement } from "solid-js"
 import { Rect, usePorts } from "./ports"
+import { Vec2, add, scale } from "./vec2"
 
 interface Port {
-    x: number
-    y: number
-    width: number
-    height: number
-    cx: number
-    cy: number
+    position: Vec2
+    size: Vec2
+    center: Vec2
 }
 
 export interface Ports {
@@ -24,16 +22,11 @@ interface Props {
 export const Edge = (props: Props) => {
     const { ports } = usePorts()!
     const port_data = (): Ports => {
-        const transform = ({ x, y, width, height }: Rect): Port => {
-            const ox = x
-            const oy = y
+        const transform = ({ position, size }: Rect): Port => {
             return {
-                x: ox,
-                y: oy,
-                width,
-                height,
-                cx: ox + width / 2,
-                cy: oy + height / 2,
+                position,
+                size,
+                center: add(position, scale(size, 1 / 2)),
             }
         }
         return {

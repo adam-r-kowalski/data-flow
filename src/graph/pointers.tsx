@@ -1,8 +1,12 @@
 import { createContext, createSignal, JSXElement, useContext } from "solid-js"
 
+import { sub, Vec2 } from "./vec2"
+
 export enum PointersKind {
     ZERO,
     ONE,
+    TWO,
+    THREE_OR_MORE,
 }
 
 interface Zero {
@@ -11,8 +15,7 @@ interface Zero {
 
 interface Pointer {
     id: number
-    x: number
-    y: number
+    position: Vec2
 }
 
 export enum TargetKind {
@@ -38,7 +41,20 @@ interface One {
     target: Target
 }
 
-export type Pointers = Zero | One
+type Data = { [id: number]: Pointer }
+
+interface Two {
+    kind: PointersKind.TWO
+    data: Data
+    center: Vec2
+}
+
+interface ThreeOrMore {
+    kind: PointersKind.THREE_OR_MORE
+    data: Data
+}
+
+export type Pointers = Zero | One | Two | ThreeOrMore
 
 const onPointerDown = (
     pointers: Pointers,
@@ -53,7 +69,20 @@ const onPointerDown = (
                 target,
             }
         case PointersKind.ONE:
-            throw "not implemented"
+            return {
+                kind: PointersKind.TWO,
+                data: {
+                    [pointers.pointer.id]: pointers.pointer,
+                    [pointer.id]: pointer,
+                },
+                center: [0, 0],
+            }
+        case PointersKind.TWO:
+        case PointersKind.THREE_OR_MORE:
+            return {
+                kind: PointersKind.THREE_OR_MORE,
+                data: { ...pointers.data, [pointer.id]: pointer },
+            }
     }
 }
 
@@ -69,14 +98,12 @@ interface MoveNone {
 
 interface MoveBackground {
     kind: MoveKind.BACKGROUND
-    dx: number
-    dy: number
+    delta: Vec2
 }
 
 interface MoveNode {
     kind: MoveKind.NODE
-    dx: number
-    dy: number
+    delta: Vec2
     id: number
     portIds: Set<string>
 }
@@ -101,8 +128,7 @@ const onPointerMove = (
                     }
                     const move: Move = {
                         kind: MoveKind.BACKGROUND,
-                        dx: pointers.pointer.x - pointer.x,
-                        dy: pointers.pointer.y - pointer.y,
+                        delta: sub(pointers.pointer.position, pointer.position),
                     }
                     return [newPointers, move]
                 }
@@ -114,23 +140,46 @@ const onPointerMove = (
                     }
                     const move = {
                         kind: MoveKind.NODE,
-                        dx: pointers.pointer.x - pointer.x,
-                        dy: pointers.pointer.y - pointer.y,
+                        delta: sub(pointers.pointer.position, pointer.position),
                         id: target.id,
                         portIds: target.portIds,
                     }
                     return [newPointers, move]
                 }
             }
+        case PointersKind.TWO:
+        case PointersKind.THREE_OR_MORE:
+            const newPointers: Pointers = {
+                ...pointers,
+                data: { ...pointers.data, [pointer.id]: pointer },
+            }
+            const move: Move = { kind: MoveKind.NONE }
+            return [newPointers, move]
     }
 }
 
-const onPointerUp = (pointers: Pointers, _: Pointer): Pointers => {
+const onPointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
     switch (pointers.kind) {
         case PointersKind.ZERO:
             return pointers
         case PointersKind.ONE:
             return { kind: PointersKind.ZERO }
+        case PointersKind.TWO: {
+            const { [pointer.id]: _, ...rest } = pointers.data
+            const [first] = Object.values(rest)
+            return {
+                kind: PointersKind.ONE,
+                pointer: first,
+                target: { kind: TargetKind.BACKGROUND },
+            }
+        }
+        case PointersKind.THREE_OR_MORE: {
+            const { [pointer.id]: _, ...rest } = pointers.data
+            if (Object.keys(pointers.data).length === 3) {
+                return { kind: PointersKind.TWO, data: rest, center: [0, 0] }
+            }
+            return { kind: PointersKind.THREE_OR_MORE, data: rest }
+        }
     }
 }
 
@@ -149,8 +198,7 @@ const PointersContext = createContext<Context>()
 
 const transform = (event: PointerEvent): Pointer => ({
     id: event.pointerId,
-    x: event.clientX,
-    y: event.clientY,
+    position: [event.clientX, event.clientY],
 })
 
 interface Props {

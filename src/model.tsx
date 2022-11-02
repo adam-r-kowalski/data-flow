@@ -1,10 +1,11 @@
+import { Vec2 } from "./graph/vec2"
+
 export type UUID = string
 
 export interface Node {
     uuid: UUID
     name: string
-    x: number
-    y: number
+    position: Vec2
     inputs: UUID[]
     outputs: UUID[]
     body: UUID
@@ -57,8 +58,7 @@ export const initial = (n: number): Graph => {
         nodes[`node-${i}`] = {
             uuid: `node-${i}`,
             name: "num",
-            x,
-            y,
+            position: [x, y],
             inputs: [],
             outputs: [`node-${i}_output-0`],
             body: `node-${i}_body`,
@@ -66,8 +66,7 @@ export const initial = (n: number): Graph => {
         nodes[`node-${i + 1}`] = {
             uuid: `node-${i + 1}`,
             name: "num",
-            x,
-            y: y + 200,
+            position: [x, y + 200],
             inputs: [],
             outputs: [`node-${i + 1}_output-0`],
             body: `node-${i + 1}_body`,
@@ -75,8 +74,7 @@ export const initial = (n: number): Graph => {
         nodes[`node-${i + 2}`] = {
             uuid: `node-${i + 2}`,
             name: "add",
-            x: x + 300,
-            y: y + 100,
+            position: [x + 300, y + 100],
             inputs: [`node-${i + 2}_input-0`, `node-${i + 2}_input-1`],
             outputs: [`node-${i + 2}_output-0`],
             body: `node-${i + 2}_body`,

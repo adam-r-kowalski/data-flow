@@ -7,16 +7,12 @@ import { Mat3x3 } from "./mat3x3"
 import * as mat3x3 from "./mat3x3"
 import { createStore } from "solid-js/store"
 import { Positions, PositionsProvider } from "./positions"
+import { Vec2 } from "./vec2"
+import * as vec2 from "./vec2"
 
 export interface Zoom {
-    x: number
-    y: number
+    into: Vec2
     delta: number
-}
-
-interface Delta {
-    dx: number
-    dy: number
 }
 
 interface Props {
@@ -25,12 +21,14 @@ interface Props {
 }
 
 export const Graph = (props: Props) => {
-    const [camera, setCamera] = createSignal<Camera>({ x: 0, y: 0, zoom: 1 })
+    const [camera, setCamera] = createSignal<Camera>({
+        position: [0, 0],
+        zoom: 1,
+    })
     const [positions, setPositions] = createStore<Positions>({})
-    const onDrag = (delta: Delta) => {
+    const onDrag = (delta: Vec2) => {
         setCamera({
-            x: camera().x - delta.dx,
-            y: camera().y - delta.dy,
+            position: vec2.add(camera().position, delta),
             zoom: camera().zoom,
         })
     }
@@ -41,24 +39,23 @@ export const Graph = (props: Props) => {
         const current: Mat3x3 = [
             camera().zoom,
             0,
-            camera().x,
+            camera().position[0],
             0,
             camera().zoom,
-            camera().y,
+            camera().position[1],
             0,
             0,
             1,
         ]
         const transform = [
-            mat3x3.translate(zoom.x, zoom.y),
+            mat3x3.translate(zoom.into[0], zoom.into[1]),
             mat3x3.scale(newZoom / camera().zoom),
-            mat3x3.translate(-zoom.x, -zoom.y),
+            mat3x3.translate(-zoom.into[0], -zoom.into[1]),
             current,
         ].reduce(mat3x3.matMul)
         setCamera({
             zoom: transform[0],
-            x: transform[2],
-            y: transform[5],
+            position: [transform[2], transform[5]],
         })
     }
     return (
@@ -77,21 +74,24 @@ export const Graph = (props: Props) => {
                                 onPointerMove,
                                 onPointerUp,
                             } = usePointers()!
-
                             document.addEventListener("pointerup", onPointerUp)
                             const pointerMove = (e: PointerEvent) => {
                                 const move = onPointerMove(e)
-                                console.log("move")
                                 switch (move.kind) {
                                     case MoveKind.NONE:
                                         return
                                     case MoveKind.BACKGROUND:
-                                        return onDrag(move)
+                                        return onDrag(move.delta)
                                     case MoveKind.NODE:
-                                        setPositions(move.id, (pos) => ({
-                                            x: pos.x - move.dx / camera().zoom,
-                                            y: pos.y - move.dy / camera().zoom,
-                                        }))
+                                        setPositions(move.id, (pos) =>
+                                            vec2.add(
+                                                pos,
+                                                vec2.scale(
+                                                    move.delta,
+                                                    1 / camera().zoom
+                                                )
+                                            )
+                                        )
                                         return recreateSomeRects(move.portIds)
                                 }
                             }
@@ -127,10 +127,7 @@ export const Graph = (props: Props) => {
                                     onWheel={(e) => {
                                         e.preventDefault()
                                         if (!e.ctrlKey) {
-                                            onDrag({
-                                                dx: e.deltaX,
-                                                dy: e.deltaY,
-                                            })
+                                            onDrag([-e.deltaX, -e.deltaY])
                                         } else {
                                             const [x, y] = (() => {
                                                 const rootRect =
@@ -151,8 +148,10 @@ export const Graph = (props: Props) => {
                                                 ]
                                             })()
                                             onZoom({
-                                                x: e.clientX - x,
-                                                y: e.clientY - y,
+                                                into: [
+                                                    e.clientX - x,
+                                                    e.clientY - y,
+                                                ],
                                                 delta: e.deltaY,
                                             })
                                         }

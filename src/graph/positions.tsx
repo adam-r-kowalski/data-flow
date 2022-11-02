@@ -1,12 +1,8 @@
 import { createContext, JSXElement, useContext } from "solid-js"
 import { SetStoreFunction } from "solid-js/store"
+import { Vec2 } from "./vec2"
 
-interface Position {
-    x: number
-    y: number
-}
-
-export type Positions = { [id: string]: Position }
+export type Positions = { [id: string]: Vec2 }
 
 interface Context {
     positions: Positions
