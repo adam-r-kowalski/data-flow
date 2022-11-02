@@ -13,7 +13,7 @@ interface Zero {
     kind: PointersKind.ZERO
 }
 
-interface Pointer {
+export interface Pointer {
     id: number
     position: Vec2
 }
@@ -33,7 +33,7 @@ interface Node {
     portIds: Set<string>
 }
 
-type Target = Background | Node
+export type Target = Background | Node
 
 interface One {
     kind: PointersKind.ONE
@@ -57,7 +57,7 @@ interface ThreeOrMore {
 
 export type Pointers = Zero | One | Two | ThreeOrMore
 
-const onPointerDown = (
+export const onPointerDown = (
     pointers: Pointers,
     pointer: Pointer,
     target: Target
@@ -120,7 +120,7 @@ interface MovePinch {
 
 type Move = MoveNone | MoveBackground | MoveNode | MovePinch
 
-const onPointerMove = (
+export const onPointerMove = (
     pointers: Pointers,
     pointer: Pointer
 ): [Pointers, Move] => {
@@ -186,7 +186,7 @@ const onPointerMove = (
     }
 }
 
-const onPointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
+export const onPointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
     switch (pointers.kind) {
         case PointersKind.ZERO:
             return pointers
