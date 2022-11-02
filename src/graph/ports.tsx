@@ -35,7 +35,7 @@ interface Props {
 }
 
 export const PortsProvider = (props: Props) => {
-    const { root } = useRoot()!
+    const { offset } = useRoot()!
     const refs: Refs = {}
     const ports = createMutable<Ports>({})
     const setRef = (id: string, el: HTMLElement) => {
@@ -47,42 +47,39 @@ export const PortsProvider = (props: Props) => {
         }
     }
     const { cameraTransform } = useCamera()!
-    const recreateAllRects = () => {
-        const { x: ox, y: oy } = root()!.getBoundingClientRect()
+
+    const makeCreateRect = () => {
+        const [ox, oy] = offset()
         const transform = inverse(cameraTransform())
+        return (id: string, el: HTMLElement): void => {
+            const rect = el.getBoundingClientRect()
+            const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
+            const [x1, y1] = vecMul(transform, [
+                rect.x - ox + rect.width,
+                rect.y - oy + rect.height,
+                1,
+            ])
+            ports[id] = {
+                position: [x, y],
+                size: [x1 - x, y1 - y],
+            }
+        }
+    }
+
+    const recreateAllRects = () => {
+        const createRect = makeCreateRect()
         batch(() => {
             for (const [id, el] of Object.entries(refs)) {
-                const rect = el.getBoundingClientRect()
-                const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
-                const [x1, y1] = vecMul(transform, [
-                    rect.x - ox + rect.width,
-                    rect.y - oy + rect.height,
-                    1,
-                ])
-                ports[id] = {
-                    position: [x, y],
-                    size: [x1 - x, y1 - y],
-                }
+                createRect(id, el)
             }
         })
     }
     const recreateSomeRects = (port_ids: Set<string>) => {
-        const { x: ox, y: oy } = root()!.getBoundingClientRect()
-        const transform = inverse(cameraTransform())
+        const createRect = makeCreateRect()
         batch(() => {
             for (const id of port_ids) {
                 const el = refs[id]
-                const rect = el.getBoundingClientRect()
-                const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
-                const [x1, y1] = vecMul(transform, [
-                    rect.x - ox + rect.width,
-                    rect.y - oy + rect.height,
-                    1,
-                ])
-                ports[id] = {
-                    position: [x, y],
-                    size: [x1 - x, y1 - y],
-                }
+                createRect(id, el)
             }
         })
     }

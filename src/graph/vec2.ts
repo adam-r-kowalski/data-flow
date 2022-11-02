@@ -5,7 +5,7 @@ export const add = ([x0, y0]: Vec2, [x1, y1]: Vec2): Vec2 => {
 }
 
 export const sub = ([x0, y0]: Vec2, [x1, y1]: Vec2): Vec2 => {
-    return [x1 - x0, y1 - y0]
+    return [x0 - x1, y0 - y1]
 }
 
 export const scale = ([x, y]: Vec2, s: number): Vec2 => {

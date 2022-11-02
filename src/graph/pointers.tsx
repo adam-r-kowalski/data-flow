@@ -91,38 +91,6 @@ export const onPointerDown = (
     }
 }
 
-export enum MoveKind {
-    NONE,
-    BACKGROUND,
-    NODE,
-    PINCH,
-}
-
-interface MoveNone {
-    kind: MoveKind.NONE
-}
-
-interface MoveBackground {
-    kind: MoveKind.BACKGROUND
-    delta: Vec2
-}
-
-interface MoveNode {
-    kind: MoveKind.NODE
-    delta: Vec2
-    id: number
-    portIds: Set<string>
-}
-
-interface MovePinch {
-    kind: MoveKind.PINCH
-    pan: Vec2
-    zoom: number
-    into: Vec2
-}
-
-export type Move = MoveNone | MoveBackground | MoveNode | MovePinch
-
 export const onPointerMove = (
     pointers: Pointers,
     pointer: Pointer,
@@ -138,7 +106,7 @@ export const onPointerMove = (
             const target = pointers.target
             switch (target.kind) {
                 case TargetKind.BACKGROUND: {
-                    dragCamera(sub(pointers.pointer.position, pointer.position))
+                    dragCamera(sub(pointer.position, pointers.pointer.position))
                     return {
                         kind: PointersKind.ONE,
                         pointer,
@@ -148,7 +116,7 @@ export const onPointerMove = (
                 case TargetKind.NODE: {
                     dragNode(
                         target.id,
-                        sub(pointers.pointer.position, pointer.position)
+                        sub(pointer.position, pointers.pointer.position)
                     )
                     recreateSomeRects(target.portIds)
                     return {
@@ -165,7 +133,7 @@ export const onPointerMove = (
             const newMidpoint = midpoint(p1.position, p2.position)
             const newDistance = distance(p1.position, p2.position)
             const delta = pointers.distance - newDistance
-            dragCamera(sub(pointers.midpoint, newMidpoint))
+            dragCamera(sub(newMidpoint, pointers.midpoint))
             zoomCamera({ into: newMidpoint, delta })
             return {
                 kind: PointersKind.TWO,

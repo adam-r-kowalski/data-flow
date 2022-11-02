@@ -14,7 +14,7 @@ export const Graph = (props: Props) => {
     return (
         <Providers>
             {(() => {
-                const { setRoot, root } = useRoot()!
+                const { setRoot } = useRoot()!
                 const { onPointerDown, onPointerMove, onPointerUp } =
                     usePointers()!
                 const { dragCamera, zoomCamera } = useCamera()!
@@ -42,22 +42,8 @@ export const Graph = (props: Props) => {
                             if (!e.ctrlKey) {
                                 dragCamera([-e.deltaX, -e.deltaY])
                             } else {
-                                const [x, y] = (() => {
-                                    const rootRect =
-                                        root()!.getBoundingClientRect()
-                                    const frame = window.frameElement
-                                    if (!frame) {
-                                        return [rootRect.x, rootRect.y]
-                                    }
-                                    const frameRect =
-                                        frame.getBoundingClientRect()
-                                    return [
-                                        rootRect.x + frameRect.x,
-                                        rootRect.y + frameRect.y,
-                                    ]
-                                })()
                                 zoomCamera({
-                                    into: [e.clientX - x, e.clientY - y],
+                                    into: [e.clientX, e.clientY],
                                     delta: e.deltaY,
                                 })
                             }

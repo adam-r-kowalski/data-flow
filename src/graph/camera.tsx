@@ -1,8 +1,10 @@
 import { createContext, createSignal, JSXElement, useContext } from "solid-js"
+
 import { Vec2 } from "./vec2"
 import * as vec2 from "./vec2"
 import { Mat3x3 } from "./mat3x3"
 import * as mat3x3 from "./mat3x3"
+import { useRoot } from "./root"
 
 export interface Camera {
     position: Vec2
@@ -43,12 +45,13 @@ const cameraTransform = (camera: Camera): Mat3x3 => [
     1,
 ]
 
-const zoomCamera = (camera: Camera, zoom: Zoom): Camera => {
+const zoomCamera = (camera: Camera, zoom: Zoom, offset: Vec2): Camera => {
+    const into = vec2.sub(zoom.into, offset)
     const newZoom = clamp(camera.zoom * (1 - zoom.delta * 0.01), 0.1, 5)
     const transform = [
-        mat3x3.translate(zoom.into[0], zoom.into[1]),
+        mat3x3.translate(into[0], into[1]),
         mat3x3.scale(newZoom / camera.zoom),
-        mat3x3.translate(-zoom.into[0], -zoom.into[1]),
+        mat3x3.translate(-into[0], -into[1]),
         cameraTransform(camera),
     ].reduce(mat3x3.matMul)
     return {
@@ -66,10 +69,12 @@ export const CameraProvider = (props: Props) => {
         position: [0, 0],
         zoom: 1,
     })
+    const { fullOffset } = useRoot()!
     const context: Context = {
         camera,
         dragCamera: (delta: Vec2) => setCamera(dragCamera(camera(), delta)),
-        zoomCamera: (zoom: Zoom) => setCamera(zoomCamera(camera(), zoom)),
+        zoomCamera: (zoom: Zoom) =>
+            setCamera(zoomCamera(camera(), zoom, fullOffset())),
         cameraTransform: () => cameraTransform(camera()),
     }
     return (

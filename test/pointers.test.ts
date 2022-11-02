@@ -234,7 +234,7 @@ test("pointer move with one pointer down where target is background", () => {
                 { kind: PointersKind.ONE, pointer: p2, target },
                 {
                     kind: MoveKind.BACKGROUND,
-                    delta: sub(p1.position, p2.position),
+                    delta: sub(p2.position, p1.position),
                 },
             ]
             expect(actual).toAlmostEqual(expected)
