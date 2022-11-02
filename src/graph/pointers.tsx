@@ -118,7 +118,7 @@ interface MovePinch {
     into: Vec2
 }
 
-type Move = MoveNone | MoveBackground | MoveNode | MovePinch
+export type Move = MoveNone | MoveBackground | MoveNode | MovePinch
 
 export const onPointerMove = (
     pointers: Pointers,

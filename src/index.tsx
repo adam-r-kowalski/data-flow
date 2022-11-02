@@ -11,6 +11,8 @@ const App = () => {
             }}
         >
             <DataFlow />
+            <div style={{ margin: "50px" }} />
+            <DataFlow />
         </div>
     )
 }

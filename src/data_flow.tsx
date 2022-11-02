@@ -7,7 +7,7 @@ import * as model from "./model"
 export const DataFlow = () => {
     const [graph] = createStore(model.initial(10))
     return (
-        <Graph style={{ background: "tan", width: "100%", height: "100%" }}>
+        <Graph style={{ background: "tan", width: "100vw", height: "300px" }}>
             <Nodes>
                 <For each={Object.values(graph.nodes)}>
                     {(node) => {

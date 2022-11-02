@@ -1,34 +1,40 @@
 import { createContext, JSXElement, useContext } from "solid-js"
-import { SetStoreFunction } from "solid-js/store"
+import { createStore } from "solid-js/store"
 import { Vec2 } from "./vec2"
+import * as vec2 from "./vec2"
+import { useCamera } from "./camera"
 
 export type Positions = { [id: string]: Vec2 }
 
 interface Context {
     positions: Positions
-    setPositions: SetStoreFunction<Positions>
-    nextId: () => number
+    trackPosition: (position: Vec2) => number
+    dragNode: (id: number, delta: Vec2) => void
 }
 
 const PositionsContext = createContext<Context>()
 
 interface Props {
-    positions: Positions
-    setPositions: SetStoreFunction<Positions>
     children: JSXElement
 }
 
 export const PositionsProvider = (props: Props) => {
-    let id = 0
-    const nextId = () => id++
+    const { camera } = useCamera()!
+    const [positions, setPositions] = createStore<Positions>({})
+    let nextId = 0
+    const trackPosition = (position: Vec2) => {
+        const id = nextId++
+        setPositions(id, position)
+        return id
+    }
+    const dragNode = (id: number, delta: Vec2) => {
+        setPositions(id, (pos) =>
+            vec2.add(pos, vec2.scale(delta, 1 / camera().zoom))
+        )
+    }
+    const context: Context = { positions, trackPosition, dragNode }
     return (
-        <PositionsContext.Provider
-            value={{
-                positions: props.positions,
-                setPositions: props.setPositions,
-                nextId,
-            }}
-        >
+        <PositionsContext.Provider value={context}>
             {props.children}
         </PositionsContext.Provider>
     )

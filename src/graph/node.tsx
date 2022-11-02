@@ -1,4 +1,4 @@
-import { createEffect, JSX, JSXElement } from "solid-js"
+import { JSX, JSXElement } from "solid-js"
 
 import { TargetKind, usePointers } from "./pointers"
 import { PortGroupProvider, usePortGroup } from "./port_group"
@@ -12,11 +12,9 @@ interface Props {
 }
 
 export const Node = (props: Props) => {
-    const { positions, setPositions, nextId } = usePositions()!
-    const id = nextId()
-    setPositions(id, props.position)
+    const { positions, trackPosition } = usePositions()!
+    const id = trackPosition(props.position)
     const position = () => positions[id] ?? [0, 0]
-    createEffect(() => console.log(position()))
     const translate = () => `translate(${position()[0]}px, ${position()[1]}px)`
     const { onPointerDown } = usePointers()!
     return (

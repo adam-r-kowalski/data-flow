@@ -7,7 +7,7 @@ interface Props {
 }
 
 export const Nodes = (props: Props) => {
-    const camera = useCamera()!
+    const { camera } = useCamera()!
     const translate = () =>
         `translate(${camera().position[0]}px, ${camera().position[1]}px)`
     const scale = () => `scale(${camera().zoom}, ${camera().zoom})`

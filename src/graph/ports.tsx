@@ -54,20 +54,10 @@ export const PortsProvider = (props: Props) => {
             size: [width, height],
         }
     }
-    const camera = useCamera()!
+    const { cameraTransform } = useCamera()!
     const recreateAllRects = () => {
         const { x: ox, y: oy } = root()!.getBoundingClientRect()
-        const transform = inverse([
-            camera().zoom,
-            0,
-            camera().position[0],
-            0,
-            camera().zoom,
-            camera().position[1],
-            0,
-            0,
-            1,
-        ])
+        const transform = inverse(cameraTransform())
         batch(() => {
             for (const [id, el] of Object.entries(refs)) {
                 const rect = el.getBoundingClientRect()
@@ -86,17 +76,7 @@ export const PortsProvider = (props: Props) => {
     }
     const recreateSomeRects = (port_ids: Set<string>) => {
         const { x: ox, y: oy } = root()!.getBoundingClientRect()
-        const transform = inverse([
-            camera().zoom,
-            0,
-            camera().position[0],
-            0,
-            camera().zoom,
-            camera().position[1],
-            0,
-            0,
-            1,
-        ])
+        const transform = inverse(cameraTransform())
         batch(() => {
             for (const id of port_ids) {
                 const el = refs[id]

@@ -19,16 +19,17 @@ interface Props {
     children: (ports: () => Ports) => JSXElement
 }
 
+const transform = ({ position, size }: Rect): Port => {
+    return {
+        position,
+        size,
+        center: add(position, scale(size, 1 / 2)),
+    }
+}
+
 export const Edge = (props: Props) => {
     const { ports } = usePorts()!
     const port_data = (): Ports => {
-        const transform = ({ position, size }: Rect): Port => {
-            return {
-                position,
-                size,
-                center: add(position, scale(size, 1 / 2)),
-            }
-        }
         return {
             from: transform(ports[props.from]),
             to: transform(ports[props.to]),
