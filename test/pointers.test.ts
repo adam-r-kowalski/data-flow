@@ -1,10 +1,9 @@
-import { test, expect } from "vitest"
+import { test, expect, vi } from "vitest"
 import * as fc from "fast-check"
 
 import "./almost_equal"
 import {
-    Move,
-    MoveKind,
+    Effects,
     onPointerDown,
     onPointerMove,
     onPointerUp,
@@ -16,6 +15,7 @@ import {
 } from "../src/graph/pointers"
 import { Arbitrary } from "fast-check"
 import { distance, midpoint, sub, Vec2 } from "../src/graph/vec2"
+import { Zoom } from "../src/graph/camera"
 
 const N = fc.integer({ min: -10000, max: 10000 })
 
@@ -30,6 +30,13 @@ const PointersArb = (n: number): Arbitrary<Pointer[]> =>
     fc
         .array(PointerArb, { minLength: n, maxLength: n })
         .filter((pointers) => new Set(pointers.map((p) => p.id)).size === n)
+
+const createEffects = (): Effects => ({
+    dragCamera: vi.fn<[Vec2], void>(),
+    zoomCamera: vi.fn<[Zoom], void>(),
+    dragNode: vi.fn<[number, Vec2], void>(),
+    recreateSomeRects: vi.fn<[Set<string>], void>(),
+})
 
 test("pointer down on background with no pointers down", () => {
     fc.assert(
@@ -208,16 +215,44 @@ test("pointer up with one pointer down", () => {
     )
 })
 
+interface Data {
+    dragCamera?: Vec2
+    zoomCamera?: Zoom
+    dragNode?: [number, Vec2]
+    recreateSomeRects?: Set<string>
+}
+
+const expectCalledEffects = (effects: Effects, data: Data) => {
+    if (data.dragCamera) {
+        expect(effects.dragCamera).toBeCalledWith(data.dragCamera)
+    } else {
+        expect(effects.dragCamera).not.toBeCalled()
+    }
+    if (data.zoomCamera) {
+        expect(effects.zoomCamera).toBeCalledWith(data.zoomCamera)
+    } else {
+        expect(effects.zoomCamera).not.toBeCalled()
+    }
+    if (data.dragNode) {
+        expect(effects.dragNode).toBeCalledWith(...data.dragNode)
+    } else {
+        expect(effects.dragNode).not.toBeCalled()
+    }
+    if (data.recreateSomeRects) {
+        expect(effects.recreateSomeRects).toBeCalledWith(data.recreateSomeRects)
+    } else {
+        expect(effects.recreateSomeRects).not.toBeCalled()
+    }
+}
+
 test("pointer move with no pointers down", () => {
     fc.assert(
         fc.property(PointerArb, (pointer) => {
+            const effects = createEffects()
             let pointers: Pointers = { kind: PointersKind.ZERO }
-            const actual = onPointerMove(pointers, pointer)
-            const expected: [Pointers, Move] = [
-                { kind: PointersKind.ZERO },
-                { kind: MoveKind.NONE },
-            ]
-            expect(actual).toAlmostEqual(expected)
+            const actual = onPointerMove(pointers, pointer, effects)
+            expect(actual).toAlmostEqual({ kind: PointersKind.ZERO })
+            expectCalledEffects(effects, {})
         })
     )
 })
@@ -225,19 +260,20 @@ test("pointer move with no pointers down", () => {
 test("pointer move with one pointer down where target is background", () => {
     fc.assert(
         fc.property(PointerArb, Vec2Arb, (p1, position) => {
+            const effects = createEffects()
             const target: Target = { kind: TargetKind.BACKGROUND }
             let pointers: Pointers = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             const p2 = { ...p1, position }
-            const actual = onPointerMove(pointers, p2)
-            const expected: [Pointers, Move] = [
-                { kind: PointersKind.ONE, pointer: p2, target },
-                {
-                    kind: MoveKind.BACKGROUND,
-                    delta: sub(p2.position, p1.position),
-                },
-            ]
-            expect(actual).toAlmostEqual(expected)
+            const actual = onPointerMove(pointers, p2, effects)
+            expect(actual).toAlmostEqual({
+                kind: PointersKind.ONE,
+                pointer: p2,
+                target,
+            })
+            expectCalledEffects(effects, {
+                dragCamera: sub(p2.position, p1.position),
+            })
         })
     )
 })
@@ -245,6 +281,7 @@ test("pointer move with one pointer down where target is background", () => {
 test("pointer move with one pointer down where target is node", () => {
     fc.assert(
         fc.property(PointerArb, Vec2Arb, (p1, position) => {
+            const effects = createEffects()
             const target: Target = {
                 kind: TargetKind.NODE,
                 id: 0,
@@ -253,17 +290,16 @@ test("pointer move with one pointer down where target is node", () => {
             let pointers: Pointers = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             const p2 = { ...p1, position }
-            const actual = onPointerMove(pointers, p2)
-            const expected: [Pointers, Move] = [
-                { kind: PointersKind.ONE, pointer: p2, target },
-                {
-                    kind: MoveKind.NODE,
-                    delta: sub(p1.position, p2.position),
-                    id: target.id,
-                    portIds: target.portIds,
-                },
-            ]
-            expect(actual).toAlmostEqual(expected)
+            const actual = onPointerMove(pointers, p2, effects)
+            expect(actual).toAlmostEqual({
+                kind: PointersKind.ONE,
+                pointer: p2,
+                target,
+            })
+            expectCalledEffects(effects, {
+                dragNode: [target.id, sub(p2.position, p1.position)],
+                recreateSomeRects: target.portIds,
+            })
         })
     )
 })
@@ -271,31 +307,30 @@ test("pointer move with one pointer down where target is node", () => {
 test("pointer move with two pointers down", () => {
     fc.assert(
         fc.property(PointersArb(2), Vec2Arb, ([p1, p2], position) => {
+            const effects = createEffects()
             const target: Target = { kind: TargetKind.BACKGROUND }
             let pointers: Pointers = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             const p3 = { ...p1, position }
-            const actual = onPointerMove(pointers, p3)
+            const actual = onPointerMove(pointers, p3, effects)
             const oldMidpoint = midpoint(p1.position, p2.position)
             const oldDistance = distance(p1.position, p2.position)
             const newMidpoint = midpoint(p3.position, p2.position)
             const newDistance = distance(p3.position, p2.position)
-            const expected: [Pointers, Move] = [
-                {
-                    kind: PointersKind.TWO,
-                    data: { [p1.id]: p3, [p2.id]: p2 },
-                    midpoint: newMidpoint,
-                    distance: newDistance,
-                },
-                {
-                    kind: MoveKind.PINCH,
-                    pan: sub(oldMidpoint, newMidpoint),
-                    zoom: oldDistance - newDistance,
+            expect(actual).toAlmostEqual({
+                kind: PointersKind.TWO,
+                data: { [p1.id]: p3, [p2.id]: p2 },
+                midpoint: newMidpoint,
+                distance: newDistance,
+            })
+            expectCalledEffects(effects, {
+                dragCamera: sub(newMidpoint, oldMidpoint),
+                zoomCamera: {
+                    delta: oldDistance - newDistance,
                     into: newMidpoint,
                 },
-            ]
-            expect(actual).toAlmostEqual(expected)
+            })
         })
     )
 })
@@ -303,21 +338,19 @@ test("pointer move with two pointers down", () => {
 test("pointer move with three pointers down", () => {
     fc.assert(
         fc.property(PointersArb(3), Vec2Arb, ([p1, p2, p3], position) => {
+            const effects = createEffects()
             const target: Target = { kind: TargetKind.BACKGROUND }
             let pointers: Pointers = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             pointers = onPointerDown(pointers, p3, target)
             const p4 = { ...p1, position }
-            const actual = onPointerMove(pointers, p4)
-            const expected: [Pointers, Move] = [
-                {
-                    kind: PointersKind.THREE_OR_MORE,
-                    data: { [p1.id]: p4, [p2.id]: p2, [p3.id]: p3 },
-                },
-                { kind: MoveKind.NONE },
-            ]
-            expect(actual).toAlmostEqual(expected)
+            const actual = onPointerMove(pointers, p4, effects)
+            expect(actual).toAlmostEqual({
+                kind: PointersKind.THREE_OR_MORE,
+                data: { [p1.id]: p4, [p2.id]: p2, [p3.id]: p3 },
+            })
+            expectCalledEffects(effects, {})
         })
     )
 })

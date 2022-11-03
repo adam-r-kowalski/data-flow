@@ -91,13 +91,17 @@ export const onPointerDown = (
     }
 }
 
+export interface Effects {
+    dragCamera: (delta: Vec2) => void
+    zoomCamera: (zoom: Zoom) => void
+    dragNode: (id: number, delta: Vec2) => void
+    recreateSomeRects: (portIds: Set<string>) => void
+}
+
 export const onPointerMove = (
     pointers: Pointers,
     pointer: Pointer,
-    dragCamera: (delta: Vec2) => void,
-    zoomCamera: (zoom: Zoom) => void,
-    dragNode: (id: number, delta: Vec2) => void,
-    recreateSomeRects: (portIds: Set<string>) => void
+    effects: Effects
 ): Pointers => {
     switch (pointers.kind) {
         case PointersKind.ZERO:
@@ -106,7 +110,9 @@ export const onPointerMove = (
             const target = pointers.target
             switch (target.kind) {
                 case TargetKind.BACKGROUND: {
-                    dragCamera(sub(pointer.position, pointers.pointer.position))
+                    effects.dragCamera(
+                        sub(pointer.position, pointers.pointer.position)
+                    )
                     return {
                         kind: PointersKind.ONE,
                         pointer,
@@ -114,11 +120,11 @@ export const onPointerMove = (
                     }
                 }
                 case TargetKind.NODE: {
-                    dragNode(
+                    effects.dragNode(
                         target.id,
                         sub(pointer.position, pointers.pointer.position)
                     )
-                    recreateSomeRects(target.portIds)
+                    effects.recreateSomeRects(target.portIds)
                     return {
                         kind: PointersKind.ONE,
                         pointer,
@@ -133,8 +139,8 @@ export const onPointerMove = (
             const newMidpoint = midpoint(p1.position, p2.position)
             const newDistance = distance(p1.position, p2.position)
             const delta = pointers.distance - newDistance
-            dragCamera(sub(newMidpoint, pointers.midpoint))
-            zoomCamera({ into: newMidpoint, delta })
+            effects.dragCamera(sub(newMidpoint, pointers.midpoint))
+            effects.zoomCamera({ into: newMidpoint, delta })
             return {
                 kind: PointersKind.TWO,
                 data,
@@ -211,6 +217,12 @@ export const PointersProvider = (props: Props) => {
     const { dragCamera, zoomCamera } = useCamera()!
     const { dragNode } = usePositions()!
     const { recreateSomeRects } = usePorts()!
+    const effects: Effects = {
+        dragCamera,
+        zoomCamera,
+        dragNode,
+        recreateSomeRects,
+    }
     const context: Context = {
         pointers,
         onPointerDown: (event: PointerEvent, target: Target) => {
@@ -220,16 +232,7 @@ export const PointersProvider = (props: Props) => {
         },
         onPointerMove: (event: PointerEvent) => {
             const pointer = transform(event)
-            setPointers(
-                onPointerMove(
-                    pointers(),
-                    pointer,
-                    dragCamera,
-                    zoomCamera,
-                    dragNode,
-                    recreateSomeRects
-                )
-            )
+            setPointers(onPointerMove(pointers(), pointer, effects))
         },
         onPointerUp: (event: PointerEvent) => {
             const pointer = transform(event)
