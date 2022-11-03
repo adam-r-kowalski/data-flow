@@ -33,6 +33,7 @@ export const NodeCard = (props: Props) => {
                 "border-radius": "10px",
                 color: "white",
                 "font-family": "sans-serif",
+                "font-size": "20px",
                 "box-shadow": "0 0 4px rgba(0, 0, 0, 0.5)",
             }}
         >
@@ -48,7 +49,6 @@ export const NodeCard = (props: Props) => {
                         <div
                             style={{
                                 display: "flex",
-                                "align-items": "center",
                                 gap: "10px",
                                 transform: "translateX(-10px)",
                                 cursor: "pointer",
@@ -76,7 +76,7 @@ export const NodeCard = (props: Props) => {
                     gap: "10px",
                 }}
             >
-                <div>{props.title}</div>
+                <div style={{ color: "#bb9af7" }}>{props.title}</div>
                 <div
                     style={{
                         background: "#24283b",
@@ -99,7 +99,6 @@ export const NodeCard = (props: Props) => {
                         <div
                             style={{
                                 display: "flex",
-                                "align-items": "center",
                                 gap: "10px",
                                 transform: "translateX(10px)",
                                 cursor: "pointer",
