@@ -6,43 +6,18 @@ import { NodeCard } from "./node_card"
 import * as model from "./model"
 
 export const DataFlow = () => {
-    const [graph] = createStore(model.initial(300))
+    const [graph] = createStore(model.initial(100))
     return (
         <Graph
-            style={{ background: "#0093E9", width: "100vw", height: "100vh" }}
+            style={{
+                width: "100vw",
+                height: "100vh",
+                background: "#24283b",
+                "background-size": "40px 40px",
+                "background-image":
+                    "radial-gradient(circle, #3b4261 1px, rgba(0, 0, 0, 0) 1px)",
+            }}
         >
-            <Edges>
-                <For each={Object.values(graph.edges)}>
-                    {(edge) => {
-                        return (
-                            <Edge from={edge.output} to={edge.input}>
-                                {(ports) => {
-                                    return (
-                                        <>
-                                            <circle
-                                                cx={ports().from.center[0]}
-                                                cy={ports().from.center[1]}
-                                                r={10}
-                                                fill="white"
-                                            />
-                                            <circle
-                                                cx={ports().to.center[0]}
-                                                cy={ports().to.center[1]}
-                                                r={10}
-                                                fill="white"
-                                            />
-                                            <Curve
-                                                ports={ports}
-                                                stroke="white"
-                                            />
-                                        </>
-                                    )
-                                }}
-                            </Edge>
-                        )
-                    }}
-                </For>
-            </Edges>
             <Nodes>
                 <For each={Object.values(graph.nodes)}>
                     {(node) => {
@@ -63,6 +38,38 @@ export const DataFlow = () => {
                     }}
                 </For>
             </Nodes>
+            <Edges>
+                <For each={Object.values(graph.edges)}>
+                    {(edge) => {
+                        return (
+                            <Edge from={edge.output} to={edge.input}>
+                                {(ports) => {
+                                    return (
+                                        <>
+                                            <circle
+                                                cx={ports().from.center[0]}
+                                                cy={ports().from.center[1]}
+                                                r={10}
+                                                fill="#7aa2f7"
+                                            />
+                                            <circle
+                                                cx={ports().to.center[0]}
+                                                cy={ports().to.center[1]}
+                                                r={10}
+                                                fill="#7aa2f7"
+                                            />
+                                            <Curve
+                                                ports={ports}
+                                                stroke="#7aa2f7"
+                                            />
+                                        </>
+                                    )
+                                }}
+                            </Edge>
+                        )
+                    }}
+                </For>
+            </Edges>
         </Graph>
     )
 }

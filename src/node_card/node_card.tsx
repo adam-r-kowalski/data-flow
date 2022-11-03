@@ -1,11 +1,7 @@
-import { createSignal, For, JSX, JSXElement } from "solid-js"
+import { For, JSXElement } from "solid-js"
 
 import { Node, Port } from "../graph"
-import { useCamera } from "../graph/camera"
 import { Vec2 } from "../graph/vec2"
-import { intersectionObserver } from "./intersection_observer"
-
-0 && intersectionObserver
 
 interface Input {
     id: string
@@ -26,34 +22,20 @@ interface Props {
 }
 
 export const NodeCard = (props: Props) => {
-    const { camera } = useCamera()!
-    const coreStyles: JSX.CSSProperties = {
-        display: "flex",
-        padding: "20px",
-        gap: "20px",
-        background: "rgba(255, 255, 255, 0.25)",
-        "border-radius": "10px",
-        color: "white",
-        "font-family": "sans-serif",
-        "box-shadow": "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-    }
-    const [visible, setVisible] = createSignal(false)
-    const styles = (): JSX.CSSProperties => {
-        if (camera().zoom < 0.5 || !visible()) {
-            return coreStyles
-        } else {
-            return {
-                ...coreStyles,
-                ...{
-                    "backdrop-filter": "blur(4px)",
-                    "-webkit-backdrop-filter": "blur( 4px )",
-                    border: "1px solid rgba( 255, 255, 255, 0.18 )",
-                },
-            }
-        }
-    }
     return (
-        <Node position={props.position} style={styles()}>
+        <Node
+            position={props.position}
+            style={{
+                display: "flex",
+                padding: "20px",
+                gap: "20px",
+                background: "#3b4261",
+                "border-radius": "10px",
+                color: "white",
+                "font-family": "sans-serif",
+                "box-shadow": "0 0 4px rgba(0, 0, 0, 0.5)",
+            }}
+        >
             <div
                 style={{
                     display: "flex",
@@ -73,7 +55,7 @@ export const NodeCard = (props: Props) => {
                             <Port
                                 id={input.id}
                                 style={{
-                                    background: "rgba(255, 255, 255, 0.25)",
+                                    background: "#3b4261",
                                     width: "40px",
                                     height: "40px",
                                     "border-radius": "5px",
@@ -91,12 +73,11 @@ export const NodeCard = (props: Props) => {
                     "align-items": "center",
                     gap: "10px",
                 }}
-                use:intersectionObserver={(e) => setVisible(e.isIntersecting)}
             >
                 <div>{props.title}</div>
                 <div
                     style={{
-                        background: "rgba(255, 255, 255, 0.25)",
+                        background: "#3b4261",
                         padding: "20px",
                         "border-radius": "5px",
                     }}
@@ -124,7 +105,7 @@ export const NodeCard = (props: Props) => {
                             <Port
                                 id={output.id}
                                 style={{
-                                    background: "rgba(255, 255, 255, 0.25)",
+                                    background: "#3b4261",
                                     width: "40px",
                                     height: "40px",
                                     "border-radius": "5px",
