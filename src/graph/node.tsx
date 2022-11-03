@@ -1,24 +1,22 @@
-import { createSignal, JSX, JSXElement } from "solid-js"
-import { useCamera } from "./camera"
+import { JSX, JSXElement } from "solid-js"
 
-import { drag } from "./drag"
-import { usePorts } from "./ports"
+import { TargetKind, usePointers } from "./pointers"
 import { PortGroupProvider, usePortGroup } from "./port_group"
-
-0 && drag
+import { usePositions } from "./positions"
+import { Vec2 } from "./vec2"
 
 interface Props {
-    x: number
-    y: number
+    position: Vec2
     style?: JSX.CSSProperties
     children?: JSXElement
 }
 
 export const Node = (props: Props) => {
-    const [position, setPosition] = createSignal({ x: props.x, y: props.y })
-    const translate = () => `translate(${position().x}px, ${position().y}px)`
-    const { recreateSomeRects } = usePorts()!
-    const camera = useCamera()!
+    const { positions, trackPosition } = usePositions()!
+    const id = trackPosition(props.position)
+    const position = () => positions[id]
+    const translate = () => `translate(${position()[0]}px, ${position()[1]}px)`
+    const { onPointerDown } = usePointers()!
     return (
         <PortGroupProvider>
             {(() => {
@@ -32,16 +30,12 @@ export const Node = (props: Props) => {
                             },
                             ...props.style,
                         }}
-                        use:drag={({ dx, dy }) => {
-                            const delta = {
-                                dx: dx / camera().zoom,
-                                dy: dy / camera().zoom,
-                            }
-                            setPosition((pos) => ({
-                                x: pos.x - delta.dx,
-                                y: pos.y - delta.dy,
-                            }))
-                            recreateSomeRects(portIds())
+                        onPointerDown={(e) => {
+                            onPointerDown(e, {
+                                kind: TargetKind.NODE,
+                                id,
+                                portIds: portIds(),
+                            })
                         }}
                     >
                         {props.children}

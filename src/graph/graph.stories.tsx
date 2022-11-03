@@ -9,15 +9,13 @@ export const GraphsAreMadeUpOfNodes = () => {
         <Graph style={{ width: "500px", height: "500px", background: "tan" }}>
             <Nodes>
                 <Node
-                    x={10}
-                    y={20}
+                    position={[10, 20]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     a
                 </Node>
                 <Node
-                    x={200}
-                    y={100}
+                    position={[200, 100]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     b
@@ -32,8 +30,7 @@ export const PortsCanHaveEdgesBetweenThem = () => {
         <Graph style={{ width: "500px", height: "500px", background: "tan" }}>
             <Nodes>
                 <Node
-                    x={10}
-                    y={20}
+                    position={[10, 20]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     <Port
@@ -44,8 +41,7 @@ export const PortsCanHaveEdgesBetweenThem = () => {
                     </Port>
                 </Node>
                 <Node
-                    x={200}
-                    y={100}
+                    position={[200, 100]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     <Port
@@ -70,8 +66,7 @@ export const NodesCanHaveMultiplePorts = () => {
         <Graph style={{ width: "500px", height: "500px", background: "tan" }}>
             <Nodes>
                 <Node
-                    x={10}
-                    y={20}
+                    position={[10, 20]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     <Port
@@ -82,8 +77,7 @@ export const NodesCanHaveMultiplePorts = () => {
                     </Port>
                 </Node>
                 <Node
-                    x={200}
-                    y={100}
+                    position={[200, 100]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     <Port
@@ -100,8 +94,7 @@ export const NodesCanHaveMultiplePorts = () => {
                     </Port>
                 </Node>
                 <Node
-                    x={400}
-                    y={250}
+                    position={[400, 250]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     <Port
@@ -129,8 +122,7 @@ export const EdgesCanBeCurved = () => {
         <Graph style={{ width: "500px", height: "500px", background: "tan" }}>
             <Nodes>
                 <Node
-                    x={10}
-                    y={20}
+                    position={[10, 20]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     <Port
@@ -141,8 +133,7 @@ export const EdgesCanBeCurved = () => {
                     </Port>
                 </Node>
                 <Node
-                    x={200}
-                    y={100}
+                    position={[200, 100]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     <Port
@@ -159,8 +150,7 @@ export const EdgesCanBeCurved = () => {
                     </Port>
                 </Node>
                 <Node
-                    x={400}
-                    y={250}
+                    position={[400, 250]}
                     style={{ background: "beige", padding: "20px" }}
                 >
                     <Port
@@ -191,8 +181,7 @@ export const MultipleGraphs = () => {
             >
                 <Nodes>
                     <Node
-                        x={10}
-                        y={20}
+                        position={[10, 20]}
                         style={{ background: "beige", padding: "20px" }}
                     >
                         <Port
@@ -203,8 +192,7 @@ export const MultipleGraphs = () => {
                         </Port>
                     </Node>
                     <Node
-                        x={200}
-                        y={100}
+                        position={[200, 100]}
                         style={{ background: "beige", padding: "20px" }}
                     >
                         <Port
@@ -227,8 +215,7 @@ export const MultipleGraphs = () => {
             >
                 <Nodes>
                     <Node
-                        x={10}
-                        y={20}
+                        position={[10, 20]}
                         style={{ background: "beige", padding: "20px" }}
                     >
                         <Port
@@ -239,8 +226,7 @@ export const MultipleGraphs = () => {
                         </Port>
                     </Node>
                     <Node
-                        x={200}
-                        y={100}
+                        position={[200, 100]}
                         style={{ background: "beige", padding: "20px" }}
                     >
                         <Port

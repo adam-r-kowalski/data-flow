@@ -1,19 +1,14 @@
-import {
-    batch,
-    createContext,
-    createSignal,
-    JSXElement,
-    useContext,
-} from "solid-js"
+import { batch, createContext, JSXElement, useContext } from "solid-js"
 import { createMutable } from "solid-js/store"
+
 import { useCamera } from "./camera"
 import { inverse, vecMul } from "./mat3x3"
+import { useRoot } from "./root"
+import { Vec2 } from "./vec2"
 
 export interface Rect {
-    x: number
-    y: number
-    width: number
-    height: number
+    position: Vec2
+    size: Vec2
 }
 
 type Ports = { [id: string]: Rect }
@@ -24,15 +19,11 @@ type RecreateAllRects = () => void
 
 type RecreateSomeRects = (portIds: Set<string>) => void
 
-type SetRoot = (el: HTMLElement) => void
-
 interface Context {
     ports: Ports
     setRef: SetRef
     recreateAllRects: RecreateAllRects
     recreateSomeRects: RecreateSomeRects
-    root: () => HTMLElement | undefined
-    setRoot: SetRoot
 }
 
 const PortsContext = createContext<Context>()
@@ -44,64 +35,51 @@ interface Props {
 }
 
 export const PortsProvider = (props: Props) => {
-    const [root, setRoot] = createSignal<HTMLElement | undefined>(undefined)
+    const { offset } = useRoot()!
     const refs: Refs = {}
     const ports = createMutable<Ports>({})
     const setRef = (id: string, el: HTMLElement) => {
         refs[id] = el
-        ports[id] = el.getBoundingClientRect()
+        const { x, y, width, height } = el.getBoundingClientRect()
+        ports[id] = {
+            position: [x, y],
+            size: [width, height],
+        }
     }
-    const camera = useCamera()!
+    const { cameraTransform } = useCamera()!
+
+    const makeCreateRect = () => {
+        const [ox, oy] = offset()
+        const transform = inverse(cameraTransform())
+        return (id: string, el: HTMLElement): void => {
+            const rect = el.getBoundingClientRect()
+            const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
+            const [x1, y1] = vecMul(transform, [
+                rect.x - ox + rect.width,
+                rect.y - oy + rect.height,
+                1,
+            ])
+            ports[id] = {
+                position: [x, y],
+                size: [x1 - x, y1 - y],
+            }
+        }
+    }
+
     const recreateAllRects = () => {
-        const { x: ox, y: oy } = root()!.getBoundingClientRect()
-        const transform = inverse([
-            camera().zoom,
-            0,
-            camera().x,
-            0,
-            camera().zoom,
-            camera().y,
-            0,
-            0,
-            1,
-        ])
+        const createRect = makeCreateRect()
         batch(() => {
             for (const [id, el] of Object.entries(refs)) {
-                const rect = el.getBoundingClientRect()
-                const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
-                const [x1, y1] = vecMul(transform, [
-                    rect.x - ox + rect.width,
-                    rect.y - oy + rect.height,
-                    1,
-                ])
-                ports[id] = { x, y, width: x1 - x, height: y1 - y }
+                createRect(id, el)
             }
         })
     }
     const recreateSomeRects = (port_ids: Set<string>) => {
-        const { x: ox, y: oy } = root()!.getBoundingClientRect()
-        const transform = inverse([
-            camera().zoom,
-            0,
-            camera().x,
-            0,
-            camera().zoom,
-            camera().y,
-            0,
-            0,
-            1,
-        ])
+        const createRect = makeCreateRect()
         batch(() => {
             for (const id of port_ids) {
                 const el = refs[id]
-                const rect = el.getBoundingClientRect()
-                const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
-                const [x1, y1] = vecMul(transform, [
-                    rect.x - ox + rect.width,
-                    rect.y - oy + rect.height,
-                    1,
-                ])
-                ports[id] = { x, y, width: x1 - x, height: y1 - y }
+                createRect(id, el)
             }
         })
     }
@@ -112,8 +90,6 @@ export const PortsProvider = (props: Props) => {
                 setRef,
                 recreateAllRects,
                 recreateSomeRects,
-                root,
-                setRoot,
             }}
         >
             {props.children}

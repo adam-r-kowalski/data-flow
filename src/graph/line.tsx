@@ -10,9 +10,9 @@ export const Line = (props: Props) => (
         stroke-width={2}
         stroke="black"
         {...props}
-        x1={props.ports().from.cx}
-        y1={props.ports().from.cy}
-        x2={props.ports().to.cx}
-        y2={props.ports().to.cy}
+        x1={props.ports().from.center[0]}
+        y1={props.ports().from.center[1]}
+        x2={props.ports().to.center[0]}
+        y2={props.ports().to.center[1]}
     />
 )

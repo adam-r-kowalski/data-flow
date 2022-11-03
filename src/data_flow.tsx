@@ -1,20 +1,19 @@
-import { createMemo, For } from "solid-js"
+import { For } from "solid-js"
 import { createStore } from "solid-js/store"
 
 import { Graph, Nodes, Node, Port, Edges, Edge, Curve } from "./graph"
 import * as model from "./model"
 
 export const DataFlow = () => {
-    const [graph] = createStore(model.initial(10))
+    const [graph] = createStore(model.initial(1000))
     return (
-        <Graph style={{ background: "tan", width: "100%", height: "100%" }}>
+        <Graph style={{ background: "tan", width: "100vw", height: "100vh" }}>
             <Nodes>
                 <For each={Object.values(graph.nodes)}>
                     {(node) => {
                         return (
                             <Node
-                                x={node.x}
-                                y={node.y}
+                                position={node.position}
                                 style={{
                                     background: "cornflowerblue",
                                     padding: "20px",
@@ -115,33 +114,17 @@ export const DataFlow = () => {
                         return (
                             <Edge from={edge.output} to={edge.input}>
                                 {(ports) => {
-                                    const data = () => {
-                                        const x0 =
-                                            ports().from.x +
-                                            ports().from.width / 2
-                                        const y0 =
-                                            ports().from.y +
-                                            ports().from.height / 2
-                                        const x1 = x0 + 50
-                                        const x3 =
-                                            ports().to.x + ports().to.width / 2
-                                        const x2 = x3 - 50
-                                        const y3 =
-                                            ports().to.y + ports().to.height / 2
-                                        return { x0, y0, x1, x2, x3, y3 }
-                                    }
-                                    const memoData = createMemo(() => data())
                                     return (
                                         <>
                                             <circle
-                                                cx={memoData().x0}
-                                                cy={memoData().y0}
+                                                cx={ports().from.center[0]}
+                                                cy={ports().from.center[1]}
                                                 r={10}
                                                 fill="black"
                                             />
                                             <circle
-                                                cx={memoData().x3}
-                                                cy={memoData().y3}
+                                                cx={ports().to.center[0]}
+                                                cy={ports().to.center[1]}
                                                 r={10}
                                                 fill="black"
                                             />

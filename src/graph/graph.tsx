@@ -1,18 +1,9 @@
-import { createSignal, JSX, JSXElement } from "solid-js"
+import { JSX, JSXElement, onCleanup } from "solid-js"
 
-import { PortsProvider, usePorts } from "./ports"
-import { Camera, CameraProvider } from "./camera"
-import { Delta, drag } from "./drag"
-import { Mat3x3 } from "./mat3x3"
-import * as mat3x3 from "./mat3x3"
-
-0 && drag
-
-export interface Zoom {
-    x: number
-    y: number
-    delta: number
-}
+import { useCamera } from "./camera"
+import { TargetKind, usePointers } from "./pointers"
+import { Providers } from "./providers"
+import { useRoot } from "./root"
 
 interface Props {
     style?: JSX.CSSProperties
@@ -20,93 +11,49 @@ interface Props {
 }
 
 export const Graph = (props: Props) => {
-    const [camera, setCamera] = createSignal<Camera>({ x: 0, y: 0, zoom: 1 })
-    const onDrag = (delta: Delta) => {
-        setCamera({
-            x: camera().x - delta.dx,
-            y: camera().y - delta.dy,
-            zoom: camera().zoom,
-        })
-    }
-    const clamp = (value: number, min: number, max: number) =>
-        Math.max(min, Math.min(max, value))
-    const onZoom = (zoom: Zoom) => {
-        const newZoom = clamp(camera().zoom * (1 - zoom.delta * 0.01), 0.1, 5)
-        const current: Mat3x3 = [
-            camera().zoom,
-            0,
-            camera().x,
-            0,
-            camera().zoom,
-            camera().y,
-            0,
-            0,
-            1,
-        ]
-        const transform = [
-            mat3x3.translate(zoom.x, zoom.y),
-            mat3x3.scale(newZoom / camera().zoom),
-            mat3x3.translate(-zoom.x, -zoom.y),
-            current,
-        ].reduce(mat3x3.matMul)
-        setCamera({
-            zoom: transform[0],
-            x: transform[2],
-            y: transform[5],
-        })
-    }
     return (
-        <CameraProvider camera={camera}>
-            <PortsProvider>
-                {(() => {
-                    const { setRoot, root } = usePorts()!
-                    return (
-                        <div
-                            style={{
-                                ...{
-                                    overflow: "hidden",
-                                    position: "relative",
-                                },
-                                ...props.style,
-                            }}
-                            ref={setRoot}
-                            use:drag={(delta) => onDrag(delta)}
-                            onWheel={(e) => {
-                                e.preventDefault()
-                                if (!e.ctrlKey) {
-                                    onDrag({
-                                        dx: e.deltaX,
-                                        dy: e.deltaY,
-                                    })
-                                } else {
-                                    const [x, y] = (() => {
-                                        const rootRect =
-                                            root()!.getBoundingClientRect()
-                                        const frame = window.frameElement
-                                        if (!frame) {
-                                            return [rootRect.x, rootRect.y]
-                                        }
-                                        const frameRect =
-                                            frame.getBoundingClientRect()
-                                        return [
-                                            rootRect.x + frameRect.x,
-                                            rootRect.y + frameRect.y,
-                                        ]
-                                    })()
-                                    onZoom({
-                                        x: e.clientX - x,
-                                        y: e.clientY - y,
-                                        delta: e.deltaY,
-                                    })
-                                }
-                            }}
-                            onContextMenu={(e) => e.preventDefault()}
-                        >
-                            {props.children}
-                        </div>
-                    )
-                })()}
-            </PortsProvider>
-        </CameraProvider>
+        <Providers>
+            {(() => {
+                const { setRoot } = useRoot()!
+                const { onPointerDown, onPointerMove, onPointerUp } =
+                    usePointers()!
+                const { dragCamera, zoomCamera } = useCamera()!
+                document.addEventListener("pointerup", onPointerUp)
+                document.addEventListener("pointermove", onPointerMove)
+                onCleanup(() => {
+                    document.removeEventListener("pointerup", onPointerUp)
+                    document.removeEventListener("pointermove", onPointerMove)
+                })
+                return (
+                    <div
+                        style={{
+                            ...{
+                                overflow: "hidden",
+                                position: "relative",
+                            },
+                            ...props.style,
+                        }}
+                        ref={setRoot}
+                        onPointerDown={(e) =>
+                            onPointerDown(e, { kind: TargetKind.BACKGROUND })
+                        }
+                        onWheel={(e) => {
+                            e.preventDefault()
+                            if (!e.ctrlKey) {
+                                dragCamera([-e.deltaX, -e.deltaY])
+                            } else {
+                                zoomCamera({
+                                    into: [e.clientX, e.clientY],
+                                    delta: e.deltaY,
+                                })
+                            }
+                        }}
+                        onContextMenu={(e) => e.preventDefault()}
+                    >
+                        {props.children}
+                    </div>
+                )
+            })()}
+        </Providers>
     )
 }
