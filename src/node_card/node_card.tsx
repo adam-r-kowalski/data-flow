@@ -27,8 +27,8 @@ export const NodeCard = (props: Props) => {
             position={props.position}
             style={{
                 display: "flex",
-                padding: "20px",
-                gap: "20px",
+                padding: "10px 0",
+                gap: "10px",
                 background: "#3b4261",
                 "border-radius": "10px",
                 color: "white",
@@ -50,15 +50,17 @@ export const NodeCard = (props: Props) => {
                                 display: "flex",
                                 "align-items": "center",
                                 gap: "10px",
+                                transform: "translateX(-10px)",
+                                cursor: "pointer",
                             }}
                         >
                             <Port
                                 id={input.id}
                                 style={{
-                                    background: "#3b4261",
-                                    width: "40px",
-                                    height: "40px",
-                                    "border-radius": "5px",
+                                    background: "#7aa2f7",
+                                    width: "20px",
+                                    height: "20px",
+                                    "border-radius": "50%",
                                 }}
                             />
                             {input.name}
@@ -77,7 +79,7 @@ export const NodeCard = (props: Props) => {
                 <div>{props.title}</div>
                 <div
                     style={{
-                        background: "#3b4261",
+                        background: "#24283b",
                         padding: "20px",
                         "border-radius": "5px",
                     }}
@@ -99,16 +101,18 @@ export const NodeCard = (props: Props) => {
                                 display: "flex",
                                 "align-items": "center",
                                 gap: "10px",
+                                transform: "translateX(10px)",
+                                cursor: "pointer",
                             }}
                         >
                             {output.name}
                             <Port
                                 id={output.id}
                                 style={{
-                                    background: "#3b4261",
-                                    width: "40px",
-                                    height: "40px",
-                                    "border-radius": "5px",
+                                    background: "#7aa2f7",
+                                    width: "20px",
+                                    height: "20px",
+                                    "border-radius": "50%",
                                 }}
                             />
                         </div>

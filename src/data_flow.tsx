@@ -18,6 +18,33 @@ export const DataFlow = () => {
                     "radial-gradient(circle, #3b4261 1px, rgba(0, 0, 0, 0) 1px)",
             }}
         >
+            <Edges>
+                <For each={Object.values(graph.edges)}>
+                    {(edge) => {
+                        return (
+                            <Edge from={edge.output} to={edge.input}>
+                                {(ports) => {
+                                    return (
+                                        <>
+                                            <circle
+                                                cx={ports().from.center[0]}
+                                                cy={ports().from.center[1]}
+                                                r={10}
+                                                fill="#7aa2f7"
+                                            />
+                                            <Curve
+                                                ports={ports}
+                                                stroke="#7aa2f7"
+                                                stroke-width={4}
+                                            />
+                                        </>
+                                    )
+                                }}
+                            </Edge>
+                        )
+                    }}
+                </For>
+            </Edges>
             <Nodes>
                 <For each={Object.values(graph.nodes)}>
                     {(node) => {
@@ -38,38 +65,6 @@ export const DataFlow = () => {
                     }}
                 </For>
             </Nodes>
-            <Edges>
-                <For each={Object.values(graph.edges)}>
-                    {(edge) => {
-                        return (
-                            <Edge from={edge.output} to={edge.input}>
-                                {(ports) => {
-                                    return (
-                                        <>
-                                            <circle
-                                                cx={ports().from.center[0]}
-                                                cy={ports().from.center[1]}
-                                                r={10}
-                                                fill="#7aa2f7"
-                                            />
-                                            <circle
-                                                cx={ports().to.center[0]}
-                                                cy={ports().to.center[1]}
-                                                r={10}
-                                                fill="#7aa2f7"
-                                            />
-                                            <Curve
-                                                ports={ports}
-                                                stroke="#7aa2f7"
-                                            />
-                                        </>
-                                    )
-                                }}
-                            </Edge>
-                        )
-                    }}
-                </For>
-            </Edges>
         </Graph>
     )
 }
