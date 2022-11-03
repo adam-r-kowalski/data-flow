@@ -27,12 +27,17 @@ const transform = ({ position, size }: Rect): Port => {
     }
 }
 
+const empty: Rect = {
+    position: [0, 0],
+    size: [0, 0],
+}
+
 export const Edge = (props: Props) => {
     const { ports } = usePorts()!
     const port_data = (): Ports => {
         return {
-            from: transform(ports[props.from]),
-            to: transform(ports[props.to]),
+            from: transform(ports[props.from] ?? empty),
+            to: transform(ports[props.to] ?? empty),
         }
     }
     return props.children(port_data)

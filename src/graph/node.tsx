@@ -9,6 +9,7 @@ interface Props {
     position: Vec2
     style?: JSX.CSSProperties
     children?: JSXElement
+    attributes?: JSX.HTMLAttributes<HTMLDivElement>
 }
 
 export const Node = (props: Props) => {

@@ -1,113 +1,16 @@
 import { For } from "solid-js"
 import { createStore } from "solid-js/store"
 
-import { Graph, Nodes, Node, Port, Edges, Edge, Curve } from "./graph"
+import { Graph, Nodes, Edges, Edge, Curve } from "./graph"
+import { NodeCard } from "./node_card"
 import * as model from "./model"
 
 export const DataFlow = () => {
-    const [graph] = createStore(model.initial(1000))
+    const [graph] = createStore(model.initial(300))
     return (
-        <Graph style={{ background: "tan", width: "100vw", height: "100vh" }}>
-            <Nodes>
-                <For each={Object.values(graph.nodes)}>
-                    {(node) => {
-                        return (
-                            <Node
-                                position={node.position}
-                                style={{
-                                    background: "cornflowerblue",
-                                    padding: "20px",
-                                    display: "flex",
-                                    gap: "20px",
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        "flex-direction": "column",
-                                        gap: "10px",
-                                    }}
-                                >
-                                    <For each={node.inputs}>
-                                        {(uuid) => {
-                                            const input = graph.inputs[uuid]
-                                            return (
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        "align-items": "center",
-                                                        gap: "10px",
-                                                    }}
-                                                >
-                                                    <Port
-                                                        id={input.uuid}
-                                                        style={{
-                                                            background: "white",
-                                                            width: "40px",
-                                                            height: "40px",
-                                                        }}
-                                                    />
-                                                    <div>{input.name}</div>
-                                                </div>
-                                            )
-                                        }}
-                                    </For>
-                                </div>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        "flex-direction": "column",
-                                        "align-items": "center",
-                                        gap: "10px",
-                                    }}
-                                >
-                                    <div>{node.name}</div>
-                                    <div
-                                        style={{
-                                            background: "white",
-                                            padding: "20px",
-                                        }}
-                                    >
-                                        {graph.bodies[node.body].value}
-                                    </div>
-                                </div>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        "flex-direction": "column",
-                                        gap: "10px",
-                                    }}
-                                >
-                                    <For each={node.outputs}>
-                                        {(uuid) => {
-                                            const output = graph.outputs[uuid]
-                                            return (
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        "align-items": "center",
-                                                        gap: "10px",
-                                                    }}
-                                                >
-                                                    <div>{output.name}</div>
-                                                    <Port
-                                                        id={output.uuid}
-                                                        style={{
-                                                            background: "white",
-                                                            width: "40px",
-                                                            height: "40px",
-                                                        }}
-                                                    />
-                                                </div>
-                                            )
-                                        }}
-                                    </For>
-                                </div>
-                            </Node>
-                        )
-                    }}
-                </For>
-            </Nodes>
+        <Graph
+            style={{ background: "#0093E9", width: "100vw", height: "100vh" }}
+        >
             <Edges>
                 <For each={Object.values(graph.edges)}>
                     {(edge) => {
@@ -120,15 +23,18 @@ export const DataFlow = () => {
                                                 cx={ports().from.center[0]}
                                                 cy={ports().from.center[1]}
                                                 r={10}
-                                                fill="black"
+                                                fill="white"
                                             />
                                             <circle
                                                 cx={ports().to.center[0]}
                                                 cy={ports().to.center[1]}
                                                 r={10}
-                                                fill="black"
+                                                fill="white"
                                             />
-                                            <Curve ports={ports} />
+                                            <Curve
+                                                ports={ports}
+                                                stroke="white"
+                                            />
                                         </>
                                     )
                                 }}
@@ -137,6 +43,26 @@ export const DataFlow = () => {
                     }}
                 </For>
             </Edges>
+            <Nodes>
+                <For each={Object.values(graph.nodes)}>
+                    {(node) => {
+                        return (
+                            <NodeCard
+                                position={node.position}
+                                title={node.name}
+                                inputs={node.inputs.map(
+                                    (id) => graph.inputs[id]
+                                )}
+                                outputs={node.outputs.map(
+                                    (id) => graph.outputs[id]
+                                )}
+                            >
+                                42
+                            </NodeCard>
+                        )
+                    }}
+                </For>
+            </Nodes>
         </Graph>
     )
 }
