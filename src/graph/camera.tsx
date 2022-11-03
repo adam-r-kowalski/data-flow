@@ -33,16 +33,11 @@ const dragCamera = (camera: Camera, delta: Vec2): Camera => ({
     zoom: camera.zoom,
 })
 
+// prettier-ignore
 const cameraTransform = (camera: Camera): Mat3x3 => [
-    camera.zoom,
-    0,
-    camera.position[0],
-    0,
-    camera.zoom,
-    camera.position[1],
-    0,
-    0,
-    1,
+    camera.zoom, 0,           camera.position[0],
+    0,           camera.zoom, camera.position[1],
+    0,           0,           1,
 ]
 
 const zoomCamera = (camera: Camera, zoom: Zoom, offset: Vec2): Camera => {
