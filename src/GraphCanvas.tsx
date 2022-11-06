@@ -28,6 +28,10 @@ interface Props {
     finder: Finder
 }
 
+interface ExtendedWheelEvent extends WheelEvent {
+    wheelDeltaY?: number
+}
+
 export const GraphCanvas = (props: Props) => {
     const root = createRoot()
     const positions = createPositions()
@@ -48,9 +52,17 @@ export const GraphCanvas = (props: Props) => {
         document.removeEventListener("pointerup", pointers.up)
         document.removeEventListener("pointermove", onPointerMove)
     })
-    const onWheel = (e: WheelEvent) => {
+    const onWheel = (e: ExtendedWheelEvent) => {
         e.preventDefault()
-        if (!e.ctrlKey) {
+        const isTouchPad = e.wheelDeltaY
+            ? e.wheelDeltaY === -3 * e.deltaY
+            : e.deltaMode === 0
+        if (!isTouchPad && !e.ctrlKey) {
+            props.camera.pinch(
+                sub([e.clientX, e.clientY], root.fullOffset()),
+                -e.deltaY
+            )
+        } else if (!e.ctrlKey) {
             props.camera.drag([-e.deltaX, -e.deltaY])
         } else {
             props.camera.pinch(
