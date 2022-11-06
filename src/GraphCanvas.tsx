@@ -10,6 +10,7 @@ import { createPointers } from "./pointers"
 import { sub } from "./vec2"
 import { createRoot } from "./root"
 import { Finder } from "./finder"
+import { Menu } from "./menu"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -26,6 +27,7 @@ interface Props {
     graph: Graph
     camera: Camera
     finder: Finder
+    menu: Menu
 }
 
 interface ExtendedWheelEvent extends WheelEvent {
@@ -62,9 +64,16 @@ export const GraphCanvas = (props: Props) => {
     return (
         <FullScreen
             ref={root.set}
-            onPointerDown={pointers.downOnBackground}
+            onPointerDown={(e) => {
+                if (e.button === 0) {
+                    pointers.downOnBackground(e)
+                }
+            }}
             onWheel={onWheel}
-            onContextMenu={(e) => e.preventDefault()}
+            onContextMenu={(e) => {
+                e.preventDefault()
+                props.menu.show([e.clientX, e.clientY])
+            }}
             onDblClick={props.finder.show}
         >
             <BezierCurves

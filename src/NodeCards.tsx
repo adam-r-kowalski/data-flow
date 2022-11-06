@@ -95,8 +95,6 @@ export const NodeCards = (props: Props) => {
             props.positions.track(id, el, props.camera, props.offset())
         )
     }
-    const downOnNode = (id: ID) => (e: PointerEvent) =>
-        props.pointers.downOnNode(e, id)
     const inputs = (node: Node) =>
         node.inputs.map((id) => props.graph.inputs[id])
     const outputs = (node: Node) =>
@@ -109,7 +107,10 @@ export const NodeCards = (props: Props) => {
                 {(node) => (
                     <Card
                         style={{ transform: translateNode(node) }}
-                        onPointerDown={downOnNode(node.id)}
+                        onPointerDown={(e) => {
+                            if (e.button === 0)
+                                props.pointers.downOnNode(e, node.id)
+                        }}
                     >
                         <Inputs>
                             <For each={inputs(node)}>

@@ -84,6 +84,7 @@ export const FinderPane = (props: Props) => {
             <FullScreen
                 onClick={props.finder.hide}
                 onWheel={(e) => e.deltaX !== 0 && e.preventDefault()}
+                onContextMenu={(e) => e.preventDefault()}
             >
                 <Panel onClick={(e) => e.stopPropagation()}>
                     <Search>
@@ -97,16 +98,30 @@ export const FinderPane = (props: Props) => {
                         />
                     </Search>
                     <Selections>
-                        <Selection>number</Selection>
-                        <Selection>add</Selection>
-                        <Selection>subtract</Selection>
-                        <Selection>multiply</Selection>
-                        <Selection>divide</Selection>
-                        <Selection>equal</Selection>
-                        <Selection>less</Selection>
-                        <Selection>less equal</Selection>
-                        <Selection>greater</Selection>
-                        <Selection>greater equal</Selection>
+                        <Selection onClick={props.finder.hide}>
+                            number
+                        </Selection>
+                        <Selection onClick={props.finder.hide}>add</Selection>
+                        <Selection onClick={props.finder.hide}>
+                            subtract
+                        </Selection>
+                        <Selection onClick={props.finder.hide}>
+                            multiply
+                        </Selection>
+                        <Selection onClick={props.finder.hide}>
+                            divide
+                        </Selection>
+                        <Selection onClick={props.finder.hide}>equal</Selection>
+                        <Selection onClick={props.finder.hide}>less</Selection>
+                        <Selection onClick={props.finder.hide}>
+                            less equal
+                        </Selection>
+                        <Selection onClick={props.finder.hide}>
+                            greater
+                        </Selection>
+                        <Selection onClick={props.finder.hide}>
+                            greater equal
+                        </Selection>
                     </Selections>
                 </Panel>
             </FullScreen>
