@@ -1,7 +1,5 @@
-import { createContext, createSignal, JSXElement, useContext } from "solid-js"
-import { useCamera, Zoom } from "./camera"
-import { usePorts } from "./ports"
-import { usePositions } from "./positions"
+import { createSignal } from "solid-js"
+import { Camera } from "./camera"
 
 import { sub, Vec2, midpoint, distance } from "./vec2"
 
@@ -32,8 +30,7 @@ interface Background {
 
 interface Node {
     kind: TargetKind.NODE
-    id: number
-    portIds: Set<string>
+    id: string
 }
 
 export type Target = Background | Node
@@ -58,13 +55,13 @@ interface ThreeOrMore {
     data: Data
 }
 
-export type Pointers = Zero | One | Two | ThreeOrMore
+export type PointerData = Zero | One | Two | ThreeOrMore
 
 export const onPointerDown = (
-    pointers: Pointers,
+    pointers: PointerData,
     pointer: Pointer,
     target: Target
-): Pointers => {
+): PointerData => {
     switch (pointers.kind) {
         case PointersKind.ZERO:
             return {
@@ -92,17 +89,15 @@ export const onPointerDown = (
 }
 
 export interface Effects {
-    dragCamera: (delta: Vec2) => void
-    zoomCamera: (zoom: Zoom) => void
-    dragNode: (id: number, delta: Vec2) => void
-    recreateSomeRects: (portIds: Set<string>) => void
+    camera: Camera
+    dragNode: (id: string, delta: Vec2) => void
 }
 
 export const onPointerMove = (
-    pointers: Pointers,
+    pointers: PointerData,
     pointer: Pointer,
     effects: Effects
-): Pointers => {
+): PointerData => {
     switch (pointers.kind) {
         case PointersKind.ZERO:
             return pointers
@@ -110,7 +105,7 @@ export const onPointerMove = (
             const target = pointers.target
             switch (target.kind) {
                 case TargetKind.BACKGROUND: {
-                    effects.dragCamera(
+                    effects.camera.drag(
                         sub(pointer.position, pointers.pointer.position)
                     )
                     return {
@@ -124,7 +119,6 @@ export const onPointerMove = (
                         target.id,
                         sub(pointer.position, pointers.pointer.position)
                     )
-                    effects.recreateSomeRects(target.portIds)
                     return {
                         kind: PointersKind.ONE,
                         pointer,
@@ -139,8 +133,8 @@ export const onPointerMove = (
             const newMidpoint = midpoint(p1.position, p2.position)
             const newDistance = distance(p1.position, p2.position)
             const delta = pointers.distance - newDistance
-            effects.dragCamera(sub(newMidpoint, pointers.midpoint))
-            effects.zoomCamera({ into: newMidpoint, delta })
+            effects.camera.drag(sub(newMidpoint, pointers.midpoint))
+            effects.camera.pinch(newMidpoint, delta)
             return {
                 kind: PointersKind.TWO,
                 data,
@@ -157,7 +151,10 @@ export const onPointerMove = (
     }
 }
 
-export const onPointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
+export const onPointerUp = (
+    pointers: PointerData,
+    pointer: Pointer
+): PointerData => {
     switch (pointers.kind) {
         case PointersKind.ZERO:
             return pointers
@@ -188,62 +185,42 @@ export const onPointerUp = (pointers: Pointers, pointer: Pointer): Pointers => {
     }
 }
 
-type OnPointerDown = (event: PointerEvent, target: Target) => void
-type OnPointerMove = (event: PointerEvent) => void
-type OnPointerUp = (event: PointerEvent) => void
-
-interface Context {
-    pointers: () => Pointers
-    onPointerDown: OnPointerDown
-    onPointerMove: OnPointerMove
-    onPointerUp: OnPointerUp
-}
-
-const PointersContext = createContext<Context>()
-
 const transform = (event: PointerEvent): Pointer => ({
     id: event.pointerId,
     position: [event.clientX, event.clientY],
 })
 
-interface Props {
-    children: JSXElement
+export interface Pointers {
+    downOnBackground: (event: PointerEvent) => void
+    downOnNode: (event: PointerEvent, id: string) => void
+    move: (event: PointerEvent, effects: Effects) => void
+    up: (event: PointerEvent) => void
 }
 
-export const PointersProvider = (props: Props) => {
-    const [pointers, setPointers] = createSignal<Pointers>({
+export const createPointers = (): Pointers => {
+    const [pointers, setPointers] = createSignal<PointerData>({
         kind: PointersKind.ZERO,
     })
-    const { dragCamera, zoomCamera } = useCamera()!
-    const { dragNode } = usePositions()!
-    const { recreateSomeRects } = usePorts()!
-    const effects: Effects = {
-        dragCamera,
-        zoomCamera,
-        dragNode,
-        recreateSomeRects,
-    }
-    const context: Context = {
-        pointers,
-        onPointerDown: (event: PointerEvent, target: Target) => {
+    return {
+        downOnBackground: (event: PointerEvent) => {
             event.stopPropagation()
             const pointer = transform(event)
+            const target: Target = { kind: TargetKind.BACKGROUND }
             setPointers(onPointerDown(pointers(), pointer, target))
         },
-        onPointerMove: (event: PointerEvent) => {
+        downOnNode: (event: PointerEvent, id: string) => {
+            event.stopPropagation()
+            const pointer = transform(event)
+            const target: Target = { kind: TargetKind.NODE, id }
+            setPointers(onPointerDown(pointers(), pointer, target))
+        },
+        move: (event: PointerEvent, effects: Effects) => {
             const pointer = transform(event)
             setPointers(onPointerMove(pointers(), pointer, effects))
         },
-        onPointerUp: (event: PointerEvent) => {
+        up: (event: PointerEvent) => {
             const pointer = transform(event)
             setPointers(onPointerUp(pointers(), pointer))
         },
     }
-    return (
-        <PointersContext.Provider value={context}>
-            {props.children}
-        </PointersContext.Provider>
-    )
 }
-
-export const usePointers = () => useContext(PointersContext)

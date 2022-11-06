@@ -1,7 +1,6 @@
 import { batch, createContext, JSXElement, useContext } from "solid-js"
 import { createMutable } from "solid-js/store"
 
-import { useCamera } from "./camera"
 import { inverse, vecMul } from "./mat3x3"
 import { useRoot } from "./root"
 import { Vec2 } from "./vec2"
