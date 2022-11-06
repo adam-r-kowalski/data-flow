@@ -14,7 +14,7 @@ import {
     TargetKind,
 } from "../src/pointers"
 import { Arbitrary } from "fast-check"
-import { distance, midpoint, sub, Vec2 } from "../src/vec2"
+import { distance, midpoint, sub, Vec2, zero } from "../src/vec2"
 import { Mat3x3 } from "../src/mat3x3"
 
 const N = fc.integer({ min: -10000, max: 10000 })
@@ -33,13 +33,14 @@ const PointersArb = (n: number): Arbitrary<Pointer[]> =>
 
 const createEffects = (): Effects => ({
     camera: {
-        position: vi.fn<[], Vec2>(),
-        zoom: vi.fn<[], number>(),
+        position: () => zero,
+        zoom: () => 1,
         transform: vi.fn<[], Mat3x3>(),
         drag: vi.fn<[Vec2], void>(),
         pinch: vi.fn<[Vec2, number], void>(),
     },
     dragNode: vi.fn<[string, Vec2], void>(),
+    offset: () => zero,
 })
 
 test("pointer down on background with no pointers down", () => {

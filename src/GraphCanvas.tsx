@@ -26,6 +26,7 @@ export const GraphCanvas = (props: Props) => {
                 props.graph.dragNode(id, delta, props.camera.zoom())
                 positions.retrack(id, props.graph, props.camera, root.offset())
             },
+            offset: root.offset,
         })
     }
     document.addEventListener("pointermove", onPointerMove)

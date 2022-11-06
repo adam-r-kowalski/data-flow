@@ -91,6 +91,7 @@ export const onPointerDown = (
 export interface Effects {
     camera: Camera
     dragNode: (id: string, delta: Vec2) => void
+    offset: () => Vec2
 }
 
 export const onPointerMove = (
@@ -134,7 +135,7 @@ export const onPointerMove = (
             const newDistance = distance(p1.position, p2.position)
             const delta = pointers.distance - newDistance
             effects.camera.drag(sub(newMidpoint, pointers.midpoint))
-            effects.camera.pinch(newMidpoint, delta)
+            effects.camera.pinch(sub(newMidpoint, effects.offset()), delta)
             return {
                 kind: PointersKind.TWO,
                 data,

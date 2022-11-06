@@ -8,12 +8,8 @@ const App = () => {
             style={{
                 width: "100vw",
                 height: "100vh",
-                display: "flex",
-                "flex-direction": "column",
             }}
         >
-            <DataFlow />
-            <div style={{ margin: "50px" }} />
             <DataFlow />
         </div>
     )
