@@ -1,4 +1,5 @@
 import { onCleanup } from "solid-js"
+import { styled } from "solid-styled-components"
 
 import { Graph } from "./graph"
 import { BezierCurves } from "./BezierCurves"
@@ -8,10 +9,23 @@ import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
 import { sub } from "./vec2"
 import { createRoot } from "./root"
+import { Finder } from "./finder"
+
+const FullScreen = styled("div")({
+    overflow: "hidden",
+    position: "relative",
+    width: "100%",
+    height: "100%",
+    background: "#24283b",
+    "background-size": "40px 40px",
+    "background-image":
+        "radial-gradient(circle, #3b4261 1px, rgba(0, 0, 0, 0) 1px)",
+})
 
 interface Props {
     graph: Graph
     camera: Camera
+    finder: Finder
 }
 
 export const GraphCanvas = (props: Props) => {
@@ -34,32 +48,24 @@ export const GraphCanvas = (props: Props) => {
         document.removeEventListener("pointerup", pointers.up)
         document.removeEventListener("pointermove", onPointerMove)
     })
+    const onWheel = (e: WheelEvent) => {
+        e.preventDefault()
+        if (!e.ctrlKey) {
+            props.camera.drag([-e.deltaX, -e.deltaY])
+        } else {
+            props.camera.pinch(
+                sub([e.clientX, e.clientY], root.fullOffset()),
+                e.deltaY
+            )
+        }
+    }
     return (
-        <div
-            style={{
-                overflow: "hidden",
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                background: "#24283b",
-                "background-size": "40px 40px",
-                "background-image":
-                    "radial-gradient(circle, #3b4261 1px, rgba(0, 0, 0, 0) 1px)",
-            }}
-            ref={(el) => root.set(el)}
-            onPointerDown={(e) => pointers.downOnBackground(e)}
-            onWheel={(e) => {
-                e.preventDefault()
-                if (!e.ctrlKey) {
-                    props.camera.drag([-e.deltaX, -e.deltaY])
-                } else {
-                    props.camera.pinch(
-                        sub([e.clientX, e.clientY], root.fullOffset()),
-                        e.deltaY
-                    )
-                }
-            }}
+        <FullScreen
+            ref={root.set}
+            onPointerDown={pointers.downOnBackground}
+            onWheel={onWheel}
             onContextMenu={(e) => e.preventDefault()}
+            onDblClick={props.finder.show}
         >
             <BezierCurves
                 edges={props.graph.edges}
@@ -74,6 +80,6 @@ export const GraphCanvas = (props: Props) => {
                 pointers={pointers}
                 offset={root.offset}
             />
-        </div>
+        </FullScreen>
     )
 }
