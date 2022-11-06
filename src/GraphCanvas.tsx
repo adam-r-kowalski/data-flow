@@ -1,11 +1,13 @@
+import { onCleanup } from "solid-js"
+
 import { Graph } from "./graph"
 import { BezierCurves } from "./BezierCurves"
 import { Camera } from "./camera"
 import { NodeCards } from "./NodeCards"
 import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
-import { onCleanup } from "solid-js"
-import { sub, Vec2 } from "./vec2"
+import { sub } from "./vec2"
+import { createRoot } from "./root"
 
 interface Props {
     graph: Graph
@@ -13,29 +15,16 @@ interface Props {
 }
 
 export const GraphCanvas = (props: Props) => {
-    let root: HTMLElement | undefined = undefined
+    const root = createRoot()
     const positions = createPositions()
     const pointers = createPointers()
     document.addEventListener("pointerup", pointers.up)
-    const offset = (): Vec2 => {
-        const { x, y } = root!.getBoundingClientRect()
-        return [x, y]
-    }
-    const fullOffset = (): Vec2 => {
-        const rootRect = root!.getBoundingClientRect()
-        const frame = window.frameElement
-        if (!frame) {
-            return [rootRect.x, rootRect.y]
-        }
-        const frameRect = frame.getBoundingClientRect()
-        return [rootRect.x + frameRect.x, rootRect.y + frameRect.y]
-    }
     const onPointerMove = (e: PointerEvent) => {
         pointers.move(e, {
             camera: props.camera,
             dragNode: (id, delta) => {
                 props.graph.dragNode(id, delta, props.camera.zoom())
-                positions.retrack(id, props.graph, props.camera, offset())
+                positions.retrack(id, props.graph, props.camera, root.offset())
             },
         })
     }
@@ -56,7 +45,7 @@ export const GraphCanvas = (props: Props) => {
                 "background-image":
                     "radial-gradient(circle, #3b4261 1px, rgba(0, 0, 0, 0) 1px)",
             }}
-            ref={root}
+            ref={(el) => root.set(el)}
             onPointerDown={(e) => pointers.downOnBackground(e)}
             onWheel={(e) => {
                 e.preventDefault()
@@ -64,7 +53,7 @@ export const GraphCanvas = (props: Props) => {
                     props.camera.drag([-e.deltaX, -e.deltaY])
                 } else {
                     props.camera.pinch(
-                        sub([e.clientX, e.clientY], fullOffset()),
+                        sub([e.clientX, e.clientY], root.fullOffset()),
                         e.deltaY
                     )
                 }
@@ -82,7 +71,7 @@ export const GraphCanvas = (props: Props) => {
                 camera={props.camera}
                 positions={positions}
                 pointers={pointers}
-                offset={offset}
+                offset={root.offset}
             />
         </div>
     )

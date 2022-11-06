@@ -16,16 +16,10 @@ type Elements = { [id: string]: HTMLElement }
 export const createPositions = (): Positions => {
     const elements: Elements = {}
     const [positions, setPositions] = createStore<{ [id: string]: Vec2 }>({})
-    return {
-        track: (
-            id: string,
-            el: HTMLElement,
-            camera: Camera,
-            [ox, oy]: Vec2
-        ) => {
-            const rect = el.getBoundingClientRect()
-            elements[id] = el
-            const transform = inverse(camera.transform())
+    const createTransform = (camera: Camera, [ox, oy]: Vec2) => {
+        const transform = inverse(camera.transform())
+        return (id: ID) => {
+            const rect = elements[id].getBoundingClientRect()
             const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
             const [x1, y1] = vecMul(transform, [
                 rect.x - ox + rect.width,
@@ -35,31 +29,21 @@ export const createPositions = (): Positions => {
             const width = x1 - x
             const height = y1 - y
             setPositions(id, [x + width / 2, y + height / 2])
+        }
+    }
+    return {
+        track: (id: string, el: HTMLElement, camera: Camera, offset: Vec2) => {
+            elements[id] = el
+            createTransform(camera, offset)(id)
         },
         position: (id: string) => positions[id] ?? zero,
-        retrack: (id: ID, graph: Graph, camera: Camera, [ox, oy]: Vec2) => {
+        retrack: (id: ID, graph: Graph, camera: Camera, offset: Vec2) => {
+            const transform = createTransform(camera, offset)
             const inputs = graph.nodes[id].inputs
             const outputs = graph.nodes[id].outputs
-            const transform = inverse(camera.transform())
             const ids = [...inputs, ...outputs]
             batch(() => {
-                for (const id of ids) {
-                    const el = elements[id]
-                    const rect = el.getBoundingClientRect()
-                    const [x, y] = vecMul(transform, [
-                        rect.x - ox,
-                        rect.y - oy,
-                        1,
-                    ])
-                    const [x1, y1] = vecMul(transform, [
-                        rect.x - ox + rect.width,
-                        rect.y - oy + rect.height,
-                        1,
-                    ])
-                    const width = x1 - x
-                    const height = y1 - y
-                    setPositions(id, [x + width / 2, y + height / 2])
-                }
+                for (const id of ids) transform(id)
             })
         },
     }

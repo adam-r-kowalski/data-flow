@@ -8,7 +8,7 @@ import {
     onPointerMove,
     onPointerUp,
     Pointer,
-    Pointers,
+    PointerData,
     PointersKind,
     Target,
     TargetKind,
@@ -42,7 +42,7 @@ test("pointer down on background with no pointers down", () => {
     fc.assert(
         fc.property(PointerArb, (pointer) => {
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, pointer, target)
             expect(pointers).toAlmostEqual({
                 kind: PointersKind.ONE,
@@ -61,9 +61,9 @@ test("pointer down on node with no pointers down", () => {
                 id: 1,
                 portIds: new Set(["1", "2", "3"]),
             }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, pointer, target)
-            const expected: Pointers = {
+            const expected: PointerData = {
                 kind: PointersKind.ONE,
                 pointer,
                 target,
@@ -77,10 +77,10 @@ test("pointer down with one pointer down", () => {
     fc.assert(
         fc.property(PointersArb(2), ([p1, p2]) => {
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
-            const expected: Pointers = {
+            const expected: PointerData = {
                 kind: PointersKind.TWO,
                 data: {
                     [p1.id]: p1,
@@ -98,11 +98,11 @@ test("pointer down with two pointers down", () => {
     fc.assert(
         fc.property(PointersArb(3), ([p1, p2, p3]) => {
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             pointers = onPointerDown(pointers, p3, target)
-            const expected: Pointers = {
+            const expected: PointerData = {
                 kind: PointersKind.THREE_OR_MORE,
                 data: {
                     [p1.id]: p1,
@@ -119,12 +119,12 @@ test("pointer down with three or more pointers down", () => {
     fc.assert(
         fc.property(PointersArb(4), ([p1, p2, p3, p4]) => {
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             pointers = onPointerDown(pointers, p3, target)
             pointers = onPointerDown(pointers, p4, target)
-            const expected: Pointers = {
+            const expected: PointerData = {
                 kind: PointersKind.THREE_OR_MORE,
                 data: {
                     [p1.id]: p1,
@@ -142,13 +142,13 @@ test("pointer up with four pointers down", () => {
     fc.assert(
         fc.property(PointersArb(4), ([p1, p2, p3, p4]) => {
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             pointers = onPointerDown(pointers, p3, target)
             pointers = onPointerDown(pointers, p4, target)
             pointers = onPointerUp(pointers, p4)
-            const expected: Pointers = {
+            const expected: PointerData = {
                 kind: PointersKind.THREE_OR_MORE,
                 data: {
                     [p1.id]: p1,
@@ -165,12 +165,12 @@ test("pointer up with three pointers down", () => {
     fc.assert(
         fc.property(PointersArb(3), ([p1, p2, p3]) => {
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             pointers = onPointerDown(pointers, p3, target)
             pointers = onPointerUp(pointers, p3)
-            const expected: Pointers = {
+            const expected: PointerData = {
                 kind: PointersKind.TWO,
                 data: {
                     [p1.id]: p1,
@@ -188,11 +188,11 @@ test("pointer up with two pointers down", () => {
     fc.assert(
         fc.property(PointersArb(2), ([p1, p2]) => {
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             pointers = onPointerUp(pointers, p2)
-            const expected: Pointers = {
+            const expected: PointerData = {
                 kind: PointersKind.ONE,
                 pointer: p1,
                 target,
@@ -206,10 +206,10 @@ test("pointer up with one pointer down", () => {
     fc.assert(
         fc.property(PointerArb, (pointer) => {
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, pointer, target)
             pointers = onPointerUp(pointers, pointer)
-            const expected: Pointers = { kind: PointersKind.ZERO }
+            const expected: PointerData = { kind: PointersKind.ZERO }
             expect(pointers).toAlmostEqual(expected)
         })
     )
@@ -249,7 +249,7 @@ test("pointer move with no pointers down", () => {
     fc.assert(
         fc.property(PointerArb, (pointer) => {
             const effects = createEffects()
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             const actual = onPointerMove(pointers, pointer, effects)
             expect(actual).toAlmostEqual({ kind: PointersKind.ZERO })
             expectCalledEffects(effects, {})
@@ -262,7 +262,7 @@ test("pointer move with one pointer down where target is background", () => {
         fc.property(PointerArb, Vec2Arb, (p1, position) => {
             const effects = createEffects()
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             const p2 = { ...p1, position }
             const actual = onPointerMove(pointers, p2, effects)
@@ -287,7 +287,7 @@ test("pointer move with one pointer down where target is node", () => {
                 id: 0,
                 portIds: new Set(["1", "2", "3"]),
             }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             const p2 = { ...p1, position }
             const actual = onPointerMove(pointers, p2, effects)
@@ -309,7 +309,7 @@ test("pointer move with two pointers down", () => {
         fc.property(PointersArb(2), Vec2Arb, ([p1, p2], position) => {
             const effects = createEffects()
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             const p3 = { ...p1, position }
@@ -340,7 +340,7 @@ test("pointer move with three pointers down", () => {
         fc.property(PointersArb(3), Vec2Arb, ([p1, p2, p3], position) => {
             const effects = createEffects()
             const target: Target = { kind: TargetKind.BACKGROUND }
-            let pointers: Pointers = { kind: PointersKind.ZERO }
+            let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             pointers = onPointerDown(pointers, p3, target)
