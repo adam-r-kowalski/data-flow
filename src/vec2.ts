@@ -1,16 +1,12 @@
 export type Vec2 = [number, number]
 
-export const add = ([x0, y0]: Vec2, [x1, y1]: Vec2): Vec2 => {
-    return [x0 + x1, y0 + y1]
-}
+export const zero: Vec2 = [0, 0]
 
-export const sub = ([x0, y0]: Vec2, [x1, y1]: Vec2): Vec2 => {
-    return [x0 - x1, y0 - y1]
-}
+export const add = ([x0, y0]: Vec2, [x1, y1]: Vec2): Vec2 => [x0 + x1, y0 + y1]
 
-export const scale = ([x, y]: Vec2, s: number): Vec2 => {
-    return [x * s, y * s]
-}
+export const sub = ([x0, y0]: Vec2, [x1, y1]: Vec2): Vec2 => [x0 - x1, y0 - y1]
+
+export const scale = ([x, y]: Vec2, s: number): Vec2 => [x * s, y * s]
 
 export const midpoint = (a: Vec2, b: Vec2): Vec2 => {
     const [x, y] = add(a, b)
