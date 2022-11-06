@@ -10,14 +10,13 @@ const FullScreen = styled("div")({
     position: "absolute",
     top: "0px",
     left: "0px",
-    display: "flex",
-    "justify-content": "center",
+    padding: "50px",
 })
 
 const Panel = styled("div")({
-    transform: "translateY(50px)",
-    width: "800px",
-    height: "400px",
+    margin: "0 auto",
+    width: "100%",
+    "max-width": "700px",
     "backdrop-filter": "blur(12px)",
     "-webkit-backdrop-filter": "blur(12px)",
     background: "#00000033",
@@ -44,6 +43,23 @@ const Input = styled("input")({
     outline: "none",
     background: "none",
     color: "#ffffff",
+    border: "none",
+})
+
+const Selections = styled("div")({
+    overflowY: "scroll",
+    height: "350px",
+})
+
+const Selection = styled("div")({
+    padding: "10px 20px",
+    cursor: "pointer",
+
+    "&:hover": {
+        "backdrop-filter": "blur(12px)",
+        "-webkit-backdrop-filter": "blur(12px)",
+        background: "#00000022",
+    },
 })
 
 interface Props {
@@ -65,18 +81,33 @@ export const FinderPane = (props: Props) => {
     const onInput = () => props.finder.setSearch(input!.value)
     return (
         <Show when={props.finder.visible()}>
-            <FullScreen onClick={props.finder.hide}>
+            <FullScreen
+                onClick={props.finder.hide}
+                onWheel={(e) => e.deltaX !== 0 && e.preventDefault()}
+            >
                 <Panel onClick={(e) => e.stopPropagation()}>
                     <Search>
                         <FiSearch />
                         <Input
-                            placeholder="Search"
+                            placeholder="search"
                             ref={input}
                             onkeydown={onKeyDown}
                             value={props.finder.search()}
                             onInput={onInput}
                         />
                     </Search>
+                    <Selections>
+                        <Selection>number</Selection>
+                        <Selection>add</Selection>
+                        <Selection>subtract</Selection>
+                        <Selection>multiply</Selection>
+                        <Selection>divide</Selection>
+                        <Selection>equal</Selection>
+                        <Selection>less</Selection>
+                        <Selection>less equal</Selection>
+                        <Selection>greater</Selection>
+                        <Selection>greater equal</Selection>
+                    </Selections>
                 </Panel>
             </FullScreen>
         </Show>

@@ -54,22 +54,10 @@ export const GraphCanvas = (props: Props) => {
     })
     const onWheel = (e: ExtendedWheelEvent) => {
         e.preventDefault()
-        const isTouchPad = e.wheelDeltaY
-            ? e.wheelDeltaY === -3 * e.deltaY
-            : e.deltaMode === 0
-        if (!isTouchPad && !e.ctrlKey) {
-            props.camera.pinch(
-                sub([e.clientX, e.clientY], root.fullOffset()),
-                -e.deltaY
-            )
-        } else if (!e.ctrlKey) {
-            props.camera.drag([-e.deltaX, -e.deltaY])
-        } else {
-            props.camera.pinch(
-                sub([e.clientX, e.clientY], root.fullOffset()),
-                e.deltaY
-            )
-        }
+        props.camera.pinch(
+            sub([e.clientX, e.clientY], root.fullOffset()),
+            e.deltaY
+        )
     }
     return (
         <FullScreen
