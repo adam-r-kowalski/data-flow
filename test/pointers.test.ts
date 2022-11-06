@@ -12,10 +12,10 @@ import {
     PointersKind,
     Target,
     TargetKind,
-} from "../src/graph/pointers"
+} from "../src/pointers"
 import { Arbitrary } from "fast-check"
-import { distance, midpoint, sub, Vec2 } from "../src/graph/vec2"
-import { Zoom } from "../src/graph/camera"
+import { distance, midpoint, sub, Vec2 } from "../src/vec2"
+import { Mat3x3 } from "../src/mat3x3"
 
 const N = fc.integer({ min: -10000, max: 10000 })
 
@@ -32,10 +32,14 @@ const PointersArb = (n: number): Arbitrary<Pointer[]> =>
         .filter((pointers) => new Set(pointers.map((p) => p.id)).size === n)
 
 const createEffects = (): Effects => ({
-    dragCamera: vi.fn<[Vec2], void>(),
-    zoomCamera: vi.fn<[Zoom], void>(),
-    dragNode: vi.fn<[number, Vec2], void>(),
-    recreateSomeRects: vi.fn<[Set<string>], void>(),
+    camera: {
+        position: vi.fn<[], Vec2>(),
+        zoom: vi.fn<[], number>(),
+        transform: vi.fn<[], Mat3x3>(),
+        drag: vi.fn<[Vec2], void>(),
+        pinch: vi.fn<[Vec2, number], void>(),
+    },
+    dragNode: vi.fn<[string, Vec2], void>(),
 })
 
 test("pointer down on background with no pointers down", () => {
@@ -58,8 +62,7 @@ test("pointer down on node with no pointers down", () => {
         fc.property(PointerArb, (pointer) => {
             const target: Target = {
                 kind: TargetKind.NODE,
-                id: 1,
-                portIds: new Set(["1", "2", "3"]),
+                id: "1",
             }
             let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, pointer, target)
@@ -216,32 +219,26 @@ test("pointer up with one pointer down", () => {
 })
 
 interface Data {
-    dragCamera?: Vec2
-    zoomCamera?: Zoom
-    dragNode?: [number, Vec2]
-    recreateSomeRects?: Set<string>
+    drag?: Vec2
+    pinch?: [Vec2, number]
+    dragNode?: [string, Vec2]
 }
 
 const expectCalledEffects = (effects: Effects, data: Data) => {
-    if (data.dragCamera) {
-        expect(effects.dragCamera).toBeCalledWith(data.dragCamera)
+    if (data.drag) {
+        expect(effects.camera.drag).toBeCalledWith(data.drag)
     } else {
-        expect(effects.dragCamera).not.toBeCalled()
+        expect(effects.camera.drag).not.toBeCalled()
     }
-    if (data.zoomCamera) {
-        expect(effects.zoomCamera).toBeCalledWith(data.zoomCamera)
+    if (data.pinch) {
+        expect(effects.camera.pinch).toBeCalledWith(...data.pinch)
     } else {
-        expect(effects.zoomCamera).not.toBeCalled()
+        expect(effects.camera.pinch).not.toBeCalled()
     }
     if (data.dragNode) {
         expect(effects.dragNode).toBeCalledWith(...data.dragNode)
     } else {
         expect(effects.dragNode).not.toBeCalled()
-    }
-    if (data.recreateSomeRects) {
-        expect(effects.recreateSomeRects).toBeCalledWith(data.recreateSomeRects)
-    } else {
-        expect(effects.recreateSomeRects).not.toBeCalled()
     }
 }
 
@@ -272,7 +269,7 @@ test("pointer move with one pointer down where target is background", () => {
                 target,
             })
             expectCalledEffects(effects, {
-                dragCamera: sub(p2.position, p1.position),
+                drag: sub(p2.position, p1.position),
             })
         })
     )
@@ -284,8 +281,7 @@ test("pointer move with one pointer down where target is node", () => {
             const effects = createEffects()
             const target: Target = {
                 kind: TargetKind.NODE,
-                id: 0,
-                portIds: new Set(["1", "2", "3"]),
+                id: "0",
             }
             let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
@@ -298,7 +294,6 @@ test("pointer move with one pointer down where target is node", () => {
             })
             expectCalledEffects(effects, {
                 dragNode: [target.id, sub(p2.position, p1.position)],
-                recreateSomeRects: target.portIds,
             })
         })
     )
@@ -325,11 +320,8 @@ test("pointer move with two pointers down", () => {
                 distance: newDistance,
             })
             expectCalledEffects(effects, {
-                dragCamera: sub(newMidpoint, oldMidpoint),
-                zoomCamera: {
-                    delta: oldDistance - newDistance,
-                    into: newMidpoint,
-                },
+                drag: sub(newMidpoint, oldMidpoint),
+                pinch: [newMidpoint, oldDistance - newDistance],
             })
         })
     )

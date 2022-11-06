@@ -12,8 +12,8 @@ import {
     Mat3x3,
     determinant,
     vecMul,
-} from "../src/graph/mat3x3"
-import { length } from "../src/graph/vec3"
+} from "../src/mat3x3"
+import { length } from "../src/vec3"
 import "./almost_equal"
 
 const N = fc.integer({ min: -10000, max: 10000 })
