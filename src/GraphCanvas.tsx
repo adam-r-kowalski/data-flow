@@ -57,10 +57,16 @@ export const GraphCanvas = (props: Props) => {
     })
     const onWheel = (e: ExtendedWheelEvent) => {
         e.preventDefault()
-        props.camera.pinch(
-            sub([e.clientX, e.clientY], root.fullOffset()),
-            e.deltaY
-        )
+        if (e.ctrlKey || e.metaKey) {
+            props.camera.pinch(
+                sub([e.clientX, e.clientY], root.fullOffset()),
+                e.deltaY
+            )
+        } else if (e.shiftKey) {
+            props.camera.drag([-e.deltaX - e.deltaY, 0])
+        } else {
+            props.camera.drag([-e.deltaX, -e.deltaY])
+        }
     }
     const [down, setDown] = createSignal(false)
     return (
