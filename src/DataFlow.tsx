@@ -15,7 +15,7 @@ const FullScreen = styled("div")({
 })
 
 export const DataFlow = () => {
-    const graph = createGraph(500)
+    const graph = createGraph()
     const camera = createCamera()
     const finder = createFinder()
     const menu = createMenu()
@@ -40,7 +40,7 @@ export const DataFlow = () => {
                 menu={menu}
             />
             <FinderPane finder={finder} />
-            <RadialMenu menu={menu} />
+            <RadialMenu graph={graph} camera={camera} menu={menu} />
         </FullScreen>
     )
 }

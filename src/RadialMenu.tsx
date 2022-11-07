@@ -1,102 +1,121 @@
 import { createSignal, Show } from "solid-js"
+import { styled } from "solid-styled-components"
 
 import { Menu } from "./menu"
 import { Vec2, add } from "./vec2"
-
-interface Props {
-    menu: Menu
-}
+import { Graph } from "./graph"
+import { Camera } from "./camera"
 
 const point = (angle: number, radius: number): Vec2 => [
     Math.cos(angle) * radius,
     -Math.sin(angle) * radius,
 ]
 
+const innerRadius = 50
+const outerRadius = 150
+
+const offset: Vec2 = [outerRadius, outerRadius]
+
+const Blur = styled("div")({
+    position: "absolute",
+    "border-radius": "50%",
+    top: "0px",
+    left: "0px",
+    width: `${outerRadius * 2}px`,
+    height: `${outerRadius * 2}px`,
+    "-webkit-backdrop-filter": "blur(12px)",
+})
+
+const Svg = styled("svg")({
+    width: "100vw",
+    height: "100vh",
+    position: "absolute",
+    top: "0px",
+    left: "0px",
+})
+
+interface Props {
+    menu: Menu
+    graph: Graph
+    camera: Camera
+}
+
+const arc = (start: number, stop: number, text: string, props: Props) => {
+    const [fill, setFill] = createSignal("#00000033")
+    const p1 = add(point(start, outerRadius), offset)
+    const p2 = add(point(stop, outerRadius), offset)
+    const p3 = add(point(stop, innerRadius), offset)
+    const p4 = add(point(start, innerRadius), offset)
+    const p5 = add(
+        point((start + stop) / 2, (innerRadius + outerRadius) / 2),
+        offset
+    )
+    const d = () => {
+        return `M ${p1[0]} ${p1[1]}
+				   A ${outerRadius} ${outerRadius} 0 0 0 ${p2[0]} ${p2[1]}
+				   L ${p3[0]} ${p3[1]}
+				   A ${innerRadius} ${innerRadius} 0 0 1 ${p4[0]} ${p4[1]}`
+    }
+    const onClick = (e: MouseEvent) => {
+        const position = props.menu.position()
+        props.graph.addNode(text, props.camera.worldSpace(position))
+        props.menu.hide()
+        e.stopPropagation()
+    }
+    return (
+        <>
+            <path
+                fill={fill()}
+                d={d()}
+                onPointerEnter={() => setFill("#00000055")}
+                onPointerLeave={() => setFill("#00000033")}
+                onClick={onClick}
+                onPointerUp={onClick}
+                style={"cursor: pointer"}
+            />
+            <text
+                x={p5[0]}
+                y={p5[1]}
+                fill="#ffffff"
+                text-anchor="middle"
+                font-size="20"
+                font-family="sans-serif"
+                onPointerEnter={() => setFill("#00000055")}
+                onClick={onClick}
+                onPointerUp={onClick}
+                style={"cursor: pointer"}
+            >
+                {text}
+            </text>
+        </>
+    )
+}
+
 export const RadialMenu = (props: Props) => {
-    const ir = 50
-    const or = 150
-    const offset: Vec2 = [or, or]
     const translateSvg = () => {
         const [x, y] = props.menu.position()
-        return `translate(${x - or}, ${y - or})`
+        return `translate(${x - outerRadius}, ${y - outerRadius})`
     }
     const translateDiv = () => {
         const [x, y] = props.menu.position()
-        return `translate(${x - or}px, ${y - or}px)`
+        return `translate(${x - outerRadius}px, ${y - outerRadius}px)`
     }
-    const arc = (start: number, stop: number, text: string) => {
-        const [fill, setFill] = createSignal("#00000033")
-        const p1 = add(point(start, or), offset)
-        const p2 = add(point(stop, or), offset)
-        const p3 = add(point(stop, ir), offset)
-        const p4 = add(point(start, ir), offset)
-        const p5 = add(point((start + stop) / 2, (ir + or) / 2), offset)
-        const d = () => {
-            return `M ${p1[0]} ${p1[1]}
-				   A ${or} ${or} 0 0 0 ${p2[0]} ${p2[1]}
-				   L ${p3[0]} ${p3[1]}
-				   A ${ir} ${ir} 0 0 1 ${p4[0]} ${p4[1]}`
-        }
-        return (
-            <>
-                <path
-                    fill={fill()}
-                    d={d()}
-                    onPointerEnter={() => setFill("#00000055")}
-                    onPointerLeave={() => setFill("#00000033")}
-                    style={"cursor: pointer"}
-                />
-                <text
-                    x={p5[0]}
-                    y={p5[1]}
-                    fill="#ffffff"
-                    text-anchor="middle"
-                    font-size="20"
-                    font-family="sans-serif"
-                    onPointerEnter={() => setFill("#00000055")}
-                    style={"cursor: pointer"}
-                >
-                    {text}
-                </text>
-            </>
-        )
-    }
-
     return (
         <Show when={props.menu.visible()}>
             <>
-                <div
-                    style={{
-                        position: "absolute",
-                        transform: translateDiv(),
-                        "border-radius": "50%",
-                        top: "0px",
-                        left: "0px",
-                        width: `${or * 2}px`,
-                        height: `${or * 2}px`,
-                        "-webkit-backdrop-filter": "blur(12px)",
-                    }}
-                />
-                <svg
-                    style={{
-                        width: "100vw",
-                        height: "100vh",
-                        position: "absolute",
-                        top: "0px",
-                        left: "0px",
-                    }}
+                <Blur style={{ transform: translateDiv() }} />
+                <Svg
                     onPointerDown={(e) => e.stopPropagation()}
-                    onPointerUp={props.menu.hide}
-                    onClick={props.menu.hide}
                     onContextMenu={(e) => e.preventDefault()}
+                    onClick={props.menu.hide}
                 >
                     <g transform={translateSvg()}>
-                        {arc(0, Math.PI / 2, "text")}
-                        {arc(Math.PI / 2, Math.PI, "number")}
-                        {arc(Math.PI, (3 * Math.PI) / 2, "table")}
-                        {arc((3 * Math.PI) / 2, 2 * Math.PI, "plot")}
+                        {arc(0, Math.PI / 2, "text", props)}
+                        {arc(Math.PI / 2, Math.PI, "number", props)}
+                        {arc(Math.PI, (3 * Math.PI) / 2, "table", props)}
+                        {arc((3 * Math.PI) / 2, 2 * Math.PI, "plot", props)}
                     </g>
-                </svg>
+                </Svg>
             </>
         </Show>
     )
