@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js"
 import { Camera } from "./camera"
+import { UUID } from "./graph"
 
 import { sub, Vec2, midpoint, distance } from "./vec2"
 
@@ -30,7 +31,7 @@ interface Background {
 
 interface Node {
     kind: TargetKind.NODE
-    id: string
+    id: UUID
 }
 
 export type Target = Background | Node
@@ -90,7 +91,7 @@ export const onPointerDown = (
 
 export interface Effects {
     camera: Camera
-    dragNode: (id: string, delta: Vec2) => void
+    dragNode: (id: UUID, delta: Vec2) => void
     offset: () => Vec2
 }
 
@@ -193,7 +194,7 @@ const transform = (event: PointerEvent): Pointer => ({
 
 export interface Pointers {
     downOnBackground: (event: PointerEvent) => void
-    downOnNode: (event: PointerEvent, id: string) => void
+    downOnNode: (event: PointerEvent, id: UUID) => void
     move: (event: PointerEvent, effects: Effects) => void
     up: (event: PointerEvent) => void
 }
@@ -209,7 +210,7 @@ export const createPointers = (): Pointers => {
             const target: Target = { kind: TargetKind.BACKGROUND }
             setPointers(onPointerDown(pointers(), pointer, target))
         },
-        downOnNode: (event: PointerEvent, id: string) => {
+        downOnNode: (event: PointerEvent, id: UUID) => {
             event.stopPropagation()
             const pointer = transform(event)
             const target: Target = { kind: TargetKind.NODE, id }

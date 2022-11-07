@@ -2,7 +2,7 @@ import { For } from "solid-js"
 import { styled } from "solid-styled-components"
 
 import { Camera } from "./camera"
-import { Graph, ID, Node, Nodes } from "./graph"
+import { Graph, UUID, Node, Nodes } from "./graph"
 import { Pointers } from "./pointers"
 import { Positions } from "./positions"
 import { Vec2 } from "./vec2"
@@ -90,7 +90,7 @@ export const NodeCards = (props: Props) => {
         }px)`
     const scale = () => `scale(${props.camera.zoom()}, ${props.camera.zoom()})`
     const transform = () => `${translate()} ${scale()}`
-    const track = (id: ID) => (el: HTMLElement) => {
+    const track = (id: UUID) => (el: HTMLElement) => {
         requestAnimationFrame(() =>
             props.positions.track(id, el, props.camera, props.offset())
         )

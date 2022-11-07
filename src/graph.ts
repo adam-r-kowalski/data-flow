@@ -1,44 +1,46 @@
 import { createStore } from "solid-js/store"
 
 import { add, scale, Vec2 } from "./vec2"
+import { OperationKind, operations } from "./operations"
+import { batch } from "solid-js"
 
-export type ID = string
+export type UUID = number
 
 export interface Node {
-    id: ID
+    id: UUID
     name: string
     position: Vec2
-    inputs: ID[]
-    outputs: ID[]
-    body: ID
+    inputs: UUID[]
+    outputs: UUID[]
+    body: UUID
 }
 
 export interface Input {
-    id: ID
+    id: UUID
     name: string
 }
 
-export interface Output {
-    id: ID
+export interface Input {
+    id: UUID
     name: string
 }
 
 export interface Body {
-    id: ID
+    id: UUID
     value: number
 }
 
 export interface Edge {
-    id: ID
-    input: ID
-    output: ID
+    id: UUID
+    input: UUID
+    output: UUID
 }
 
-export type Nodes = { [id: ID]: Node }
-export type Edges = { [id: ID]: Edge }
-export type Inputs = { [id: ID]: Input }
-export type Outputs = { [id: ID]: Output }
-export type Bodies = { [id: ID]: Body }
+export type Nodes = { [id: UUID]: Node }
+export type Edges = { [id: UUID]: Edge }
+export type Inputs = { [id: UUID]: Input }
+export type Outputs = { [id: UUID]: Input }
+export type Bodies = { [id: UUID]: Body }
 
 export interface Graph {
     nodes: Nodes
@@ -46,102 +48,81 @@ export interface Graph {
     inputs: Inputs
     outputs: Outputs
     bodies: Bodies
-    dragNode: (id: ID, delta: Vec2, zoom: number) => void
+    dragNode: (id: UUID, delta: Vec2, zoom: number) => void
+    addNode: (name: string, position: Vec2) => Node
+    addEdge: (input: UUID, output: UUID) => Edge
 }
 
-export const createGraph = (n: number): Graph => {
-    const initialNodes: Nodes = {}
-    const initialEdges: Edges = {}
-    const initialInputs: Inputs = {}
-    const initialOutputs: Outputs = {}
-    const initialBodies: Bodies = {}
-    for (let i = 0; i < n; i += 3) {
-        const x = Math.random() * 10000 - 5000
-        const y = Math.random() * 10000 - 5000
-        initialNodes[`node-${i}`] = {
-            id: `node-${i}`,
-            name: "num",
-            position: [x, y],
-            inputs: [],
-            outputs: [`node-${i}_output-0`],
-            body: `node-${i}_body`,
-        }
-        initialNodes[`node-${i + 1}`] = {
-            id: `node-${i + 1}`,
-            name: "num",
-            position: [x, y + 200],
-            inputs: [],
-            outputs: [`node-${i + 1}_output-0`],
-            body: `node-${i + 1}_body`,
-        }
-        initialNodes[`node-${i + 2}`] = {
-            id: `node-${i + 2}`,
-            name: "add",
-            position: [x + 600, y + 100],
-            inputs: [`node-${i + 2}_input-0`, `node-${i + 2}_input-1`],
-            outputs: [`node-${i + 2}_output-0`],
-            body: `node-${i + 2}_body`,
-        }
-        initialEdges[`edge-${i}`] = {
-            id: `edge-${i}`,
-            input: `node-${i + 2}_input-0`,
-            output: `node-${i}_output-0`,
-        }
-        initialEdges[`edge-${i + 1}`] = {
-            id: `edge-${i + 1}`,
-            input: `node-${i + 2}_input-1`,
-            output: `node-${i + 1}_output-0`,
-        }
-        initialInputs[`node-${i + 2}_input-0`] = {
-            id: `node-${i + 2}_input-0`,
-            name: "x",
-        }
-        initialInputs[`node-${i + 2}_input-1`] = {
-            id: `node-${i + 2}_input-1`,
-            name: "y",
-        }
-        initialOutputs[`node-${i}_output-0`] = {
-            id: `node-${i}_output-0`,
-            name: "out",
-        }
-        initialOutputs[`node-${i + 1}_output-0`] = {
-            id: `node-${i + 1}_output-0`,
-            name: "out",
-        }
-        initialOutputs[`node-${i + 2}_output-0`] = {
-            id: `node-${i + 2}_output-0`,
-            name: "out",
-        }
-        initialBodies[`node-${i}_body`] = {
-            id: `node-${i}_body`,
-            value: 18,
-        }
-        initialBodies[`node-${i + 1}_body`] = {
-            id: `node-${i + 1}_body`,
-            value: 24,
-        }
-        initialBodies[`node-${i + 2}_body`] = {
-            id: `node-${i + 2}_body`,
-            value: 42,
-        }
-    }
-    const [graph, setGraph] = createStore({
-        nodes: initialNodes,
-        edges: initialEdges,
-        inputs: initialInputs,
-        outputs: initialOutputs,
-        bodies: initialBodies,
-    })
-    return {
-        nodes: graph.nodes,
-        edges: graph.edges,
-        inputs: graph.inputs,
-        outputs: graph.outputs,
-        bodies: graph.bodies,
-        dragNode: (id: ID, delta: Vec2, zoom: number) => {
-            setGraph("nodes", id, "position", (p) =>
-                add(p, scale(delta, 1 / zoom))
-            )
+export const createGraph = (): Graph => {
+    const [nodes, setNodes] = createStore<Nodes>({})
+    const [edges, setEdges] = createStore<Edges>({})
+    const [inputs, setInputs] = createStore<Inputs>({})
+    const [outputs, setOutputs] = createStore<Outputs>({})
+    const [bodies, setBodies] = createStore<Bodies>({})
+    let nextId: UUID = 0
+    const generateId = (): UUID => nextId++
+    const graph: Graph = {
+        nodes,
+        edges,
+        inputs,
+        outputs,
+        bodies,
+        dragNode: (id: UUID, delta: Vec2, zoom: number) => {
+            setNodes(id, "position", (p) => add(p, scale(delta, 1 / zoom)))
+        },
+        addNode: (name: string, position: Vec2): Node =>
+            batch(() => {
+                const operation = operations[name]
+                const inputs: UUID[] = []
+                if (operation.kind === OperationKind.TRANSFORM) {
+                    for (const name of operation.inputs) {
+                        const input: Input = {
+                            id: generateId(),
+                            name,
+                        }
+                        setInputs(input.id, input)
+                        inputs.push(input.id)
+                    }
+                }
+                const outputs: UUID[] = []
+                for (const name of operation.outputs) {
+                    const output: Input = {
+                        id: generateId(),
+                        name,
+                    }
+                    setOutputs(output.id, output)
+                    outputs.push(output.id)
+                }
+                const body: Body = {
+                    id: generateId(),
+                    value: 0,
+                }
+                setBodies(body.id, body)
+                const node: Node = {
+                    id: generateId(),
+                    name,
+                    position,
+                    inputs,
+                    outputs,
+                    body: body.id,
+                }
+                setNodes(node.id, node)
+                return node
+            }),
+        addEdge: (input: UUID, output: UUID): Edge => {
+            const edge: Edge = {
+                id: generateId(),
+                input,
+                output,
+            }
+            setEdges(edge.id, edge)
+            return edge
         },
     }
+    const node0 = graph.addNode("number", [50, 50])
+    const node1 = graph.addNode("number", [50, 200])
+    const node2 = graph.addNode("add", [300, 125])
+    graph.addEdge(node0.outputs[0], node2.inputs[0])
+    graph.addEdge(node1.outputs[0], node2.inputs[1])
+    return graph
 }

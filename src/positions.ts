@@ -1,24 +1,24 @@
 import { batch } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Camera } from "./camera"
-import { Graph, ID } from "./graph"
+import { Graph, UUID } from "./graph"
 import { inverse, vecMul } from "./mat3x3"
 import { Vec2, zero } from "./vec2"
 
 export interface Positions {
-    track: (id: string, el: HTMLElement, camera: Camera, offset: Vec2) => void
-    position: (id: string) => Vec2
-    retrack: (id: string, graph: Graph, camera: Camera, offset: Vec2) => void
+    track: (id: UUID, el: HTMLElement, camera: Camera, offset: Vec2) => void
+    position: (id: UUID) => Vec2
+    retrack: (id: UUID, graph: Graph, camera: Camera, offset: Vec2) => void
 }
 
-type Elements = { [id: string]: HTMLElement }
+type Elements = { [id: UUID]: HTMLElement }
 
 export const createPositions = (): Positions => {
     const elements: Elements = {}
-    const [positions, setPositions] = createStore<{ [id: string]: Vec2 }>({})
+    const [positions, setPositions] = createStore<{ [id: UUID]: Vec2 }>({})
     const createTransform = (camera: Camera, [ox, oy]: Vec2) => {
         const transform = inverse(camera.transform())
-        return (id: ID) => {
+        return (id: UUID) => {
             const rect = elements[id].getBoundingClientRect()
             const [x, y] = vecMul(transform, [rect.x - ox, rect.y - oy, 1])
             const [x1, y1] = vecMul(transform, [
@@ -32,12 +32,12 @@ export const createPositions = (): Positions => {
         }
     }
     return {
-        track: (id: string, el: HTMLElement, camera: Camera, offset: Vec2) => {
+        track: (id: UUID, el: HTMLElement, camera: Camera, offset: Vec2) => {
             elements[id] = el
             createTransform(camera, offset)(id)
         },
-        position: (id: string) => positions[id] ?? zero,
-        retrack: (id: ID, graph: Graph, camera: Camera, offset: Vec2) => {
+        position: (id: UUID) => positions[id] ?? zero,
+        retrack: (id: UUID, graph: Graph, camera: Camera, offset: Vec2) => {
             const transform = createTransform(camera, offset)
             const inputs = graph.nodes[id].inputs
             const outputs = graph.nodes[id].outputs

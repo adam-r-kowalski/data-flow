@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js"
 
 import { Vec2, add } from "./vec2"
-import { Mat3x3, scale, translate, matMul } from "./mat3x3"
+import { Mat3x3, scale, translate, matMul, vecMul, inverse } from "./mat3x3"
 
 export interface Camera {
     position: () => Vec2
@@ -9,6 +9,7 @@ export interface Camera {
     transform: () => Mat3x3
     drag: (delta: Vec2) => void
     pinch: (into: Vec2, delta: number) => void
+    worldSpace: (position: Vec2) => Vec2
 }
 
 const clamp = (value: number, min: number, max: number) =>
@@ -38,6 +39,10 @@ export const createCamera = (): Camera => {
             ].reduce(matMul)
             setZoom(newTransform[0])
             setPosition([newTransform[2], newTransform[5]])
+        },
+        worldSpace: (position: Vec2): Vec2 => {
+            const [x, y] = vecMul(inverse(transform()), [...position, 1])
+            return [x, y]
         },
     }
 }
