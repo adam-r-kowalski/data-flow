@@ -20,7 +20,7 @@ export const DataFlow = () => {
     const finder = createFinder()
     const menu = createMenu()
     const onKeyDown = (e: KeyboardEvent) => {
-        if (finder.visible()) return
+        if (finder.visible() || menu.visible()) return
         switch (e.key) {
             case " ":
                 e.preventDefault()

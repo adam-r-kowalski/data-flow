@@ -13,8 +13,8 @@ const point = (angle: number, radius: number): Vec2 => [
 ]
 
 export const RadialMenu = (props: Props) => {
-    const ir = 75
-    const or = 200
+    const ir = 50
+    const or = 150
     const offset: Vec2 = [or, or]
     const translateSvg = () => {
         const [x, y] = props.menu.position()
@@ -79,13 +79,14 @@ export const RadialMenu = (props: Props) => {
                 />
                 <svg
                     style={{
-                        width: "100%",
-                        height: "100%",
+                        width: "100vw",
+                        height: "100vh",
                         position: "absolute",
                         top: "0px",
                         left: "0px",
                     }}
                     onPointerDown={(e) => e.stopPropagation()}
+                    onPointerUp={props.menu.hide}
                     onClick={props.menu.hide}
                     onContextMenu={(e) => e.preventDefault()}
                 >

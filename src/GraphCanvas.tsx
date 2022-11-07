@@ -1,4 +1,4 @@
-import { onCleanup } from "solid-js"
+import { createSignal, onCleanup } from "solid-js"
 import { styled } from "solid-styled-components"
 
 import { Graph } from "./graph"
@@ -40,6 +40,7 @@ export const GraphCanvas = (props: Props) => {
     const pointers = createPointers()
     document.addEventListener("pointerup", pointers.up)
     const onPointerMove = (e: PointerEvent) => {
+        if (props.menu.visible()) return
         pointers.move(e, {
             camera: props.camera,
             dragNode: (id, delta) => {
@@ -61,14 +62,21 @@ export const GraphCanvas = (props: Props) => {
             e.deltaY
         )
     }
+    const [down, setDown] = createSignal(false)
     return (
         <FullScreen
             ref={root.set}
             onPointerDown={(e) => {
                 if (e.button === 0) {
                     pointers.downOnBackground(e)
+                    setDown(true)
+                    setTimeout(() => {
+                        if (down()) props.menu.show([e.clientX, e.clientY])
+                    }, 300)
                 }
             }}
+            onPointerMove={() => setDown(false)}
+            onPointerUp={() => setDown(false)}
             onWheel={onWheel}
             onContextMenu={(e) => {
                 e.preventDefault()

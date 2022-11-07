@@ -10,9 +10,9 @@ export interface Menu {
 
 export const createMenu = () => {
     const [visible, setVisible] = createSignal(false)
-    const [position, setPosition] = createSignal([0, 0])
+    const [position, setPosition] = createSignal<Vec2>([0, 0])
     return {
-        visible: visible,
+        visible,
         position,
         show: (position: Vec2) => {
             setVisible(true)
