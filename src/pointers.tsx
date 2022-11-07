@@ -197,6 +197,8 @@ export interface Pointers {
     downOnNode: (event: PointerEvent, id: UUID) => void
     move: (event: PointerEvent, effects: Effects) => void
     up: (event: PointerEvent) => void
+    draggingNode: () => boolean
+    twoPointersDown: () => boolean
 }
 
 export const createPointers = (): Pointers => {
@@ -224,5 +226,12 @@ export const createPointers = (): Pointers => {
             const pointer = transform(event)
             setPointers(onPointerUp(pointers(), pointer))
         },
+        draggingNode: () => {
+            const p = pointers()
+            return (
+                p.kind === PointersKind.ONE && p.target.kind === TargetKind.NODE
+            )
+        },
+        twoPointersDown: () => pointers().kind == PointersKind.TWO,
     }
 }

@@ -7,10 +7,11 @@ import { Camera } from "./camera"
 import { NodeCards } from "./NodeCards"
 import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
-import { sub } from "./vec2"
+import { sub, Vec2 } from "./vec2"
 import { createRoot } from "./root"
 import { Finder } from "./finder"
 import { Menu } from "./menu"
+import { Modifiers } from "./modifiers"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -28,6 +29,7 @@ interface Props {
     camera: Camera
     finder: Finder
     menu: Menu
+    modifiers: Modifiers
 }
 
 interface ExtendedWheelEvent extends WheelEvent {
@@ -38,21 +40,47 @@ export const GraphCanvas = (props: Props) => {
     const root = createRoot()
     const positions = createPositions()
     const pointers = createPointers()
-    document.addEventListener("pointerup", pointers.up)
-    const onPointerMove = (e: PointerEvent) => {
-        if (props.menu.visible()) return
-        pointers.move(e, {
-            camera: props.camera,
-            dragNode: (id, delta) => {
-                props.graph.dragNode(id, delta, props.camera.zoom())
-                positions.retrack(id, props.graph, props.camera, root.offset())
-            },
-            offset: root.offset,
-        })
+    const [down, setDown] = createSignal(false)
+    const onPointerUp = (e: PointerEvent) => {
+        setDown(false)
+        if (e.button === 1) {
+            props.modifiers.setWheel(false)
+        } else {
+            pointers.up(e)
+        }
     }
+    const onPointerMove = (e: PointerEvent) => {
+        setDown(false)
+        const position: Vec2 = [e.clientX, e.clientY]
+        if (props.menu.visible()) return
+        if (props.modifiers.wheel()) {
+            const delta = sub(position, props.modifiers.position())
+            props.camera.drag(delta)
+        } else if (
+            props.modifiers.space() ||
+            pointers.draggingNode() ||
+            pointers.twoPointersDown()
+        ) {
+            pointers.move(e, {
+                camera: props.camera,
+                dragNode: (id, delta) => {
+                    props.graph.dragNode(id, delta, props.camera.zoom())
+                    positions.retrack(
+                        id,
+                        props.graph,
+                        props.camera,
+                        root.offset()
+                    )
+                },
+                offset: root.offset,
+            })
+        }
+        props.modifiers.setPosition(position)
+    }
+    document.addEventListener("pointerup", onPointerUp)
     document.addEventListener("pointermove", onPointerMove)
     onCleanup(() => {
-        document.removeEventListener("pointerup", pointers.up)
+        document.removeEventListener("pointerup", onPointerUp)
         document.removeEventListener("pointermove", onPointerMove)
     })
     const onWheel = (e: ExtendedWheelEvent) => {
@@ -68,27 +96,31 @@ export const GraphCanvas = (props: Props) => {
             props.camera.drag([-e.deltaX, -e.deltaY])
         }
     }
-    const [down, setDown] = createSignal(false)
+    const cursor = () =>
+        props.modifiers.space() || props.modifiers.wheel() ? "grab" : "default"
+    const onPointerDown = (e: PointerEvent) => {
+        if (e.button === 0) {
+            pointers.downOnBackground(e)
+            setDown(true)
+            setTimeout(() => {
+                if (down()) props.menu.show([e.clientX, e.clientY])
+            }, 300)
+        } else if (e.button === 1) {
+            props.modifiers.setWheel(true)
+            props.modifiers.setPosition([e.clientX, e.clientY])
+        }
+    }
     return (
         <FullScreen
             ref={root.set}
-            onPointerDown={(e) => {
-                if (e.button === 0) {
-                    pointers.downOnBackground(e)
-                    setDown(true)
-                    setTimeout(() => {
-                        if (down()) props.menu.show([e.clientX, e.clientY])
-                    }, 300)
-                }
-            }}
-            onPointerMove={() => setDown(false)}
-            onPointerUp={() => setDown(false)}
+            onPointerDown={onPointerDown}
             onWheel={onWheel}
             onContextMenu={(e) => {
                 e.preventDefault()
                 props.menu.show([e.clientX, e.clientY])
             }}
             onDblClick={props.finder.show}
+            style={{ cursor: cursor() }}
         >
             <BezierCurves
                 edges={props.graph.edges}
