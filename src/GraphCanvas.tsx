@@ -81,17 +81,15 @@ export const GraphCanvas = (props: Props) => {
     })
     const onWheel = (e: WheelEvent) => {
         e.preventDefault()
-        const deltaX = clamp(e.deltaX, -30, 30)
-        const deltaY = clamp(e.deltaY, -30, 30)
         if (e.ctrlKey || e.metaKey) {
             props.camera.pinch(
                 sub([e.clientX, e.clientY], root.fullOffset()),
-                deltaY
+                e.deltaY
             )
         } else if (e.shiftKey) {
-            props.camera.drag([-deltaX - deltaY, 0])
+            props.camera.drag([-e.deltaX - e.deltaY, 0])
         } else {
-            props.camera.drag([-deltaX, -deltaY])
+            props.camera.drag([-e.deltaX, -e.deltaY])
         }
     }
     const cursor = () =>

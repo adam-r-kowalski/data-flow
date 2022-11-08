@@ -30,7 +30,8 @@ export const createCamera = (): Camera => {
         transform,
         drag: (delta: Vec2) => setPosition(add(position(), delta)),
         pinch: (into: Vec2, delta: number) => {
-            const newZoom = clamp(zoom() * (1 - delta * 0.01), 0.1, 5)
+            let newZoom = zoom() * Math.pow(2, delta * -0.01)
+            newZoom = clamp(newZoom, 0.1, 5)
             const newTransform = [
                 translate(into[0], into[1]),
                 scale(newZoom / zoom()),
