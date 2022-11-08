@@ -3,7 +3,7 @@ import { styled } from "solid-styled-components"
 
 import { Graph } from "./graph"
 import { BezierCurves } from "./BezierCurves"
-import { Camera } from "./camera"
+import { Camera, clamp } from "./camera"
 import { NodeCards } from "./NodeCards"
 import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
@@ -30,10 +30,6 @@ interface Props {
     finder: Finder
     menu: Menu
     modifiers: Modifiers
-}
-
-interface ExtendedWheelEvent extends WheelEvent {
-    wheelDeltaY?: number
 }
 
 export const GraphCanvas = (props: Props) => {
@@ -83,17 +79,19 @@ export const GraphCanvas = (props: Props) => {
         document.removeEventListener("pointerup", onPointerUp)
         document.removeEventListener("pointermove", onPointerMove)
     })
-    const onWheel = (e: ExtendedWheelEvent) => {
+    const onWheel = (e: WheelEvent) => {
         e.preventDefault()
+        const deltaX = clamp(e.deltaX, -30, 30)
+        const deltaY = clamp(e.deltaY, -30, 30)
         if (e.ctrlKey || e.metaKey) {
             props.camera.pinch(
                 sub([e.clientX, e.clientY], root.fullOffset()),
-                e.deltaY
+                deltaY
             )
         } else if (e.shiftKey) {
-            props.camera.drag([-e.deltaX - e.deltaY, 0])
+            props.camera.drag([-deltaX - deltaY, 0])
         } else {
-            props.camera.drag([-e.deltaX, -e.deltaY])
+            props.camera.drag([-deltaX, -deltaY])
         }
     }
     const cursor = () =>
