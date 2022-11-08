@@ -3,7 +3,7 @@ import { styled } from "solid-styled-components"
 
 import { Graph } from "./graph"
 import { BezierCurves } from "./BezierCurves"
-import { Camera, clamp } from "./camera"
+import { Camera } from "./camera"
 import { NodeCards } from "./NodeCards"
 import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
