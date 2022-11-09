@@ -26,7 +26,10 @@ export const DataFlow = () => {
         switch (e.key) {
             case "f":
                 e.preventDefault()
-                return finder.show()
+                return finder.show([
+                    window.innerWidth / 2,
+                    window.innerHeight / 2,
+                ])
             case " ":
                 modifiers.setSpace(true)
                 return
@@ -52,7 +55,7 @@ export const DataFlow = () => {
                 menu={menu}
                 modifiers={modifiers}
             />
-            <FinderPane finder={finder} />
+            <FinderPane graph={graph} camera={camera} finder={finder} />
             <RadialMenu graph={graph} camera={camera} menu={menu} />
         </FullScreen>
     )

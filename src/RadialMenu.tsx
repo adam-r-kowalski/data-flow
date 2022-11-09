@@ -79,7 +79,7 @@ const arc = (start: number, stop: number, text: string, props: Props) => {
                 fill="#ffffff"
                 text-anchor="middle"
                 font-size="20"
-                font-family="sans-serif"
+                font-family="monospace"
                 onPointerEnter={() => setFill("#00000055")}
                 onClick={onClick}
                 onPointerUp={onClick}
@@ -110,10 +110,10 @@ export const RadialMenu = (props: Props) => {
                     onClick={props.menu.hide}
                 >
                     <g transform={translateSvg()}>
-                        {arc(0, Math.PI / 2, "text", props)}
-                        {arc(Math.PI / 2, Math.PI, "number", props)}
-                        {arc(Math.PI, (3 * Math.PI) / 2, "table", props)}
-                        {arc((3 * Math.PI) / 2, 2 * Math.PI, "plot", props)}
+                        {arc(0, Math.PI / 2, "number", props)}
+                        {arc(Math.PI / 2, Math.PI, "add", props)}
+                        {arc(Math.PI, (3 * Math.PI) / 2, "sub", props)}
+                        {arc((3 * Math.PI) / 2, 2 * Math.PI, "mul", props)}
                     </g>
                 </Svg>
             </>
