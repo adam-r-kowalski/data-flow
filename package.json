@@ -31,6 +31,7 @@
     "vitest": "^0.22.1"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^4.0.0",
     "solid-icons": "^1.0.4",
     "solid-js": "^1.5.1",
     "solid-styled-components": "^0.28.5"

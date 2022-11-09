@@ -1,8 +1,11 @@
-import { createEffect, Show } from "solid-js"
+import { createEffect, For, Show } from "solid-js"
 import { FiSearch } from "solid-icons/fi"
 import { styled } from "solid-styled-components"
 
 import { Finder } from "./finder"
+import { operations } from "./operations"
+import { Camera } from "./camera"
+import { Graph } from "./graph"
 
 const FullScreen = styled("div")({
     width: "100%",
@@ -64,6 +67,8 @@ const Selection = styled("div")({
 
 interface Props {
     finder: Finder
+    camera: Camera
+    graph: Graph
 }
 
 export const FinderPane = (props: Props) => {
@@ -98,30 +103,23 @@ export const FinderPane = (props: Props) => {
                         />
                     </Search>
                     <Selections>
-                        <Selection onClick={props.finder.hide}>
-                            number
-                        </Selection>
-                        <Selection onClick={props.finder.hide}>add</Selection>
-                        <Selection onClick={props.finder.hide}>
-                            subtract
-                        </Selection>
-                        <Selection onClick={props.finder.hide}>
-                            multiply
-                        </Selection>
-                        <Selection onClick={props.finder.hide}>
-                            divide
-                        </Selection>
-                        <Selection onClick={props.finder.hide}>equal</Selection>
-                        <Selection onClick={props.finder.hide}>less</Selection>
-                        <Selection onClick={props.finder.hide}>
-                            less equal
-                        </Selection>
-                        <Selection onClick={props.finder.hide}>
-                            greater
-                        </Selection>
-                        <Selection onClick={props.finder.hide}>
-                            greater equal
-                        </Selection>
+                        <For each={Object.values(operations)}>
+                            {(operation) => {
+                                const onClick = () => {
+                                    const position = props.finder.position()
+                                    props.graph.addNode(
+                                        operation.name,
+                                        props.camera.worldSpace(position)
+                                    )
+                                    props.finder.hide()
+                                }
+                                return (
+                                    <Selection onClick={onClick}>
+                                        {operation.name}
+                                    </Selection>
+                                )
+                            }}
+                        </For>
                     </Selections>
                 </Panel>
             </FullScreen>

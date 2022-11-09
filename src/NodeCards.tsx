@@ -2,10 +2,12 @@ import { For } from "solid-js"
 import { styled } from "solid-styled-components"
 
 import { Camera } from "./camera"
-import { Graph, UUID, Node, Nodes } from "./graph"
+import { Graph, UUID, Node, Nodes, NodeKind } from "./graph"
 import { Pointers } from "./pointers"
 import { Positions } from "./positions"
-import { Vec2 } from "./vec2"
+import { BodyContent } from "./BodyContent"
+import { Root } from "./root"
+import { Selected } from "./selected"
 
 const Scene = styled("div")({
     "transform-origin": "top left",
@@ -19,7 +21,7 @@ const Card = styled("div")({
     background: "#3b4261",
     "border-radius": "10px",
     color: "white",
-    "font-family": "sans-serif",
+    "font-family": "monospace",
     "font-size": "20px",
     "box-shadow": "0 0 4px rgba(0, 0, 0, 0.5)",
 })
@@ -51,7 +53,6 @@ const Output = styled("div")({
 })
 
 const Circle = styled("div")({
-    background: "#7aa2f7",
     width: "20px",
     height: "20px",
     "border-radius": "50%",
@@ -68,19 +69,14 @@ const Name = styled("div")({
     color: "#bb9af7",
 })
 
-const Body = styled("div")({
-    background: "#24283b",
-    padding: "20px",
-    "border-radius": "5px",
-})
-
 interface Props {
     nodes: Nodes
     graph: Graph
     camera: Camera
     positions: Positions
     pointers: Pointers
-    offset: () => Vec2
+    root: Root
+    selected: Selected
 }
 
 export const NodeCards = (props: Props) => {
@@ -92,11 +88,13 @@ export const NodeCards = (props: Props) => {
     const transform = () => `${translate()} ${scale()}`
     const track = (id: UUID) => (el: HTMLElement) => {
         requestAnimationFrame(() =>
-            props.positions.track(id, el, props.camera, props.offset())
+            props.positions.track(id, el, props.camera, props.root.offset())
         )
     }
-    const inputs = (node: Node) =>
-        node.inputs.map((id) => props.graph.inputs[id])
+    const inputs = (node: Node) => {
+        if (node.kind === NodeKind.SOURCE) return []
+        return node.inputs.map((id) => props.graph.inputs[id])
+    }
     const outputs = (node: Node) =>
         node.outputs.map((id) => props.graph.outputs[id])
     const translateNode = (node: Node) =>
@@ -111,12 +109,26 @@ export const NodeCards = (props: Props) => {
                             if (e.button === 0)
                                 props.pointers.downOnNode(e, node.id)
                         }}
+                        onDblClick={(e) => e.stopPropagation()}
                     >
                         <Inputs>
                             <For each={inputs(node)}>
                                 {(input) => (
-                                    <Input>
-                                        <Circle ref={track(input.id)} />
+                                    <Input
+                                        onClick={() => {
+                                            props.selected.setInput(input.id)
+                                        }}
+                                    >
+                                        <Circle
+                                            ref={track(input.id)}
+                                            style={{
+                                                background:
+                                                    props.selected.input() ===
+                                                    input.id
+                                                        ? "#bb9af7"
+                                                        : "#7aa2f7",
+                                            }}
+                                        />
                                         {input.name}
                                     </Input>
                                 )}
@@ -124,14 +136,33 @@ export const NodeCards = (props: Props) => {
                         </Inputs>
                         <Content>
                             <Name>{node.name}</Name>
-                            <Body>{props.graph.bodies[node.body].value}</Body>
+                            <BodyContent
+                                graph={props.graph}
+                                camera={props.camera}
+                                positions={props.positions}
+                                root={props.root}
+                                body={props.graph.bodies[node.body]}
+                            />
                         </Content>
                         <Outputs>
                             <For each={outputs(node)}>
                                 {(output) => (
-                                    <Output>
+                                    <Output
+                                        onClick={() => {
+                                            props.selected.setOutput(output.id)
+                                        }}
+                                    >
                                         {output.name}
-                                        <Circle ref={track(output.id)} />
+                                        <Circle
+                                            ref={track(output.id)}
+                                            style={{
+                                                background:
+                                                    props.selected.output() ===
+                                                    output.id
+                                                        ? "#bb9af7"
+                                                        : "#7aa2f7",
+                                            }}
+                                        />
                                     </Output>
                                 )}
                             </For>

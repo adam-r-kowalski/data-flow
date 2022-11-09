@@ -8,10 +8,11 @@ import { NodeCards } from "./NodeCards"
 import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
 import { sub, Vec2 } from "./vec2"
-import { createRoot } from "./root"
+import { createRoot, Root } from "./root"
 import { Finder } from "./finder"
 import { Menu } from "./menu"
 import { Modifiers } from "./modifiers"
+import { createSelected } from "./selected"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -34,9 +35,10 @@ interface Props {
 
 export const GraphCanvas = (props: Props) => {
     const root = createRoot()
-    const positions = createPositions()
+    const positions = createPositions(props.graph, props.camera, root)
     const pointers = createPointers()
     const [down, setDown] = createSignal(false)
+    const selected = createSelected(props.graph)
     const onPointerUp = (e: PointerEvent) => {
         setDown(false)
         if (e.button === 1) {
@@ -61,12 +63,6 @@ export const GraphCanvas = (props: Props) => {
                 camera: props.camera,
                 dragNode: (id, delta) => {
                     props.graph.dragNode(id, delta, props.camera.zoom())
-                    positions.retrack(
-                        id,
-                        props.graph,
-                        props.camera,
-                        root.offset()
-                    )
                 },
                 offset: root.offset,
             })
@@ -115,7 +111,7 @@ export const GraphCanvas = (props: Props) => {
                 e.preventDefault()
                 props.menu.show([e.clientX, e.clientY])
             }}
-            onDblClick={props.finder.show}
+            onDblClick={(e) => props.finder.show([e.clientX, e.clientY])}
             style={{ cursor: cursor() }}
         >
             <BezierCurves
@@ -129,7 +125,8 @@ export const GraphCanvas = (props: Props) => {
                 camera={props.camera}
                 positions={positions}
                 pointers={pointers}
-                offset={root.offset}
+                root={root}
+                selected={selected}
             />
         </FullScreen>
     )

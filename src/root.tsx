@@ -1,7 +1,7 @@
 import { createSignal } from "solid-js"
 import { Vec2 } from "./vec2"
 
-interface Root {
+export interface Root {
     set: (root: HTMLElement) => void
     offset: () => Vec2
     fullOffset: () => Vec2
