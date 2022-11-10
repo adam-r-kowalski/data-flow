@@ -1,4 +1,5 @@
 import { createSignal } from "solid-js"
+import { fuzzyFind } from "./fuzzy_find"
 import { Vec2 } from "./vec2"
 
 export interface Finder {
@@ -8,12 +9,15 @@ export interface Finder {
     search: () => string
     setSearch: (search: string) => void
     position: () => Vec2
+    filtered: () => string[]
 }
 
-export const createFinder = (): Finder => {
+export const createFinder = (options: string[]): Finder => {
     const [visible, setVisible] = createSignal(false)
     const [search, setSearch] = createSignal("")
     const [position, setPosition] = createSignal<Vec2>([0, 0])
+    const filtered = () =>
+        options.filter((haystack) => fuzzyFind({ haystack, needle: search() }))
     return {
         visible: visible,
         show: (position: Vec2) => {
@@ -25,5 +29,6 @@ export const createFinder = (): Finder => {
         search,
         setSearch,
         position,
+        filtered,
     }
 }
