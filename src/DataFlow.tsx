@@ -9,6 +9,7 @@ import { createFinder } from "./finder"
 import { RadialMenu } from "./RadialMenu"
 import { createMenu } from "./menu"
 import { createModifiers } from "./modifiers"
+import { operations } from "./operations"
 
 const FullScreen = styled("div")({
     width: "100vw",
@@ -18,7 +19,7 @@ const FullScreen = styled("div")({
 export const DataFlow = () => {
     const graph = createGraph()
     const camera = createCamera()
-    const finder = createFinder()
+    const finder = createFinder(Object.keys(operations))
     const menu = createMenu()
     const modifiers = createModifiers()
     const onKeyDown = (e: KeyboardEvent) => {

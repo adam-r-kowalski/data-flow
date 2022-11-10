@@ -3,7 +3,6 @@ import { FiSearch } from "solid-icons/fi"
 import { styled } from "solid-styled-components"
 
 import { Finder } from "./finder"
-import { operations } from "./operations"
 import { Camera } from "./camera"
 import { Graph } from "./graph"
 
@@ -77,7 +76,15 @@ export const FinderPane = (props: Props) => {
     const onKeyDown = (e: KeyboardEvent) => {
         switch (e.key) {
             case "Escape":
+                return props.finder.hide()
             case "Enter":
+                const position = props.finder.position()
+                const option = props.finder.filtered()[0]
+                option &&
+                    props.graph.addNode(
+                        option,
+                        props.camera.worldSpace(position)
+                    )
                 return props.finder.hide()
             default:
                 return
@@ -103,19 +110,19 @@ export const FinderPane = (props: Props) => {
                         />
                     </Search>
                     <Selections>
-                        <For each={Object.values(operations)}>
-                            {(operation) => {
+                        <For each={props.finder.filtered()}>
+                            {(option) => {
                                 const onClick = () => {
                                     const position = props.finder.position()
                                     props.graph.addNode(
-                                        operation.name,
+                                        option,
                                         props.camera.worldSpace(position)
                                     )
                                     props.finder.hide()
                                 }
                                 return (
                                     <Selection onClick={onClick}>
-                                        {operation.name}
+                                        {option}
                                     </Selection>
                                 )
                             }}
