@@ -79,7 +79,7 @@ export interface Graph {
     bodies: Bodies
     dragNode: (nodeId: UUID, delta: Vec2, zoom: number) => void
     addNode: (name: string, position: Vec2) => Node
-    addEdge: (between: Between) => Edge
+    addEdge: (between: Between) => Edge | undefined
     setValue: (bodyId: UUID, value: Value) => void
     subscribe: (callback: (nodeId: UUID) => void) => void
 }
@@ -197,7 +197,10 @@ export const createGraph = (): Graph => {
             evaluateOutputs(node)
         }
     }
-    const addEdge = ({ input, output }: Between): Edge => {
+    const addEdge = ({ input, output }: Between): Edge | undefined => {
+        const inputNode = inputs[input].node
+        const outputNode = outputs[output].node
+        if (inputNode === outputNode) return undefined
         const edge: Edge = {
             id: generateId(),
             output,
@@ -208,7 +211,7 @@ export const createGraph = (): Graph => {
             setOutputs(output, "edges", (edges) => [...edges, edge.id])
             setInputs(input, "edge", edge.id)
         })
-        evaluate(inputs[input].node)
+        evaluate(inputNode)
         return edge
     }
     const setValue = (bodyId: UUID, value: Value) => {
@@ -229,12 +232,5 @@ export const createGraph = (): Graph => {
         setValue,
         subscribe,
     }
-    const node0 = graph.addNode("number", [50, 50])
-    graph.setValue(node0.body, { kind: ValueKind.NUMBER, value: 18 })
-    const node1 = graph.addNode("number", [50, 200])
-    graph.setValue(node1.body, { kind: ValueKind.NUMBER, value: 24 })
-    const node2 = graph.addNode("add", [500, 125]) as Transform
-    graph.addEdge({ output: node0.outputs[0], input: node2.inputs[0] })
-    graph.addEdge({ output: node1.outputs[0], input: node2.inputs[1] })
     return graph
 }

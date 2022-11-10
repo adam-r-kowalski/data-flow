@@ -10,6 +10,7 @@ import { RadialMenu } from "./RadialMenu"
 import { createMenu } from "./menu"
 import { createModifiers } from "./modifiers"
 import { operations } from "./operations"
+import { demoScene } from "./demo_scene"
 
 const FullScreen = styled("div")({
     width: "100vw",
@@ -18,6 +19,7 @@ const FullScreen = styled("div")({
 
 export const DataFlow = () => {
     const graph = createGraph()
+    demoScene(graph)
     const camera = createCamera()
     const finder = createFinder(Object.keys(operations))
     const menu = createMenu()
