@@ -16,6 +16,7 @@ import {
 import { Arbitrary } from "fast-check"
 import { distance, midpoint, sub, Vec2, zero } from "../src/vec2"
 import { Mat3x3 } from "../src/mat3x3"
+import { UUID } from "../src/graph"
 
 const N = fc.integer({ min: -10000, max: 10000 })
 
@@ -38,8 +39,9 @@ const createEffects = (): Effects => ({
         transform: vi.fn<[], Mat3x3>(),
         drag: vi.fn<[Vec2], void>(),
         pinch: vi.fn<[Vec2, number], void>(),
+        worldSpace: vi.fn<[Vec2], Vec2>(),
     },
-    dragNode: vi.fn<[string, Vec2], void>(),
+    dragNode: vi.fn<[UUID, Vec2], void>(),
     offset: () => zero,
 })
 
@@ -63,7 +65,7 @@ test("pointer down on node with no pointers down", () => {
         fc.property(PointerArb, (pointer) => {
             const target: Target = {
                 kind: TargetKind.NODE,
-                id: "1",
+                id: 1,
             }
             let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, pointer, target)
@@ -222,7 +224,7 @@ test("pointer up with one pointer down", () => {
 interface Data {
     drag?: Vec2
     pinch?: [Vec2, number]
-    dragNode?: [string, Vec2]
+    dragNode?: [UUID, Vec2]
 }
 
 const expectCalledEffects = (effects: Effects, data: Data) => {
@@ -282,7 +284,7 @@ test("pointer move with one pointer down where target is node", () => {
             const effects = createEffects()
             const target: Target = {
                 kind: TargetKind.NODE,
-                id: "0",
+                id: 0,
             }
             let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)

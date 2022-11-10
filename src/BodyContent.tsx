@@ -1,4 +1,4 @@
-import { Match, Switch, createSignal, createEffect } from "solid-js"
+import { Match, Switch, createSignal } from "solid-js"
 import { styled } from "solid-styled-components"
 import { Camera } from "./camera"
 

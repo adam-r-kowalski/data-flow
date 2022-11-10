@@ -1,8 +1,8 @@
 import { defineConfig } from "vite"
-import solidPlugin from "vite-plugin-solid"
+import solid from "vite-plugin-solid"
 
 export default defineConfig({
-    plugins: [solidPlugin()],
+    plugins: [solid()],
     base: "/data-flow/",
     server: {
         host: "0.0.0.0",
@@ -14,6 +14,8 @@ export default defineConfig({
         conditions: ["development", "browser"],
     },
     test: {
-        environment: "happy-dom",
+        deps: {
+            inline: [/solid-js/],
+        },
     },
 })
