@@ -24,5 +24,20 @@ test("disallow edges between inputs and outputs of same node", () => {
         output: node.outputs[0],
         input: node.inputs[0],
     })
-    expect(edge).toEqual(undefined)
+    expect(edge).toBeUndefined()
+})
+
+test("disallow multiple edges between the same input and output", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode("number", [0, 0])
+    const node1 = graph.addNode("add", [0, 0]) as Transform
+    graph.addEdge({
+        output: node0.outputs[0],
+        input: node1.inputs[0],
+    })
+    const edge = graph.addEdge({
+        output: node0.outputs[0],
+        input: node1.inputs[0],
+    })
+    expect(edge).toBeUndefined()
 })

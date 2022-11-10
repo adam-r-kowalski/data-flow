@@ -197,19 +197,26 @@ export const createGraph = (): Graph => {
             evaluateOutputs(node)
         }
     }
-    const addEdge = ({ input, output }: Between): Edge | undefined => {
-        const inputNode = inputs[input].node
-        const outputNode = outputs[output].node
+    const addEdge = ({
+        input: inputId,
+        output: outputId,
+    }: Between): Edge | undefined => {
+        const input = inputs[inputId]
+        const inputNode = input.node
+        const output = outputs[outputId]
+        const outputNode = output.node
         if (inputNode === outputNode) return undefined
+        if (input.edge && edges[input.edge].output === outputId)
+            return undefined
         const edge: Edge = {
             id: generateId(),
-            output,
-            input,
+            output: outputId,
+            input: inputId,
         }
         batch(() => {
             setEdges(edge.id, edge)
-            setOutputs(output, "edges", (edges) => [...edges, edge.id])
-            setInputs(input, "edge", edge.id)
+            setOutputs(outputId, "edges", (edges) => [...edges, edge.id])
+            setInputs(inputId, "edge", edge.id)
         })
         evaluate(inputNode)
         return edge
