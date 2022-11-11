@@ -1,7 +1,10 @@
+import * as tf from "@tensorflow/tfjs"
+
 export enum ValueKind {
     NONE,
     NUMBER,
     TENSOR,
+    ERROR,
 }
 
 export interface None {
@@ -15,7 +18,14 @@ export interface Number {
 
 export interface Tensor {
     kind: ValueKind.TENSOR
-    value: number
+    value: tf.TensorLike
+    rank: number
+    shape: number[]
 }
 
-export type Value = None | Number | Tensor
+export interface Error {
+    kind: ValueKind.ERROR
+    text: string
+}
+
+export type Value = None | Number | Tensor | Error

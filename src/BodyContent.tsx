@@ -1,11 +1,11 @@
-import { Match, Switch, createSignal } from "solid-js"
+import { Match, Switch, createSignal, For } from "solid-js"
 import { styled } from "solid-styled-components"
 import { Camera } from "./camera"
 
 import { Body, Graph } from "./graph"
 import { Positions } from "./positions"
 import { Root } from "./root"
-import { ValueKind, Number, Tensor } from "./value"
+import { ValueKind, Number, Tensor, Value, Error } from "./value"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -54,7 +54,7 @@ const NumberContent = (props: Props) => {
                     ref={input}
                     onPointerDown={(e) => e.stopPropagation()}
                     onInput={() => {
-                        const value = {
+                        const value: Value = {
                             kind: ValueKind.NUMBER,
                             value: parseFloat(input!.value),
                         }
@@ -80,6 +80,26 @@ const NumberContent = (props: Props) => {
     )
 }
 
+const TensorContent = (props: { value: Tensor }) => {
+    return (
+        <Switch fallback={<>NOT IMPLEMENTED!</>}>
+            <Match when={props.value.rank == 0}>
+                <Container>
+                    {(props.value.value as number).toFixed(2)}
+                </Container>
+            </Match>
+            <Match when={props.value.rank == 1}>
+                <div>shape {props.value.shape}</div>
+                <Container style={{ display: "grid", "text-align": "end" }}>
+                    <For each={(props.value.value as number[]).slice(0, 10)}>
+                        {(number) => <div>{number.toFixed(2)}</div>}
+                    </For>
+                </Container>
+            </Match>
+        </Switch>
+    )
+}
+
 export const BodyContent = (props: Props) => {
     return (
         <Switch fallback={<>NOT IMPLEMENTED!</>}>
@@ -90,7 +110,18 @@ export const BodyContent = (props: Props) => {
                 <NumberContent {...props} />
             </Match>
             <Match when={props.body.value.kind == ValueKind.TENSOR}>
-                <Container>{(props.body.value as Tensor).value}</Container>
+                <TensorContent value={props.body.value as Tensor} />
+            </Match>
+            <Match when={props.body.value.kind == ValueKind.ERROR}>
+                <Container
+                    style={{
+                        color: "#db4b4b",
+                        "white-space": "pre-wrap",
+                        "max-width": "200px",
+                    }}
+                >
+                    {(props.body.value as Error).text}
+                </Container>
             </Match>
         </Switch>
     )
