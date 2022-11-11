@@ -75,3 +75,23 @@ test("connecting a new output to an input replaces the old output", () => {
     expect(input.edge).toEqual(edge1!.id)
     expect(graph.edges[edge0!.id]).toBeUndefined()
 })
+
+test("cycles between nodes are not allowed", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode("add", position) as Transform
+    const node1 = graph.addNode("add", position) as Transform
+    const edge0 = graph.addEdge({
+        output: node0.outputs[0],
+        input: node1.inputs[0],
+    })
+    expect(edge0).toEqual({
+        id: edge0!.id,
+        output: node0.outputs[0],
+        input: node1.inputs[0],
+    })
+    const edge1 = graph.addEdge({
+        output: node1.outputs[0],
+        input: node0.inputs[0],
+    })
+    expect(edge1).toBeUndefined()
+})
