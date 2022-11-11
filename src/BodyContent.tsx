@@ -5,7 +5,8 @@ import { Camera } from "./camera"
 import { Body, Graph } from "./graph"
 import { Positions } from "./positions"
 import { Root } from "./root"
-import { ValueKind, Number, Tensor, Value, Error, Scatter } from "./value"
+import { ValueKind, Number, Tensor, Value, Error, Scatter, Line } from "./value"
+import { Vec2 } from "./vec2"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -108,20 +109,20 @@ const TensorContent = (props: { value: Tensor }) => {
     )
 }
 
+const scaled = (xs: number[], from: Vec2, to: Vec2) => {
+    const [minX, maxX] = from
+    const [minT, maxT] = to
+    return xs.map((m) => ((m - minX) / (maxX - minX)) * (maxT - minT) + minT)
+}
+
 const ScatterContent = (props: { value: Scatter }) => {
-    const [minT, maxT] = [10, 290]
-    const scaledX = createMemo(() => {
-        const [minX, maxX] = props.value.domain
-        return props.value.x.map(
-            (m) => ((m - minX) / (maxX - minX)) * (maxT - minT) + minT
-        )
-    })
-    const scaledY = createMemo(() => {
-        const [minY, maxY] = props.value.range
-        return props.value.y.map(
-            (m) => ((m - minY) / (maxY - minY)) * (maxT - minT) + minT
-        )
-    })
+    const to: Vec2 = [10, 290]
+    const scaledX = createMemo(() =>
+        scaled(props.value.x, props.value.domain, to)
+    )
+    const scaledY = createMemo(() =>
+        scaled(props.value.y, props.value.range, to)
+    )
     return (
         <svg
             style={{
@@ -141,6 +142,31 @@ const ScatterContent = (props: { value: Scatter }) => {
     )
 }
 
+const LineContent = (props: { value: Line }) => {
+    const to: Vec2 = [10, 290]
+    const scaledX = () => scaled(props.value.x, props.value.domain, to)
+    const scaledY = createMemo(() =>
+        scaled(props.value.y, props.value.range, to)
+    )
+    const d = () =>
+        scaledX()
+            .map((x, i) => `${i == 0 ? "M" : "L"}${x},${scaledY()[i]}`)
+            .join("")
+    return (
+        <svg
+            style={{
+                width: "300px",
+                height: "300px",
+                background: "#24283b",
+                "border-radius": "5px",
+                transform: "scale(1, -1)",
+            }}
+        >
+            <path d={d()} stroke="#bb9af7" stroke-width="2" fill="none" />
+        </svg>
+    )
+}
+
 export const BodyContent = (props: Props) => {
     return (
         <Switch fallback={<>NOT IMPLEMENTED!</>}>
@@ -155,6 +181,9 @@ export const BodyContent = (props: Props) => {
             </Match>
             <Match when={props.body.value.kind == ValueKind.SCATTER}>
                 <ScatterContent value={props.body.value as Scatter} />
+            </Match>
+            <Match when={props.body.value.kind == ValueKind.LINE}>
+                <LineContent value={props.body.value as Line} />
             </Match>
             <Match when={props.body.value.kind == ValueKind.ERROR}>
                 <Container
