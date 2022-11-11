@@ -15,7 +15,7 @@ export default defineConfig({
     },
     test: {
         deps: {
-            inline: [/solid-js/],
+            registerNodeLoader: true,
         },
     },
 })

@@ -85,6 +85,27 @@ const scatter = (inputs: Value[]): Value => {
     return { kind: ValueKind.SCATTER, x, y, domain, range }
 }
 
+const line = (inputs: Value[]): Value => {
+    if (inputs.length !== 2) return { kind: ValueKind.NONE }
+    const tensors: number[][] = []
+    for (const input of inputs) {
+        switch (input.kind) {
+            case ValueKind.TENSOR:
+                if (input.rank === 1) {
+                    tensors.push(input.value as number[])
+                    break
+                }
+                return { kind: ValueKind.NONE }
+            default:
+                return { kind: ValueKind.NONE }
+        }
+    }
+    const [x, y] = tensors
+    const domain = [tf.min(x).arraySync(), tf.max(x).arraySync()] as Vec2
+    const range = [tf.min(y).arraySync(), tf.max(y).arraySync()] as Vec2
+    return { kind: ValueKind.LINE, x, y, domain, range }
+}
+
 export const operations: Operations = {
     number: {
         kind: OperationKind.SOURCE,
@@ -175,5 +196,12 @@ export const operations: Operations = {
         inputs: ["x", "y"],
         outputs: ["out"],
         func: scatter as Func,
+    },
+    line: {
+        kind: OperationKind.TRANSFORM,
+        name: "line",
+        inputs: ["x", "y"],
+        outputs: ["out"],
+        func: line as Func,
     },
 }
