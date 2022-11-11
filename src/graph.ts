@@ -1,4 +1,4 @@
-import { createStore } from "solid-js/store"
+import { createStore, produce } from "solid-js/store"
 
 import { add, scale, Vec2 } from "./vec2"
 import { Func, OperationKind, operations } from "./operations"
@@ -206,14 +206,24 @@ export const createGraph = (): Graph => {
         const output = outputs[outputId]
         const outputNode = output.node
         if (inputNode === outputNode) return undefined
-        if (input.edge && edges[input.edge].output === outputId)
-            return undefined
+        const inputEdge = input.edge ? edges[input.edge] : undefined
+        if (inputEdge && inputEdge.output === outputId) return undefined
         const edge: Edge = {
             id: generateId(),
             output: outputId,
             input: inputId,
         }
         batch(() => {
+            if (inputEdge) {
+                setOutputs(inputEdge.output, "edges", (edges) =>
+                    edges.filter((e) => e !== inputEdge.id)
+                )
+                setEdges(
+                    produce((edges) => {
+                        delete edges[inputEdge.id]
+                    })
+                )
+            }
             setEdges(edge.id, edge)
             setOutputs(outputId, "edges", (edges) => [...edges, edge.id])
             setInputs(inputId, "edge", edge.id)
