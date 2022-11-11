@@ -198,16 +198,20 @@ export const createGraph = (): Graph => {
         }
     }
     const wouldContainCycle = (stop: UUID, start: UUID): boolean => {
-        const visited = new Set([stop])
+        const visited = new Set([stop, start])
         const visit = (nodeId: UUID): boolean => {
-            if (visited.has(nodeId)) return true
-            visited.add(nodeId)
             const node = nodes[nodeId]
+            const outputNodes: Set<UUID> = new Set()
             for (const output of node.outputs) {
                 for (const edgeId of outputs[output].edges) {
                     const edge = edges[edgeId]
-                    if (visit(inputs[edge.input].node)) return true
+                    outputNodes.add(inputs[edge.input].node)
                 }
+            }
+            for (const output of outputNodes) {
+                if (visited.has(output)) return true
+                visited.add(output)
+                if (visit(output)) return true
             }
             return false
         }
@@ -221,10 +225,16 @@ export const createGraph = (): Graph => {
         const inputNode = input.node
         const output = outputs[outputId]
         const outputNode = output.node
-        if (inputNode === outputNode) return undefined
+        if (inputNode === outputNode) {
+            return undefined
+        }
         const inputEdge = input.edge ? edges[input.edge] : undefined
-        if (inputEdge && inputEdge.output === outputId) return undefined
-        if (wouldContainCycle(outputNode, inputNode)) return undefined
+        if (inputEdge && inputEdge.output === outputId) {
+            return undefined
+        }
+        if (wouldContainCycle(outputNode, inputNode)) {
+            return undefined
+        }
         const edge: Edge = {
             id: generateId(),
             output: outputId,
