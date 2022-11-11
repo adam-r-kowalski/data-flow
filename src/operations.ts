@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs"
 
-import { Value, ValueKind, Tensor } from "./value"
+import { Value, ValueKind } from "./value"
 
 export enum OperationKind {
     SOURCE,
@@ -28,18 +28,24 @@ type Operation = Source | Transform
 
 type Operations = { [name: string]: Operation }
 
-const tensorFunc = (func: (...tensors: tf.Tensor[]) => tf.Tensor): Func => {
-    return (inputs: Value[]) => ({
-        kind: ValueKind.TENSOR,
-        value: func
-            .apply(
-                this,
-                inputs.map(
-                    (input) => (input as Tensor).value as any as tf.Tensor
-                )
-            )
-            .dataSync()[0] as number,
-    })
+const tensorFunc = (func: (...tensors: tf.TensorLike[]) => tf.Tensor): Func => {
+    return (inputs: Value[]) => {
+        const tensors: tf.TensorLike[] = []
+        for (const input of inputs) {
+            switch (input.kind) {
+                case ValueKind.NONE:
+                    return { kind: ValueKind.NONE }
+                case ValueKind.NUMBER:
+                case ValueKind.TENSOR:
+                    tensors.push(input.value)
+                    break
+            }
+        }
+        return {
+            kind: ValueKind.TENSOR,
+            value: func.apply(this, tensors).dataSync()[0],
+        }
+    }
 }
 
 export const operations: Operations = {

@@ -95,3 +95,27 @@ test("cycles between nodes are not allowed", () => {
     })
     expect(edge1).toBeUndefined()
 })
+
+test("transforms where inputs don't have data don't run", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode("add", position) as Transform
+    const node1 = graph.addNode("add", position) as Transform
+    const edge0 = graph.addEdge({
+        output: node0.outputs[0],
+        input: node1.inputs[0],
+    })
+    expect(edge0).toEqual({
+        id: edge0!.id,
+        output: node0.outputs[0],
+        input: node1.inputs[0],
+    })
+    const edge1 = graph.addEdge({
+        output: node0.outputs[0],
+        input: node1.inputs[1],
+    })
+    expect(edge1).toEqual({
+        id: edge1!.id,
+        output: node0.outputs[0],
+        input: node1.inputs[1],
+    })
+})
