@@ -5,6 +5,7 @@ export enum ValueKind {
     NUMBER,
     TENSOR,
     ERROR,
+    SCATTER,
 }
 
 export interface None {
@@ -28,4 +29,12 @@ export interface Error {
     text: string
 }
 
-export type Value = None | Number | Tensor | Error
+export interface Scatter {
+    kind: ValueKind.SCATTER
+    x: number[]
+    y: number[]
+    domain: [number, number]
+    range: [number, number]
+}
+
+export type Value = None | Number | Tensor | Error | Scatter
