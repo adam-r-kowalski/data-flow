@@ -87,9 +87,7 @@ export const NodeCards = (props: Props) => {
     const scale = () => `scale(${props.camera.zoom()}, ${props.camera.zoom()})`
     const transform = () => `${translate()} ${scale()}`
     const track = (id: UUID) => (el: HTMLElement) => {
-        requestAnimationFrame(() =>
-            props.positions.track(id, el, props.camera, props.root.offset())
-        )
+        requestAnimationFrame(() => props.positions.track(id, el))
     }
     const inputs = (node: Node) => {
         if (node.kind === NodeKind.SOURCE) return []

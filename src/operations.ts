@@ -28,7 +28,9 @@ type Operation = Source | Transform
 
 type Operations = { [name: string]: Operation }
 
-const tensorFunc = (func: (...tensors: tf.TensorLike[]) => tf.Tensor): Func => {
+type TensorFunc = (...tensors: tf.TensorLike[]) => tf.Tensor
+
+const tensorFunc = (func: TensorFunc): Func => {
     return (inputs: Value[]) => {
         const tensors: tf.TensorLike[] = []
         for (const input of inputs) {
@@ -41,9 +43,12 @@ const tensorFunc = (func: (...tensors: tf.TensorLike[]) => tf.Tensor): Func => {
                     break
             }
         }
+        const result = func.apply(this, tensors)
         return {
             kind: ValueKind.TENSOR,
-            value: func.apply(this, tensors).dataSync()[0],
+            value: result.arraySync(),
+            rank: result.rank,
+            shape: result.shape,
         }
     }
 }
@@ -117,5 +122,12 @@ export const operations: Operations = {
         inputs: ["a", "b"],
         outputs: ["out"],
         func: tensorFunc(tf.squaredDifference),
+    },
+    linspace: {
+        kind: OperationKind.TRANSFORM,
+        name: "linspace",
+        inputs: ["start", "stop", "num"],
+        outputs: ["out"],
+        func: tensorFunc(tf.linspace as TensorFunc),
     },
 }

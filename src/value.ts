@@ -1,3 +1,5 @@
+import * as tf from "@tensorflow/tfjs"
+
 export enum ValueKind {
     NONE,
     NUMBER,
@@ -15,7 +17,9 @@ export interface Number {
 
 export interface Tensor {
     kind: ValueKind.TENSOR
-    value: number
+    value: tf.TensorLike
+    rank: number
+    shape: number[]
 }
 
 export type Value = None | Number | Tensor
