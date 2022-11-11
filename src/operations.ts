@@ -1,6 +1,7 @@
 import * as tf from "@tensorflow/tfjs"
 
 import { Value, ValueKind } from "./value"
+import { Vec2 } from "./vec2"
 
 export enum OperationKind {
     SOURCE,
@@ -35,13 +36,12 @@ const tensorFunc = (func: TensorFunc): Func => {
         const tensors: tf.TensorLike[] = []
         for (const input of inputs) {
             switch (input.kind) {
-                case ValueKind.NONE:
-                case ValueKind.ERROR:
-                    return { kind: ValueKind.NONE }
                 case ValueKind.NUMBER:
                 case ValueKind.TENSOR:
                     tensors.push(input.value)
                     break
+                default:
+                    return { kind: ValueKind.NONE }
             }
         }
         try {
@@ -62,6 +62,27 @@ const tensorFunc = (func: TensorFunc): Func => {
             throw e
         }
     }
+}
+
+const scatter = (inputs: Value[]): Value => {
+    if (inputs.length !== 2) return { kind: ValueKind.NONE }
+    const tensors: number[][] = []
+    for (const input of inputs) {
+        switch (input.kind) {
+            case ValueKind.TENSOR:
+                if (input.rank === 1) {
+                    tensors.push(input.value as number[])
+                    break
+                }
+                return { kind: ValueKind.NONE }
+            default:
+                return { kind: ValueKind.NONE }
+        }
+    }
+    const [x, y] = tensors
+    const domain = [tf.min(x).arraySync(), tf.max(x).arraySync()] as Vec2
+    const range = [tf.min(y).arraySync(), tf.max(y).arraySync()] as Vec2
+    return { kind: ValueKind.SCATTER, x, y, domain, range }
 }
 
 export const operations: Operations = {
@@ -147,5 +168,12 @@ export const operations: Operations = {
         inputs: ["x"],
         outputs: ["out"],
         func: tensorFunc(tf.square),
+    },
+    scatter: {
+        kind: OperationKind.TRANSFORM,
+        name: "scatter",
+        inputs: ["x", "y"],
+        outputs: ["out"],
+        func: scatter as Func,
     },
 }

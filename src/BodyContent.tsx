@@ -1,11 +1,11 @@
-import { Match, Switch, createSignal, For } from "solid-js"
 import { styled } from "solid-styled-components"
+import { Match, Switch, createSignal, For, createMemo } from "solid-js"
 import { Camera } from "./camera"
 
 import { Body, Graph } from "./graph"
 import { Positions } from "./positions"
 import { Root } from "./root"
-import { ValueKind, Number, Tensor, Value, Error } from "./value"
+import { ValueKind, Number, Tensor, Value, Error, Scatter } from "./value"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -90,13 +90,54 @@ const TensorContent = (props: { value: Tensor }) => {
             </Match>
             <Match when={props.value.rank == 1}>
                 <div>shape {props.value.shape}</div>
-                <Container style={{ display: "grid", "text-align": "end" }}>
-                    <For each={(props.value.value as number[]).slice(0, 10)}>
+                <Container
+                    style={{
+                        display: "grid",
+                        "text-align": "end",
+                        overflow: "scroll",
+                        "max-height": "300px",
+                    }}
+                    onWheel={(e) => e.stopPropagation()}
+                >
+                    <For each={props.value.value as number[]}>
                         {(number) => <div>{number.toFixed(2)}</div>}
                     </For>
                 </Container>
             </Match>
         </Switch>
+    )
+}
+
+const ScatterContent = (props: { value: Scatter }) => {
+    const [minT, maxT] = [10, 290]
+    const scaledX = createMemo(() => {
+        const [minX, maxX] = props.value.domain
+        return props.value.x.map(
+            (m) => ((m - minX) / (maxX - minX)) * (maxT - minT) + minT
+        )
+    })
+    const scaledY = createMemo(() => {
+        const [minY, maxY] = props.value.range
+        return props.value.y.map(
+            (m) => ((m - minY) / (maxY - minY)) * (maxT - minT) + minT
+        )
+    })
+    return (
+        <svg
+            style={{
+                width: "300px",
+                height: "300px",
+                background: "#24283b",
+                "border-radius": "5px",
+                transform: "scale(1, -1)",
+            }}
+        >
+            <For each={scaledX()}>
+                {(x, i) => (
+                    <circle cx={x} cy={scaledY()[i()]} r={3} fill="#bb9af7" />
+                )}
+            </For>
+        </svg>
     )
 }
 
@@ -111,6 +152,9 @@ export const BodyContent = (props: Props) => {
             </Match>
             <Match when={props.body.value.kind == ValueKind.TENSOR}>
                 <TensorContent value={props.body.value as Tensor} />
+            </Match>
+            <Match when={props.body.value.kind == ValueKind.SCATTER}>
+                <ScatterContent value={props.body.value as Scatter} />
             </Match>
             <Match when={props.body.value.kind == ValueKind.ERROR}>
                 <Container

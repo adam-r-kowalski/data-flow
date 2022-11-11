@@ -3,9 +3,9 @@ import { ValueKind } from "./value"
 
 export const demoScene = (graph: Graph): void => {
     const start = graph.addNode("number", [50, 50])
-    graph.setValue(start.body, { kind: ValueKind.NUMBER, value: -100 })
+    graph.setValue(start.body, { kind: ValueKind.NUMBER, value: -10 })
     const stop = graph.addNode("number", [50, 200])
-    graph.setValue(stop.body, { kind: ValueKind.NUMBER, value: 50 })
+    graph.setValue(stop.body, { kind: ValueKind.NUMBER, value: 10 })
     const step = graph.addNode("number", [50, 350])
     graph.setValue(step.body, { kind: ValueKind.NUMBER, value: 10 })
     const linspace = graph.addNode("linspace", [400, 50]) as Transform
@@ -14,4 +14,7 @@ export const demoScene = (graph: Graph): void => {
     graph.addEdge({ output: step.outputs[0], input: linspace.inputs[2] })
     const square = graph.addNode("square", [800, 200]) as Transform
     graph.addEdge({ output: linspace.outputs[0], input: square.inputs[0] })
+    const scatter = graph.addNode("scatter", [1150, 50]) as Transform
+    graph.addEdge({ output: linspace.outputs[0], input: scatter.inputs[0] })
+    graph.addEdge({ output: square.outputs[0], input: scatter.inputs[1] })
 }
