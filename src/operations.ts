@@ -36,6 +36,7 @@ const tensorFunc = (func: TensorFunc): Func => {
         for (const input of inputs) {
             switch (input.kind) {
                 case ValueKind.NONE:
+                case ValueKind.ERROR:
                     return { kind: ValueKind.NONE }
                 case ValueKind.NUMBER:
                 case ValueKind.TENSOR:
@@ -43,12 +44,22 @@ const tensorFunc = (func: TensorFunc): Func => {
                     break
             }
         }
-        const result = func.apply(this, tensors)
-        return {
-            kind: ValueKind.TENSOR,
-            value: result.arraySync(),
-            rank: result.rank,
-            shape: result.shape,
+        try {
+            const result = func.apply(this, tensors)
+            return {
+                kind: ValueKind.TENSOR,
+                value: result.arraySync(),
+                rank: result.rank,
+                shape: result.shape,
+            }
+        } catch (e) {
+            if (e instanceof Error) {
+                return {
+                    kind: ValueKind.ERROR,
+                    text: e.message,
+                }
+            }
+            throw e
         }
     }
 }
@@ -129,5 +140,12 @@ export const operations: Operations = {
         inputs: ["start", "stop", "num"],
         outputs: ["out"],
         func: tensorFunc(tf.linspace as TensorFunc),
+    },
+    square: {
+        kind: OperationKind.TRANSFORM,
+        name: "square",
+        inputs: ["x"],
+        outputs: ["out"],
+        func: tensorFunc(tf.square),
     },
 }

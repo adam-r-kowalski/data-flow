@@ -4,6 +4,7 @@ export enum ValueKind {
     NONE,
     NUMBER,
     TENSOR,
+    ERROR,
 }
 
 export interface None {
@@ -22,4 +23,9 @@ export interface Tensor {
     shape: number[]
 }
 
-export type Value = None | Number | Tensor
+export interface Error {
+    kind: ValueKind.ERROR
+    text: string
+}
+
+export type Value = None | Number | Tensor | Error

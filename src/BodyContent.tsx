@@ -5,7 +5,7 @@ import { Camera } from "./camera"
 import { Body, Graph } from "./graph"
 import { Positions } from "./positions"
 import { Root } from "./root"
-import { ValueKind, Number, Tensor, Value } from "./value"
+import { ValueKind, Number, Tensor, Value, Error } from "./value"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -84,11 +84,14 @@ const TensorContent = (props: { value: Tensor }) => {
     return (
         <Switch fallback={<>NOT IMPLEMENTED!</>}>
             <Match when={props.value.rank == 0}>
-                <Container>{props.value.value as number}</Container>
+                <Container>
+                    {(props.value.value as number).toFixed(2)}
+                </Container>
             </Match>
             <Match when={props.value.rank == 1}>
+                <div>shape {props.value.shape}</div>
                 <Container style={{ display: "grid", "text-align": "end" }}>
-                    <For each={props.value.value as number[]}>
+                    <For each={(props.value.value as number[]).slice(0, 10)}>
                         {(number) => <div>{number.toFixed(2)}</div>}
                     </For>
                 </Container>
@@ -108,6 +111,17 @@ export const BodyContent = (props: Props) => {
             </Match>
             <Match when={props.body.value.kind == ValueKind.TENSOR}>
                 <TensorContent value={props.body.value as Tensor} />
+            </Match>
+            <Match when={props.body.value.kind == ValueKind.ERROR}>
+                <Container
+                    style={{
+                        color: "#db4b4b",
+                        "white-space": "pre-wrap",
+                        "max-width": "200px",
+                    }}
+                >
+                    {(props.body.value as Error).text}
+                </Container>
             </Match>
         </Switch>
     )
