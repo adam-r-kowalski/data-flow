@@ -17,7 +17,7 @@ const FullScreen = styled("div")({
 })
 
 export const DataFlow = () => {
-    const graph = createGraph()
+    const graph = createGraph(requestAnimationFrame)
     demoScene(graph)
     const camera = createCamera()
     const finder = createFinder(Object.keys(operations))

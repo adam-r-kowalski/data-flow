@@ -117,7 +117,8 @@ export const NodeCards = (props: Props) => {
                                 options: [
                                     {
                                         icon: FiDelete,
-                                        onClick: () => console.log("delete"),
+                                        onClick: () =>
+                                            props.graph.deleteNode(node.id),
                                     },
                                     {
                                         icon: FiSearch,

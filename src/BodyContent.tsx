@@ -90,7 +90,6 @@ const TensorContent = (props: { value: Tensor }) => {
                 </Container>
             </Match>
             <Match when={props.value.rank == 1}>
-                <div>shape {props.value.shape}</div>
                 <Container
                     style={{
                         display: "grid",
