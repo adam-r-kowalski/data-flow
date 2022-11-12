@@ -99,6 +99,7 @@ export const GraphCanvas = (props: Props) => {
         })
     }
     const onPointerDown = (e: PointerEvent) => {
+        selected.clear()
         if (e.button === 0) {
             pointers.downOnBackground(e)
             setDown(true)
@@ -130,6 +131,7 @@ export const GraphCanvas = (props: Props) => {
                 pointers={pointers}
                 root={root}
                 selected={selected}
+                menu={props.menu}
             />
         </FullScreen>
     )

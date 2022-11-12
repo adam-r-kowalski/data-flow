@@ -119,3 +119,19 @@ test("transforms where inputs don't have data don't run", () => {
         input: node1.inputs[1],
     })
 })
+
+test("delete a node with a connected edge", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode("number", position)
+    const node1 = graph.addNode("add", position) as Transform
+    const edge = graph.addEdge({
+        output: node0.outputs[0],
+        input: node1.inputs[0],
+    })!
+    graph.deleteNode(node0.id)
+    expect(graph.nodes[node0.id]).toBeUndefined()
+    expect(graph.bodies[node0.body]).toBeUndefined()
+    expect(graph.outputs[node0.outputs[0]]).toBeUndefined()
+    expect(graph.edges[edge.id]).toBeUndefined()
+    expect(graph.inputs[node1.inputs[0]].edge).toBeUndefined()
+})
