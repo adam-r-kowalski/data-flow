@@ -1,5 +1,7 @@
 import { For } from "solid-js"
 import { styled } from "solid-styled-components"
+import { FiSearch } from "solid-icons/fi"
+import { FiDelete } from "solid-icons/fi"
 
 import { Camera } from "./camera"
 import { Graph, UUID, Node, Nodes, NodeKind } from "./graph"
@@ -8,6 +10,7 @@ import { Positions } from "./positions"
 import { BodyContent } from "./BodyContent"
 import { Root } from "./root"
 import { Selected } from "./selected"
+import { Menu } from "./menu"
 
 const Scene = styled("div")({
     "transform-origin": "top left",
@@ -77,6 +80,7 @@ interface Props {
     pointers: Pointers
     root: Root
     selected: Selected
+    menu: Menu
 }
 
 export const NodeCards = (props: Props) => {
@@ -107,7 +111,24 @@ export const NodeCards = (props: Props) => {
                             if (e.button === 0)
                                 props.pointers.downOnNode(e, node.id)
                         }}
-                        onDblClick={(e) => e.stopPropagation()}
+                        onContextMenu={(e) => {
+                            props.menu.show({
+                                position: [e.clientX, e.clientY],
+                                options: [
+                                    {
+                                        icon: FiDelete,
+                                        onClick: () =>
+                                            props.graph.deleteNode(node.id),
+                                    },
+                                    {
+                                        icon: FiSearch,
+                                        onClick: () => console.log("replace"),
+                                    },
+                                ],
+                            })
+                            e.preventDefault()
+                            e.stopPropagation()
+                        }}
                     >
                         <Inputs>
                             <For each={inputs(node)}>

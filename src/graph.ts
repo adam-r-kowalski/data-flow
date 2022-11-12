@@ -82,9 +82,12 @@ export interface Graph {
     addEdge: (between: Between) => Edge | undefined
     setValue: (bodyId: UUID, value: Value) => void
     subscribe: (callback: (nodeId: UUID) => void) => void
+    deleteNode: (nodeId: UUID) => void
 }
 
-export const createGraph = (): Graph => {
+export const createGraph = (
+    schedule: (callback: () => void) => void
+): Graph => {
     const [nodes, setNodes] = createStore<Nodes>({})
     const [edges, setEdges] = createStore<Edges>({})
     const [inputs, setInputs] = createStore<Inputs>({})
@@ -103,7 +106,7 @@ export const createGraph = (): Graph => {
     }
     const dragNode = (nodeId: UUID, delta: Vec2, zoom: number) => {
         setNodes(nodeId, "position", (p) => add(p, scale(delta, 1 / zoom)))
-        notifySubscribers(nodeId)
+        schedule(() => notifySubscribers(nodeId))
     }
     const addNode = (name: string, position: Vec2): Node => {
         const node = batch(() => {
@@ -165,7 +168,7 @@ export const createGraph = (): Graph => {
                 return node
             }
         })
-        notifySubscribers(node.id)
+        schedule(() => notifySubscribers(node.id))
         return node
     }
 
@@ -193,8 +196,13 @@ export const createGraph = (): Graph => {
         if (values.length === node.inputs.length) {
             const value = node.func(values)
             setBodies(node.body, "value", value)
-            notifySubscribers(node.id)
             evaluateOutputs(node)
+            schedule(() => notifySubscribers(node.id))
+        } else {
+            const value: Value = { kind: ValueKind.NONE }
+            setBodies(node.body, "value", value)
+            evaluateOutputs(node)
+            schedule(() => notifySubscribers(node.id))
         }
     }
     const wouldContainCycle = (stop: UUID, start: UUID): boolean => {
@@ -261,8 +269,82 @@ export const createGraph = (): Graph => {
     const setValue = (bodyId: UUID, value: Value) => {
         setBodies(bodyId, "value", value)
         const node = bodies[bodyId].node
-        notifySubscribers(node)
+        schedule(() => notifySubscribers(node))
         evaluate(node)
+    }
+    const deleteNode = (nodeId: UUID) => {
+        const node = nodes[nodeId]
+        batch(() => {
+            setNodes(
+                produce((nodes) => {
+                    delete nodes[nodeId]
+                })
+            )
+            setBodies(
+                produce((bodies) => {
+                    delete bodies[node.body]
+                })
+            )
+            const outputEdges: UUID[] = []
+            setOutputs(
+                produce((outputs) => {
+                    for (const output of node.outputs) {
+                        outputEdges.push(...outputs[output].edges)
+                        delete outputs[output]
+                    }
+                })
+            )
+            const inputEdges: UUID[] = []
+            if (node.kind === NodeKind.TRANSFORM) {
+                setInputs(
+                    produce((inputs) => {
+                        for (const input of node.inputs) {
+                            const edge = inputs[input].edge
+                            if (edge) inputEdges.push(edge)
+                            delete inputs[input]
+                        }
+                    })
+                )
+            }
+            const inputIds: UUID[] = []
+            const outputIds: UUID[] = []
+            const nodesToEvaluate: UUID[] = []
+            setEdges(
+                produce((edges) => {
+                    for (const edge of outputEdges) {
+                        const input = edges[edge].input
+                        nodesToEvaluate.push(inputs[input].node)
+                        inputIds.push(input)
+                        delete edges[edge]
+                    }
+                    for (const edge of inputEdges) {
+                        outputIds.push(edges[edge].output)
+                        delete edges[edge]
+                    }
+                })
+            )
+            setInputs(
+                produce((inputs) => {
+                    for (const input of inputIds) {
+                        inputs[input].edge = undefined
+                    }
+                })
+            )
+            setOutputs(
+                produce((outputs) => {
+                    outputIds.forEach((outputId, i) => {
+                        const inputEdge = inputEdges[i]
+                        const output = outputs[outputId]
+                        output.edges = output.edges.filter(
+                            (e) => e !== inputEdge
+                        )
+                    })
+                })
+            )
+            for (const nodeId of nodesToEvaluate) {
+                evaluate(nodeId)
+            }
+        })
     }
     const graph: Graph = {
         nodes,
@@ -275,6 +357,7 @@ export const createGraph = (): Graph => {
         addEdge,
         setValue,
         subscribe,
+        deleteNode,
     }
     return graph
 }

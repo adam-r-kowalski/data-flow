@@ -1,5 +1,8 @@
 import { createSignal, onCleanup } from "solid-js"
 import { styled } from "solid-styled-components"
+import { FiSearch, FiMinus } from "solid-icons/fi"
+import { TbNumbers } from "solid-icons/tb"
+import { VsAdd } from "solid-icons/vs"
 
 import { Graph } from "./graph"
 import { BezierCurves } from "./BezierCurves"
@@ -11,7 +14,6 @@ import { sub, Vec2 } from "./vec2"
 import { createRoot } from "./root"
 import { Finder } from "./finder"
 import { Menu } from "./menu"
-import { Modifiers } from "./modifiers"
 import { createSelected } from "./selected"
 
 const FullScreen = styled("div")({
@@ -30,7 +32,6 @@ interface Props {
     camera: Camera
     finder: Finder
     menu: Menu
-    modifiers: Modifiers
 }
 
 export const GraphCanvas = (props: Props) => {
@@ -41,33 +42,18 @@ export const GraphCanvas = (props: Props) => {
     const selected = createSelected(props.graph)
     const onPointerUp = (e: PointerEvent) => {
         setDown(false)
-        if (e.button === 1) {
-            props.modifiers.setWheel(false)
-        } else {
-            pointers.up(e)
-        }
+        pointers.up(e)
     }
     const onPointerMove = (e: PointerEvent) => {
         setDown(false)
-        const position: Vec2 = [e.clientX, e.clientY]
         if (props.menu.visible()) return
-        if (props.modifiers.wheel()) {
-            const delta = sub(position, props.modifiers.position())
-            props.camera.drag(delta)
-        } else if (
-            props.modifiers.space() ||
-            pointers.draggingNode() ||
-            pointers.twoPointersDown()
-        ) {
-            pointers.move(e, {
-                camera: props.camera,
-                dragNode: (id, delta) => {
-                    props.graph.dragNode(id, delta, props.camera.zoom())
-                },
-                offset: root.offset,
-            })
-        }
-        props.modifiers.setPosition(position)
+        pointers.move(e, {
+            camera: props.camera,
+            dragNode: (id, delta) => {
+                props.graph.dragNode(id, delta, props.camera.zoom())
+            },
+            offset: root.offset,
+        })
     }
     document.addEventListener("pointerup", onPointerUp)
     document.addEventListener("pointermove", onPointerMove)
@@ -88,18 +74,38 @@ export const GraphCanvas = (props: Props) => {
             props.camera.drag([-e.deltaX, -e.deltaY])
         }
     }
-    const cursor = () =>
-        props.modifiers.space() || props.modifiers.wheel() ? "grab" : "default"
+    const addNode = (name: string, position: Vec2) => {
+        props.graph.addNode(name, props.camera.worldSpace(position))
+    }
+
+    const showMenu = (position: Vec2) => {
+        props.menu.show({
+            position,
+            options: [
+                { icon: FiSearch, onClick: () => props.finder.show(position) },
+                {
+                    icon: TbNumbers,
+                    onClick: () => addNode("number", position),
+                },
+                {
+                    icon: VsAdd,
+                    onClick: () => addNode("add", position),
+                },
+                {
+                    icon: FiMinus,
+                    onClick: () => addNode("sub", position),
+                },
+            ],
+        })
+    }
     const onPointerDown = (e: PointerEvent) => {
+        selected.clear()
         if (e.button === 0) {
             pointers.downOnBackground(e)
             setDown(true)
             setTimeout(() => {
-                if (down()) props.menu.show([e.clientX, e.clientY])
+                if (down()) showMenu([e.clientX, e.clientY])
             }, 300)
-        } else if (e.button === 1) {
-            props.modifiers.setWheel(true)
-            props.modifiers.setPosition([e.clientX, e.clientY])
         }
     }
     return (
@@ -109,10 +115,8 @@ export const GraphCanvas = (props: Props) => {
             onWheel={onWheel}
             onContextMenu={(e) => {
                 e.preventDefault()
-                props.menu.show([e.clientX, e.clientY])
+                showMenu([e.clientX, e.clientY])
             }}
-            onDblClick={(e) => props.finder.show([e.clientX, e.clientY])}
-            style={{ cursor: cursor() }}
         >
             <BezierCurves
                 edges={props.graph.edges}
@@ -127,6 +131,7 @@ export const GraphCanvas = (props: Props) => {
                 pointers={pointers}
                 root={root}
                 selected={selected}
+                menu={props.menu}
             />
         </FullScreen>
     )

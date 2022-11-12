@@ -8,6 +8,7 @@ export interface Selected {
     setInput: (id: UUID) => void
     output: () => Selection
     setOutput: (id: UUID) => void
+    clear: () => void
 }
 
 export const createSelected = (graph: Graph): Selected => {
@@ -28,6 +29,10 @@ export const createSelected = (graph: Graph): Selected => {
         output,
         setOutput: (id: UUID) => {
             setOutput(id)
+        },
+        clear: () => {
+            setInput(undefined)
+            setOutput(undefined)
         },
     }
 }

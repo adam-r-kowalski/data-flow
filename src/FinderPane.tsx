@@ -21,7 +21,7 @@ const Panel = styled("div")({
     "max-width": "700px",
     "backdrop-filter": "blur(12px)",
     "-webkit-backdrop-filter": "blur(12px)",
-    background: "#00000033",
+    background: "#00000066",
     "box-shadow": "0 8px 32px 0 #00000044",
     "border-radius": "10px",
     border: "1px solid #00000022",
