@@ -153,3 +153,17 @@ test("delete a node with a connected input edge", () => {
     expect(graph.edges[edge.id]).toBeUndefined()
     expect(graph.outputs[node0.outputs[0]].edges).toEqual([])
 })
+
+test("delete an input edge", () => {
+    const graph = createGraph(schedule)
+    const node0 = graph.addNode("number", position)
+    const node1 = graph.addNode("add", position) as Transform
+    const edge = graph.addEdge({
+        output: node0.outputs[0],
+        input: node1.inputs[0],
+    })!
+    graph.deleteInputEdge(node1.inputs[0])
+    expect(graph.edges[edge.id]).toBeUndefined()
+    expect(graph.inputs[edge.input].edge).toBeUndefined()
+    expect(graph.outputs[edge.output].edges).toEqual([])
+})

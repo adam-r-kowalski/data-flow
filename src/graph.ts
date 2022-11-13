@@ -83,6 +83,7 @@ export interface Graph {
     setValue: (bodyId: UUID, value: Value) => void
     subscribe: (callback: (nodeId: UUID) => void) => void
     deleteNode: (nodeId: UUID) => void
+    deleteInputEdge: (inputId: UUID) => void
 }
 
 export const createGraph = (
@@ -346,6 +347,19 @@ export const createGraph = (
             }
         })
     }
+    const deleteInputEdge = (inputId: UUID) => {
+        const input = inputs[inputId]
+        const edgeId = input.edge
+        if (!edgeId) return
+        setOutputs(
+            produce((outputs) => {
+                const output = outputs[edges[edgeId].output]
+                output.edges = output.edges.filter((e) => e !== edgeId)
+            })
+        )
+        setEdges(produce((edges) => delete edges[edgeId]))
+        setInputs(inputId, "edge", undefined)
+    }
     const graph: Graph = {
         nodes,
         edges,
@@ -358,6 +372,7 @@ export const createGraph = (
         setValue,
         subscribe,
         deleteNode,
+        deleteInputEdge,
     }
     return graph
 }

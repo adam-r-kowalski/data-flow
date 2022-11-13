@@ -137,6 +137,25 @@ export const NodeCards = (props: Props) => {
                                         onClick={() => {
                                             props.selected.setInput(input.id)
                                         }}
+                                        onContextMenu={(e) => {
+                                            props.menu.show({
+                                                position: [
+                                                    e.clientX,
+                                                    e.clientY,
+                                                ],
+                                                options: [
+                                                    {
+                                                        icon: FiDelete,
+                                                        onClick: () =>
+                                                            props.graph.deleteInputEdge(
+                                                                input.id
+                                                            ),
+                                                    },
+                                                ],
+                                            })
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                        }}
                                     >
                                         <Circle
                                             ref={track(input.id)}
