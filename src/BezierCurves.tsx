@@ -1,9 +1,9 @@
 import { For } from "solid-js"
 
 import { Positions } from "./positions"
-import { Camera } from "./camera"
 import { Edges, UUID } from "./graph"
 import { styled } from "solid-styled-components"
+import { useCamera } from "./camera"
 
 const FullScreen = styled("svg")({
     width: "100%",
@@ -14,14 +14,16 @@ const FullScreen = styled("svg")({
 
 interface Props {
     edges: Edges
-    camera: Camera
     positions: Positions
 }
 
 export const BezierCurves = (props: Props) => {
-    const translate = () =>
-        `translate(${props.camera.position()[0]} ${props.camera.position()[1]})`
-    const scale = () => `scale(${props.camera.zoom()} ${props.camera.zoom()})`
+    const camera = useCamera()!
+    const translate = () => {
+        const [x, y] = camera.position()
+        return `translate(${x} ${y})`
+    }
+    const scale = () => `scale(${camera.zoom()} ${camera.zoom()})`
     const transform = () => `${translate()} ${scale()}`
     const d = (output: UUID, input: UUID) => {
         const [x0, y0] = props.positions.position(output)

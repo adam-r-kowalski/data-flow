@@ -1,6 +1,5 @@
 import { styled } from "solid-styled-components"
 import { Match, Switch, createSignal, For, createMemo } from "solid-js"
-import { Camera } from "./camera"
 
 import { Body, Graph } from "./graph"
 import { Positions } from "./positions"
@@ -18,7 +17,6 @@ interface Props {
     graph: Graph
     positions: Positions
     root: Root
-    camera: Camera
     body: Body
 }
 

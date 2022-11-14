@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js"
+import { createContext, createSignal, JSXElement, useContext } from "solid-js"
 
 import { Vec2, add } from "./vec2"
 import { Mat3x3, scale, translate, matMul, vecMul, inverse } from "./mat3x3"
@@ -47,3 +47,20 @@ export const createCamera = (): Camera => {
         },
     }
 }
+
+const CameraContext = createContext<Camera>()
+
+interface Props {
+    children: JSXElement
+}
+
+export const CameraProvider = (props: Props) => {
+    const camera = createCamera()
+    return (
+        <CameraContext.Provider value={camera}>
+            {props.children}
+        </CameraContext.Provider>
+    )
+}
+
+export const useCamera = () => useContext(CameraContext)

@@ -2,9 +2,9 @@ import { createEffect, For, Show } from "solid-js"
 import { FiSearch } from "solid-icons/fi"
 import { styled } from "solid-styled-components"
 
-import { Camera } from "../camera"
 import { Graph } from "../graph"
 import { useFinder } from "./FinderProvider"
+import { useCamera } from "../camera"
 
 const FullScreen = styled("div")({
     width: "100%",
@@ -65,12 +65,12 @@ const Selection = styled("div")({
 })
 
 interface Props {
-    camera: Camera
     graph: Graph
 }
 
 export const FinderPane = (props: Props) => {
     const finder = useFinder()!
+    const camera = useCamera()!
     let input: HTMLInputElement | undefined = undefined
     createEffect(() => finder.visible() && input!.focus())
     const onKeyDown = (e: KeyboardEvent) => {
@@ -81,10 +81,7 @@ export const FinderPane = (props: Props) => {
                 const position = finder.position()
                 const option = finder.filtered()[0]
                 option &&
-                    props.graph.addNode(
-                        option,
-                        props.camera.worldSpace(position)
-                    )
+                    props.graph.addNode(option, camera.worldSpace(position))
                 return finder.hide()
             default:
                 return
@@ -116,7 +113,7 @@ export const FinderPane = (props: Props) => {
                                     const position = finder.position()
                                     props.graph.addNode(
                                         option,
-                                        props.camera.worldSpace(position)
+                                        camera.worldSpace(position)
                                     )
                                     finder.hide()
                                 }

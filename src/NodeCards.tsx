@@ -3,7 +3,6 @@ import { styled } from "solid-styled-components"
 import { FiSearch } from "solid-icons/fi"
 import { FaSolidTrashCan } from "solid-icons/fa"
 
-import { Camera } from "./camera"
 import { Graph, UUID, Node, Nodes, NodeKind } from "./graph"
 import { Pointers } from "./pointers"
 import { Positions } from "./positions"
@@ -11,6 +10,7 @@ import { BodyContent } from "./BodyContent"
 import { Root } from "./root"
 import { Selected } from "./selected"
 import { useMenu } from "./Menu"
+import { useCamera } from "./camera"
 
 const Scene = styled("div")({
     "transform-origin": "top left",
@@ -75,7 +75,6 @@ const Name = styled("div")({
 interface Props {
     nodes: Nodes
     graph: Graph
-    camera: Camera
     positions: Positions
     pointers: Pointers
     root: Root
@@ -83,11 +82,12 @@ interface Props {
 }
 
 export const NodeCards = (props: Props) => {
-    const translate = () =>
-        `translate(${props.camera.position()[0]}px, ${
-            props.camera.position()[1]
-        }px)`
-    const scale = () => `scale(${props.camera.zoom()}, ${props.camera.zoom()})`
+    const camera = useCamera()!
+    const translate = () => {
+        const [x, y] = camera.position()
+        return `translate(${x}px, ${y}px)`
+    }
+    const scale = () => `scale(${camera.zoom()}, ${camera.zoom()})`
     const transform = () => `${translate()} ${scale()}`
     const track = (id: UUID) => (el: HTMLElement) => {
         requestAnimationFrame(() => props.positions.track(id, el))
@@ -176,7 +176,6 @@ export const NodeCards = (props: Props) => {
                             <Name>{node.name}</Name>
                             <BodyContent
                                 graph={props.graph}
-                                camera={props.camera}
                                 positions={props.positions}
                                 root={props.root}
                                 body={props.graph.bodies[node.body]}
