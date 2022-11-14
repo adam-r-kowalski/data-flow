@@ -17,6 +17,7 @@ import { Arbitrary } from "fast-check"
 import { distance, midpoint, sub, Vec2, zero } from "../src/vec2"
 import { Mat3x3 } from "../src/mat3x3"
 import { UUID } from "../src/graph"
+import { Camera } from "../src/camera"
 
 const N = fc.integer({ min: -10000, max: 10000 })
 
@@ -33,16 +34,17 @@ const PointersArb = (n: number): Arbitrary<Pointer[]> =>
         .filter((pointers) => new Set(pointers.map((p) => p.id)).size === n)
 
 const createEffects = (): Effects => ({
-    camera: {
-        position: () => zero,
-        zoom: () => 1,
-        transform: vi.fn<[], Mat3x3>(),
-        drag: vi.fn<[Vec2], void>(),
-        pinch: vi.fn<[Vec2, number], void>(),
-        worldSpace: vi.fn<[Vec2], Vec2>(),
-    },
     dragNode: vi.fn<[UUID, Vec2], void>(),
     offset: () => zero,
+})
+
+const mockCamera = (): Camera => ({
+    position: () => zero,
+    zoom: () => 1,
+    transform: vi.fn<[], Mat3x3>(),
+    drag: vi.fn<[Vec2], void>(),
+    pinch: vi.fn<[Vec2, number], void>(),
+    worldSpace: vi.fn<[Vec2], Vec2>(),
 })
 
 test("pointer down on background with no pointers down", () => {
@@ -227,16 +229,16 @@ interface Data {
     dragNode?: [UUID, Vec2]
 }
 
-const expectCalledEffects = (effects: Effects, data: Data) => {
+const expectCalled = (effects: Effects, camera: Camera, data: Data) => {
     if (data.drag) {
-        expect(effects.camera.drag).toBeCalledWith(data.drag)
+        expect(camera.drag).toBeCalledWith(data.drag)
     } else {
-        expect(effects.camera.drag).not.toBeCalled()
+        expect(camera.drag).not.toBeCalled()
     }
     if (data.pinch) {
-        expect(effects.camera.pinch).toBeCalledWith(...data.pinch)
+        expect(camera.pinch).toBeCalledWith(...data.pinch)
     } else {
-        expect(effects.camera.pinch).not.toBeCalled()
+        expect(camera.pinch).not.toBeCalled()
     }
     if (data.dragNode) {
         expect(effects.dragNode).toBeCalledWith(...data.dragNode)
@@ -249,10 +251,11 @@ test("pointer move with no pointers down", () => {
     fc.assert(
         fc.property(PointerArb, (pointer) => {
             const effects = createEffects()
+            const camera = mockCamera()
             let pointers: PointerData = { kind: PointersKind.ZERO }
-            const actual = onPointerMove(pointers, pointer, effects)
+            const actual = onPointerMove(pointers, pointer, effects, camera)
             expect(actual).toAlmostEqual({ kind: PointersKind.ZERO })
-            expectCalledEffects(effects, {})
+            expectCalled(effects, camera, {})
         })
     )
 })
@@ -261,17 +264,18 @@ test("pointer move with one pointer down where target is background", () => {
     fc.assert(
         fc.property(PointerArb, Vec2Arb, (p1, position) => {
             const effects = createEffects()
+            const camera = mockCamera()
             const target: Target = { kind: TargetKind.BACKGROUND }
             let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             const p2 = { ...p1, position }
-            const actual = onPointerMove(pointers, p2, effects)
+            const actual = onPointerMove(pointers, p2, effects, camera)
             expect(actual).toAlmostEqual({
                 kind: PointersKind.ONE,
                 pointer: p2,
                 target,
             })
-            expectCalledEffects(effects, {
+            expectCalled(effects, camera, {
                 drag: sub(p2.position, p1.position),
             })
         })
@@ -282,6 +286,7 @@ test("pointer move with one pointer down where target is node", () => {
     fc.assert(
         fc.property(PointerArb, Vec2Arb, (p1, position) => {
             const effects = createEffects()
+            const camera = mockCamera()
             const target: Target = {
                 kind: TargetKind.NODE,
                 id: 0,
@@ -289,13 +294,13 @@ test("pointer move with one pointer down where target is node", () => {
             let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             const p2 = { ...p1, position }
-            const actual = onPointerMove(pointers, p2, effects)
+            const actual = onPointerMove(pointers, p2, effects, camera)
             expect(actual).toAlmostEqual({
                 kind: PointersKind.ONE,
                 pointer: p2,
                 target,
             })
-            expectCalledEffects(effects, {
+            expectCalled(effects, camera, {
                 dragNode: [target.id, sub(p2.position, p1.position)],
             })
         })
@@ -306,12 +311,13 @@ test("pointer move with two pointers down", () => {
     fc.assert(
         fc.property(PointersArb(2), Vec2Arb, ([p1, p2], position) => {
             const effects = createEffects()
+            const camera = mockCamera()
             const target: Target = { kind: TargetKind.BACKGROUND }
             let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             const p3 = { ...p1, position }
-            const actual = onPointerMove(pointers, p3, effects)
+            const actual = onPointerMove(pointers, p3, effects, camera)
             const oldMidpoint = midpoint(p1.position, p2.position)
             const oldDistance = distance(p1.position, p2.position)
             const newMidpoint = midpoint(p3.position, p2.position)
@@ -322,7 +328,7 @@ test("pointer move with two pointers down", () => {
                 midpoint: newMidpoint,
                 distance: newDistance,
             })
-            expectCalledEffects(effects, {
+            expectCalled(effects, camera, {
                 drag: sub(newMidpoint, oldMidpoint),
                 pinch: [newMidpoint, oldDistance - newDistance],
             })
@@ -334,18 +340,19 @@ test("pointer move with three pointers down", () => {
     fc.assert(
         fc.property(PointersArb(3), Vec2Arb, ([p1, p2, p3], position) => {
             const effects = createEffects()
+            const camera = mockCamera()
             const target: Target = { kind: TargetKind.BACKGROUND }
             let pointers: PointerData = { kind: PointersKind.ZERO }
             pointers = onPointerDown(pointers, p1, target)
             pointers = onPointerDown(pointers, p2, target)
             pointers = onPointerDown(pointers, p3, target)
             const p4 = { ...p1, position }
-            const actual = onPointerMove(pointers, p4, effects)
+            const actual = onPointerMove(pointers, p4, effects, camera)
             expect(actual).toAlmostEqual({
                 kind: PointersKind.THREE_OR_MORE,
                 data: { [p1.id]: p4, [p2.id]: p2, [p3.id]: p3 },
             })
-            expectCalledEffects(effects, {})
+            expectCalled(effects, camera, {})
         })
     )
 })

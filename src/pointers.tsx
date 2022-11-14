@@ -90,7 +90,6 @@ export const onPointerDown = (
 }
 
 export interface Effects {
-    camera: Camera
     dragNode: (id: UUID, delta: Vec2) => void
     offset: () => Vec2
 }
@@ -98,7 +97,8 @@ export interface Effects {
 export const onPointerMove = (
     pointers: PointerData,
     pointer: Pointer,
-    effects: Effects
+    effects: Effects,
+    camera: Camera
 ): PointerData => {
     switch (pointers.kind) {
         case PointersKind.ZERO:
@@ -107,7 +107,7 @@ export const onPointerMove = (
             const target = pointers.target
             switch (target.kind) {
                 case TargetKind.BACKGROUND: {
-                    effects.camera.drag(
+                    camera.drag(
                         sub(pointer.position, pointers.pointer.position)
                     )
                     return {
@@ -135,8 +135,8 @@ export const onPointerMove = (
             const newMidpoint = midpoint(p1.position, p2.position)
             const newDistance = distance(p1.position, p2.position)
             const delta = pointers.distance - newDistance
-            effects.camera.drag(sub(newMidpoint, pointers.midpoint))
-            effects.camera.pinch(sub(newMidpoint, effects.offset()), delta)
+            camera.drag(sub(newMidpoint, pointers.midpoint))
+            camera.pinch(sub(newMidpoint, effects.offset()), delta)
             return {
                 kind: PointersKind.TWO,
                 data,
@@ -201,7 +201,7 @@ export interface Pointers {
     twoPointersDown: () => boolean
 }
 
-export const createPointers = (): Pointers => {
+export const createPointers = (camera: Camera): Pointers => {
     const [pointers, setPointers] = createSignal<PointerData>({
         kind: PointersKind.ZERO,
     })
@@ -220,7 +220,7 @@ export const createPointers = (): Pointers => {
         },
         move: (event: PointerEvent, effects: Effects) => {
             const pointer = transform(event)
-            setPointers(onPointerMove(pointers(), pointer, effects))
+            setPointers(onPointerMove(pointers(), pointer, effects, camera))
         },
         up: (event: PointerEvent) => {
             const pointer = transform(event)

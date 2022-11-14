@@ -1,7 +1,7 @@
 import { onCleanup } from "solid-js"
 import { styled } from "solid-styled-components"
 
-import { createCamera } from "./camera"
+import { CameraProvider } from "./camera"
 import { createGraph } from "./graph"
 import { GraphCanvas } from "./GraphCanvas"
 import { FinderPane, FinderProvider, useFinder } from "./Finder"
@@ -16,7 +16,6 @@ const FullScreen = styled("div")({
 export const DataFlow = () => {
     const graph = createGraph(requestAnimationFrame)
     demoScene(graph)
-    const camera = createCamera()
     const Content = () => {
         const finder = useFinder()!
         const menu = useMenu()!
@@ -37,19 +36,21 @@ export const DataFlow = () => {
         onCleanup(() => document.removeEventListener("keydown", onKeyDown))
         return (
             <>
-                <GraphCanvas graph={graph} camera={camera} />
-                <FinderPane graph={graph} camera={camera} />
+                <GraphCanvas graph={graph} />
+                <FinderPane graph={graph} />
                 <RadialMenu />
             </>
         )
     }
     return (
-        <FinderProvider>
-            <MenuProvider>
-                <FullScreen>
-                    <Content />
-                </FullScreen>
-            </MenuProvider>
-        </FinderProvider>
+        <CameraProvider>
+            <FinderProvider>
+                <MenuProvider>
+                    <FullScreen>
+                        <Content />
+                    </FullScreen>
+                </MenuProvider>
+            </FinderProvider>
+        </CameraProvider>
     )
 }

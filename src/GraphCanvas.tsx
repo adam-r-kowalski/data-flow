@@ -6,7 +6,6 @@ import { VsAdd } from "solid-icons/vs"
 
 import { Graph } from "./graph"
 import { BezierCurves } from "./BezierCurves"
-import { Camera } from "./camera"
 import { NodeCards } from "./NodeCards"
 import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
@@ -15,6 +14,7 @@ import { createRoot } from "./root"
 import { createSelected } from "./selected"
 import { useFinder } from "./Finder"
 import { useMenu } from "./Menu"
+import { useCamera } from "./camera"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -29,15 +29,15 @@ const FullScreen = styled("div")({
 
 interface Props {
     graph: Graph
-    camera: Camera
 }
 
 export const GraphCanvas = (props: Props) => {
     const finder = useFinder()!
     const menu = useMenu()!
+    const camera = useCamera()!
     const root = createRoot()
-    const positions = createPositions(props.graph, props.camera, root)
-    const pointers = createPointers()
+    const positions = createPositions(props.graph, camera, root)
+    const pointers = createPointers(camera)
     const [down, setDown] = createSignal(false)
     const selected = createSelected(props.graph)
     const onPointerUp = (e: PointerEvent) => {
@@ -48,9 +48,8 @@ export const GraphCanvas = (props: Props) => {
         setDown(false)
         if (menu.visible()) return
         pointers.move(e, {
-            camera: props.camera,
             dragNode: (id, delta) => {
-                props.graph.dragNode(id, delta, props.camera.zoom())
+                props.graph.dragNode(id, delta, camera.zoom())
             },
             offset: root.offset,
         })
@@ -64,18 +63,18 @@ export const GraphCanvas = (props: Props) => {
     const onWheel = (e: WheelEvent) => {
         e.preventDefault()
         if (e.ctrlKey || e.metaKey) {
-            props.camera.pinch(
+            camera.pinch(
                 sub([e.clientX, e.clientY], root.fullOffset()),
                 e.deltaY
             )
         } else if (e.shiftKey) {
-            props.camera.drag([-e.deltaX - e.deltaY, 0])
+            camera.drag([-e.deltaX - e.deltaY, 0])
         } else {
-            props.camera.drag([-e.deltaX, -e.deltaY])
+            camera.drag([-e.deltaX, -e.deltaY])
         }
     }
     const addNode = (name: string, position: Vec2) => {
-        props.graph.addNode(name, props.camera.worldSpace(position))
+        props.graph.addNode(name, camera.worldSpace(position))
     }
 
     const showMenu = (position: Vec2) => {
@@ -118,15 +117,10 @@ export const GraphCanvas = (props: Props) => {
                 showMenu([e.clientX, e.clientY])
             }}
         >
-            <BezierCurves
-                edges={props.graph.edges}
-                camera={props.camera}
-                positions={positions}
-            />
+            <BezierCurves edges={props.graph.edges} positions={positions} />
             <NodeCards
                 nodes={props.graph.nodes}
                 graph={props.graph}
-                camera={props.camera}
                 positions={positions}
                 pointers={pointers}
                 root={root}
