@@ -1,5 +1,5 @@
-import { Graph, Transform } from "./graph"
-import { ValueKind } from "./value"
+import { Graph, Transform } from "./Graph/graph"
+import { ValueKind } from "./Graph/value"
 
 export const demoScene = (graph: Graph): void => {
     const start = graph.addNode("number", [50, 50])
