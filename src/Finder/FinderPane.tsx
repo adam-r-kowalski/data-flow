@@ -2,9 +2,9 @@ import { createEffect, For, Show } from "solid-js"
 import { FiSearch } from "solid-icons/fi"
 import { styled } from "solid-styled-components"
 
-import { Finder } from "./finder"
-import { Camera } from "./camera"
-import { Graph } from "./graph"
+import { Camera } from "../camera"
+import { Graph } from "../graph"
+import { useFinder } from "./FinderProvider"
 
 const FullScreen = styled("div")({
     width: "100%",
@@ -65,36 +65,36 @@ const Selection = styled("div")({
 })
 
 interface Props {
-    finder: Finder
     camera: Camera
     graph: Graph
 }
 
 export const FinderPane = (props: Props) => {
+    const finder = useFinder()!
     let input: HTMLInputElement | undefined = undefined
-    createEffect(() => props.finder.visible() && input!.focus())
+    createEffect(() => finder.visible() && input!.focus())
     const onKeyDown = (e: KeyboardEvent) => {
         switch (e.key) {
             case "Escape":
-                return props.finder.hide()
+                return finder.hide()
             case "Enter":
-                const position = props.finder.position()
-                const option = props.finder.filtered()[0]
+                const position = finder.position()
+                const option = finder.filtered()[0]
                 option &&
                     props.graph.addNode(
                         option,
                         props.camera.worldSpace(position)
                     )
-                return props.finder.hide()
+                return finder.hide()
             default:
                 return
         }
     }
-    const onInput = () => props.finder.setSearch(input!.value)
+    const onInput = () => finder.setSearch(input!.value)
     return (
-        <Show when={props.finder.visible()}>
+        <Show when={finder.visible()}>
             <FullScreen
-                onClick={props.finder.hide}
+                onClick={finder.hide}
                 onWheel={(e) => e.deltaX !== 0 && e.preventDefault()}
                 onContextMenu={(e) => e.preventDefault()}
             >
@@ -105,20 +105,20 @@ export const FinderPane = (props: Props) => {
                             placeholder="search"
                             ref={input}
                             onkeydown={onKeyDown}
-                            value={props.finder.search()}
+                            value={finder.search()}
                             onInput={onInput}
                         />
                     </Search>
                     <Selections>
-                        <For each={props.finder.filtered()}>
+                        <For each={finder.filtered()}>
                             {(option) => {
                                 const onClick = () => {
-                                    const position = props.finder.position()
+                                    const position = finder.position()
                                     props.graph.addNode(
                                         option,
                                         props.camera.worldSpace(position)
                                     )
-                                    props.finder.hide()
+                                    finder.hide()
                                 }
                                 return (
                                     <Selection onClick={onClick}>

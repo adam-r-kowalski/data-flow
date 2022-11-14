@@ -4,11 +4,9 @@ import { styled } from "solid-styled-components"
 import { createCamera } from "./camera"
 import { createGraph } from "./graph"
 import { GraphCanvas } from "./GraphCanvas"
-import { FinderPane } from "./FinderPane"
-import { createFinder } from "./finder"
+import { FinderPane, FinderProvider, useFinder } from "./Finder"
 import { RadialMenu } from "./RadialMenu"
 import { createMenu } from "./menu"
-import { operations } from "./operations"
 import { demoScene } from "./demo_scene"
 
 const FullScreen = styled("div")({
@@ -20,33 +18,37 @@ export const DataFlow = () => {
     const graph = createGraph(requestAnimationFrame)
     demoScene(graph)
     const camera = createCamera()
-    const finder = createFinder(Object.keys(operations))
     const menu = createMenu()
-    const onKeyDown = (e: KeyboardEvent) => {
-        if (finder.visible() || menu.visible()) return
-        switch (e.key) {
-            case "f":
-                e.preventDefault()
-                return finder.show([
-                    window.innerWidth / 2,
-                    window.innerHeight / 2,
-                ])
-            default:
-                return
+    const Content = () => {
+        const finder = useFinder()!
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (finder.visible() || menu.visible()) return
+            switch (e.key) {
+                case "f":
+                    e.preventDefault()
+                    return finder.show([
+                        window.innerWidth / 2,
+                        window.innerHeight / 2,
+                    ])
+                default:
+                    return
+            }
         }
+        document.addEventListener("keydown", onKeyDown)
+        onCleanup(() => document.removeEventListener("keydown", onKeyDown))
+        return (
+            <>
+                <GraphCanvas graph={graph} camera={camera} menu={menu} />
+                <FinderPane graph={graph} camera={camera} />
+                <RadialMenu menu={menu} />
+            </>
+        )
     }
-    document.addEventListener("keydown", onKeyDown)
-    onCleanup(() => document.removeEventListener("keydown", onKeyDown))
     return (
-        <FullScreen>
-            <GraphCanvas
-                graph={graph}
-                camera={camera}
-                finder={finder}
-                menu={menu}
-            />
-            <FinderPane graph={graph} camera={camera} finder={finder} />
-            <RadialMenu menu={menu} />
-        </FullScreen>
+        <FinderProvider>
+            <FullScreen>
+                <Content />
+            </FullScreen>
+        </FinderProvider>
     )
 }
