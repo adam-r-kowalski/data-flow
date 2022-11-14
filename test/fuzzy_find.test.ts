@@ -1,7 +1,7 @@
 import { test, expect } from "vitest"
 import * as fc from "fast-check"
 
-import { fuzzyFind } from "../src/fuzzy_find"
+import { fuzzyFind } from "../src/Finder/fuzzy_find"
 
 test("find an exact match", () => {
     fc.assert(

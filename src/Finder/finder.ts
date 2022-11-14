@@ -1,6 +1,7 @@
 import { createSignal } from "solid-js"
 import { fuzzyFind } from "./fuzzy_find"
-import { Vec2 } from "./vec2"
+import { Vec2 } from "../vec2"
+import { operations } from "../operations"
 
 export interface Finder {
     visible: () => boolean
@@ -12,7 +13,8 @@ export interface Finder {
     filtered: () => string[]
 }
 
-export const createFinder = (options: string[]): Finder => {
+export const createFinder = (): Finder => {
+    const options = Object.keys(operations)
     const [visible, setVisible] = createSignal(false)
     const [search, setSearch] = createSignal("")
     const [position, setPosition] = createSignal<Vec2>([0, 0])
