@@ -1,7 +1,7 @@
 import { For } from "solid-js"
 import { styled } from "solid-styled-components"
 import { FiSearch } from "solid-icons/fi"
-import { FiDelete } from "solid-icons/fi"
+import { FaSolidTrashCan } from "solid-icons/fa"
 
 import { Camera } from "./camera"
 import { Graph, UUID, Node, Nodes, NodeKind } from "./graph"
@@ -116,7 +116,7 @@ export const NodeCards = (props: Props) => {
                                 position: [e.clientX, e.clientY],
                                 options: [
                                     {
-                                        icon: FiDelete,
+                                        icon: FaSolidTrashCan,
                                         onClick: () =>
                                             props.graph.deleteNode(node.id),
                                     },
@@ -136,6 +136,25 @@ export const NodeCards = (props: Props) => {
                                     <Input
                                         onClick={() => {
                                             props.selected.setInput(input.id)
+                                        }}
+                                        onContextMenu={(e) => {
+                                            props.menu.show({
+                                                position: [
+                                                    e.clientX,
+                                                    e.clientY,
+                                                ],
+                                                options: [
+                                                    {
+                                                        icon: FaSolidTrashCan,
+                                                        onClick: () =>
+                                                            props.graph.deleteInputEdge(
+                                                                input.id
+                                                            ),
+                                                    },
+                                                ],
+                                            })
+                                            e.preventDefault()
+                                            e.stopPropagation()
                                         }}
                                     >
                                         <Circle
@@ -169,6 +188,25 @@ export const NodeCards = (props: Props) => {
                                     <Output
                                         onClick={() => {
                                             props.selected.setOutput(output.id)
+                                        }}
+                                        onContextMenu={(e) => {
+                                            props.menu.show({
+                                                position: [
+                                                    e.clientX,
+                                                    e.clientY,
+                                                ],
+                                                options: [
+                                                    {
+                                                        icon: FaSolidTrashCan,
+                                                        onClick: () =>
+                                                            props.graph.deleteOutputEdges(
+                                                                output.id
+                                                            ),
+                                                    },
+                                                ],
+                                            })
+                                            e.preventDefault()
+                                            e.stopPropagation()
                                         }}
                                     >
                                         {output.name}

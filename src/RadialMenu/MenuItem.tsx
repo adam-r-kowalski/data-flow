@@ -42,6 +42,7 @@ export const MenuItem = (props: Props) => {
             onPointerEnter={() => setHover(true)}
             onPointerLeave={() => setHover(false)}
             onPointerUp={() => {
+                console.log("on pointer up")
                 props.option.onClick()
                 props.hide()
             }}

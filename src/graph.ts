@@ -83,6 +83,8 @@ export interface Graph {
     setValue: (bodyId: UUID, value: Value) => void
     subscribe: (callback: (nodeId: UUID) => void) => void
     deleteNode: (nodeId: UUID) => void
+    deleteInputEdge: (inputId: UUID) => void
+    deleteOutputEdges: (outputId: UUID) => void
 }
 
 export const createGraph = (
@@ -346,6 +348,36 @@ export const createGraph = (
             }
         })
     }
+    const deleteInputEdge = (inputId: UUID) => {
+        const input = inputs[inputId]
+        const edgeId = input.edge
+        if (!edgeId) return
+        setOutputs(
+            produce((outputs) => {
+                const output = outputs[edges[edgeId].output]
+                output.edges = output.edges.filter((e) => e !== edgeId)
+            })
+        )
+        setEdges(produce((edges) => delete edges[edgeId]))
+        setInputs(inputId, "edge", undefined)
+        evaluate(input.node)
+    }
+    const deleteOutputEdges = (outputId: UUID) => {
+        const output = outputs[outputId]
+        const nodesToEvaluate: UUID[] = []
+        batch(() => {
+            for (const edgeId of output.edges) {
+                nodesToEvaluate.push(inputs[edges[edgeId].input].node)
+                const edge = edges[edgeId]
+                setInputs(edge.input, "edge", undefined)
+                setEdges(produce((edges) => delete edges[edgeId]))
+            }
+            setOutputs(outputId, "edges", [])
+        })
+        for (const node of nodesToEvaluate) {
+            evaluate(node)
+        }
+    }
     const graph: Graph = {
         nodes,
         edges,
@@ -358,6 +390,8 @@ export const createGraph = (
         setValue,
         subscribe,
         deleteNode,
+        deleteInputEdge,
+        deleteOutputEdges,
     }
     return graph
 }
