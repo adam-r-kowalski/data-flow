@@ -1,6 +1,8 @@
 import { createSignal } from "solid-js"
 import { styled } from "solid-styled-components"
-import { Option } from "../menu"
+
+import { Option } from "./menu"
+import { useMenu } from "./MenuProvider"
 
 export const diameter = 44
 const distance = 50
@@ -24,10 +26,10 @@ const Circle = styled("div")({
 interface Props {
     i: () => number
     option: Option
-    hide: () => void
 }
 
 export const MenuItem = (props: Props) => {
+    const menu = useMenu()!
     const theta = delta * props.i()
     const x = Math.cos(theta) * distance
     const y = Math.sin(theta) * distance
@@ -42,9 +44,8 @@ export const MenuItem = (props: Props) => {
             onPointerEnter={() => setHover(true)}
             onPointerLeave={() => setHover(false)}
             onPointerUp={() => {
-                console.log("on pointer up")
                 props.option.onClick()
-                props.hide()
+                menu.hide()
             }}
         >
             <props.option.icon />
