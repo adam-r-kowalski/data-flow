@@ -84,6 +84,7 @@ export interface Graph {
     subscribe: (callback: (nodeId: UUID) => void) => void
     deleteNode: (nodeId: UUID) => void
     deleteInputEdge: (inputId: UUID) => void
+    deleteOutputEdges: (outputId: UUID) => void
 }
 
 export const createGraph = (
@@ -359,6 +360,23 @@ export const createGraph = (
         )
         setEdges(produce((edges) => delete edges[edgeId]))
         setInputs(inputId, "edge", undefined)
+        evaluate(input.node)
+    }
+    const deleteOutputEdges = (outputId: UUID) => {
+        const output = outputs[outputId]
+        const nodesToEvaluate: UUID[] = []
+        batch(() => {
+            for (const edgeId of output.edges) {
+                nodesToEvaluate.push(inputs[edges[edgeId].input].node)
+                const edge = edges[edgeId]
+                setInputs(edge.input, "edge", undefined)
+                setEdges(produce((edges) => delete edges[edgeId]))
+            }
+            setOutputs(outputId, "edges", [])
+        })
+        for (const node of nodesToEvaluate) {
+            evaluate(node)
+        }
     }
     const graph: Graph = {
         nodes,
@@ -373,6 +391,7 @@ export const createGraph = (
         subscribe,
         deleteNode,
         deleteInputEdge,
+        deleteOutputEdges,
     }
     return graph
 }
