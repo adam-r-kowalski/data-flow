@@ -12,9 +12,9 @@ import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
 import { sub, Vec2 } from "./vec2"
 import { createRoot } from "./root"
-import { Menu } from "./menu"
 import { createSelected } from "./selected"
 import { useFinder } from "./Finder"
+import { useMenu } from "./Menu"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -30,11 +30,11 @@ const FullScreen = styled("div")({
 interface Props {
     graph: Graph
     camera: Camera
-    menu: Menu
 }
 
 export const GraphCanvas = (props: Props) => {
     const finder = useFinder()!
+    const menu = useMenu()!
     const root = createRoot()
     const positions = createPositions(props.graph, props.camera, root)
     const pointers = createPointers()
@@ -46,7 +46,7 @@ export const GraphCanvas = (props: Props) => {
     }
     const onPointerMove = (e: PointerEvent) => {
         setDown(false)
-        if (props.menu.visible()) return
+        if (menu.visible()) return
         pointers.move(e, {
             camera: props.camera,
             dragNode: (id, delta) => {
@@ -79,7 +79,7 @@ export const GraphCanvas = (props: Props) => {
     }
 
     const showMenu = (position: Vec2) => {
-        props.menu.show({
+        menu.show({
             position,
             options: [
                 { icon: FiSearch, onClick: () => finder.show(position) },
@@ -131,7 +131,6 @@ export const GraphCanvas = (props: Props) => {
                 pointers={pointers}
                 root={root}
                 selected={selected}
-                menu={props.menu}
             />
         </FullScreen>
     )

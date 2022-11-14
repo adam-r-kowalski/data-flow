@@ -10,7 +10,7 @@ import { Positions } from "./positions"
 import { BodyContent } from "./BodyContent"
 import { Root } from "./root"
 import { Selected } from "./selected"
-import { Menu } from "./menu"
+import { useMenu } from "./Menu"
 
 const Scene = styled("div")({
     "transform-origin": "top left",
@@ -80,7 +80,6 @@ interface Props {
     pointers: Pointers
     root: Root
     selected: Selected
-    menu: Menu
 }
 
 export const NodeCards = (props: Props) => {
@@ -101,6 +100,7 @@ export const NodeCards = (props: Props) => {
         node.outputs.map((id) => props.graph.outputs[id])
     const translateNode = (node: Node) =>
         `translate(${node.position[0]}px, ${node.position[1]}px)`
+    const menu = useMenu()!
     return (
         <Scene style={{ transform: transform() }}>
             <For each={Object.values(props.nodes)}>
@@ -112,7 +112,7 @@ export const NodeCards = (props: Props) => {
                                 props.pointers.downOnNode(e, node.id)
                         }}
                         onContextMenu={(e) => {
-                            props.menu.show({
+                            menu.show({
                                 position: [e.clientX, e.clientY],
                                 options: [
                                     {
@@ -138,7 +138,7 @@ export const NodeCards = (props: Props) => {
                                             props.selected.setInput(input.id)
                                         }}
                                         onContextMenu={(e) => {
-                                            props.menu.show({
+                                            menu.show({
                                                 position: [
                                                     e.clientX,
                                                     e.clientY,
@@ -190,7 +190,7 @@ export const NodeCards = (props: Props) => {
                                             props.selected.setOutput(output.id)
                                         }}
                                         onContextMenu={(e) => {
-                                            props.menu.show({
+                                            menu.show({
                                                 position: [
                                                     e.clientX,
                                                     e.clientY,

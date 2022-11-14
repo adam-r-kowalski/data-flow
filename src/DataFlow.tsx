@@ -5,8 +5,7 @@ import { createCamera } from "./camera"
 import { createGraph } from "./graph"
 import { GraphCanvas } from "./GraphCanvas"
 import { FinderPane, FinderProvider, useFinder } from "./Finder"
-import { RadialMenu } from "./RadialMenu"
-import { createMenu } from "./menu"
+import { RadialMenu, MenuProvider, useMenu } from "./Menu"
 import { demoScene } from "./demo_scene"
 
 const FullScreen = styled("div")({
@@ -18,9 +17,9 @@ export const DataFlow = () => {
     const graph = createGraph(requestAnimationFrame)
     demoScene(graph)
     const camera = createCamera()
-    const menu = createMenu()
     const Content = () => {
         const finder = useFinder()!
+        const menu = useMenu()!
         const onKeyDown = (e: KeyboardEvent) => {
             if (finder.visible() || menu.visible()) return
             switch (e.key) {
@@ -38,17 +37,19 @@ export const DataFlow = () => {
         onCleanup(() => document.removeEventListener("keydown", onKeyDown))
         return (
             <>
-                <GraphCanvas graph={graph} camera={camera} menu={menu} />
+                <GraphCanvas graph={graph} camera={camera} />
                 <FinderPane graph={graph} camera={camera} />
-                <RadialMenu menu={menu} />
+                <RadialMenu />
             </>
         )
     }
     return (
         <FinderProvider>
-            <FullScreen>
-                <Content />
-            </FullScreen>
+            <MenuProvider>
+                <FullScreen>
+                    <Content />
+                </FullScreen>
+            </MenuProvider>
         </FinderProvider>
     )
 }
