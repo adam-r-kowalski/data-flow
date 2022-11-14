@@ -16,7 +16,7 @@ import {
 import { Arbitrary } from "fast-check"
 import { distance, midpoint, sub, Vec2, zero } from "../src/vec2"
 import { Mat3x3 } from "../src/mat3x3"
-import { UUID } from "../src/graph"
+import { UUID } from "../src/Graph/graph"
 import { Camera } from "../src/camera"
 
 const N = fc.integer({ min: -10000, max: 10000 })
