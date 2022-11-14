@@ -12,7 +12,7 @@ import {
     PointersKind,
     Target,
     TargetKind,
-} from "../src/graph/pointers"
+} from "../src/Graph/pointers"
 import { Arbitrary } from "fast-check"
 import { distance, midpoint, sub, Vec2, zero } from "../src/vec2"
 import { Mat3x3 } from "../src/mat3x3"
