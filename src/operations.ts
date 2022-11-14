@@ -1,6 +1,6 @@
 import * as tf from "@tensorflow/tfjs"
 
-import { Value, ValueKind } from "./value"
+import { Value, ValueKind } from "./Graph"
 import { Vec2 } from "./vec2"
 
 export enum OperationKind {

@@ -1,11 +1,12 @@
 import { styled } from "solid-styled-components"
 import { Match, Switch, createSignal, For, createMemo } from "solid-js"
 
-import { Body, Graph } from "./graph"
+import { Body } from "./graph"
 import { Positions } from "./positions"
 import { Root } from "./root"
 import { ValueKind, Number, Tensor, Value, Error, Scatter, Line } from "./value"
-import { Vec2 } from "./vec2"
+import { Vec2 } from "../vec2"
+import { useGraph } from "./GraphProvider"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -14,7 +15,6 @@ const Container = styled("div")({
 })
 
 interface Props {
-    graph: Graph
     positions: Positions
     root: Root
     body: Body
@@ -25,6 +25,7 @@ const context = canvas.getContext("2d")!
 context.font = "normal 20px monospace"
 
 const NumberContent = (props: Props) => {
+    const graph = useGraph()!
     const [editing, setEditing] = createSignal(false)
     let input: HTMLInputElement | undefined = undefined
     const inputString = () => (props.body.value as Number).value.toString()
@@ -57,7 +58,7 @@ const NumberContent = (props: Props) => {
                             kind: ValueKind.NUMBER,
                             value: parseFloat(input!.value),
                         }
-                        props.graph.setValue(props.body.id, value)
+                        graph.setValue(props.body.id, value)
                     }}
                     onBlur={() => {
                         setEditing(false)

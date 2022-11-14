@@ -1,14 +1,12 @@
 import { test, expect } from "vitest"
 
-import { createGraph, Transform } from "../src/graph"
+import { createGraph, Transform } from "../src/Graph"
 import { Vec2 } from "../src/vec2"
 
 const position: Vec2 = [0, 0]
 
-const schedule = () => {}
-
 test("add an edge between two nodes", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("number", position)
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
@@ -23,7 +21,7 @@ test("add an edge between two nodes", () => {
 })
 
 test("disallow edges between inputs and outputs of same node", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
         output: node.outputs[0],
@@ -33,7 +31,7 @@ test("disallow edges between inputs and outputs of same node", () => {
 })
 
 test("disallow multiple edges between the same input and output", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("number", position)
     const node1 = graph.addNode("add", position) as Transform
     graph.addEdge({
@@ -48,7 +46,7 @@ test("disallow multiple edges between the same input and output", () => {
 })
 
 test("connecting a new output to an input replaces the old output", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("number", position)
     const node1 = graph.addNode("number", position)
     const node2 = graph.addNode("add", position) as Transform
@@ -79,7 +77,7 @@ test("connecting a new output to an input replaces the old output", () => {
 })
 
 test("cycles between nodes are not allowed", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("add", position) as Transform
     const node1 = graph.addNode("add", position) as Transform
     const edge0 = graph.addEdge({
@@ -99,7 +97,7 @@ test("cycles between nodes are not allowed", () => {
 })
 
 test("transforms where inputs don't have data don't run", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("add", position) as Transform
     const node1 = graph.addNode("add", position) as Transform
     const edge0 = graph.addEdge({
@@ -123,7 +121,7 @@ test("transforms where inputs don't have data don't run", () => {
 })
 
 test("delete a node with a connected output edge", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("number", position)
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
@@ -139,7 +137,7 @@ test("delete a node with a connected output edge", () => {
 })
 
 test("delete a node with a connected input edge", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("number", position)
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
@@ -155,7 +153,7 @@ test("delete a node with a connected input edge", () => {
 })
 
 test("delete input edge", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("number", position)
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
@@ -169,7 +167,7 @@ test("delete input edge", () => {
 })
 
 test("delete output edges", () => {
-    const graph = createGraph(schedule)
+    const graph = createGraph()
     const node0 = graph.addNode("number", position)
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({

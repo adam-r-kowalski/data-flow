@@ -1,8 +1,8 @@
 import { createSignal } from "solid-js"
-import { Camera } from "./camera"
+import { Camera } from "../camera"
 import { UUID } from "./graph"
 
-import { sub, Vec2, midpoint, distance } from "./vec2"
+import { sub, Vec2, midpoint, distance } from "../vec2"
 
 export enum PointersKind {
     ZERO,

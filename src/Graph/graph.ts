@@ -1,8 +1,8 @@
 import { createStore, produce } from "solid-js/store"
-
-import { add, scale, Vec2 } from "./vec2"
-import { Func, OperationKind, operations } from "./operations"
 import { batch } from "solid-js"
+
+import { add, scale, Vec2 } from "../vec2"
+import { Func, OperationKind, operations } from "../operations"
 import { Value, ValueKind } from "./value"
 
 export type UUID = number
@@ -87,9 +87,7 @@ export interface Graph {
     deleteOutputEdges: (outputId: UUID) => void
 }
 
-export const createGraph = (
-    schedule: (callback: () => void) => void
-): Graph => {
+export const createGraph = (): Graph => {
     const [nodes, setNodes] = createStore<Nodes>({})
     const [edges, setEdges] = createStore<Edges>({})
     const [inputs, setInputs] = createStore<Inputs>({})
@@ -108,7 +106,7 @@ export const createGraph = (
     }
     const dragNode = (nodeId: UUID, delta: Vec2, zoom: number) => {
         setNodes(nodeId, "position", (p) => add(p, scale(delta, 1 / zoom)))
-        schedule(() => notifySubscribers(nodeId))
+        notifySubscribers(nodeId)
     }
     const addNode = (name: string, position: Vec2): Node => {
         const node = batch(() => {
@@ -170,7 +168,7 @@ export const createGraph = (
                 return node
             }
         })
-        schedule(() => notifySubscribers(node.id))
+        notifySubscribers(node.id)
         return node
     }
 
@@ -199,12 +197,12 @@ export const createGraph = (
             const value = node.func(values)
             setBodies(node.body, "value", value)
             evaluateOutputs(node)
-            schedule(() => notifySubscribers(node.id))
+            notifySubscribers(node.id)
         } else {
             const value: Value = { kind: ValueKind.NONE }
             setBodies(node.body, "value", value)
             evaluateOutputs(node)
-            schedule(() => notifySubscribers(node.id))
+            notifySubscribers(node.id)
         }
     }
     const wouldContainCycle = (stop: UUID, start: UUID): boolean => {
@@ -271,7 +269,7 @@ export const createGraph = (
     const setValue = (bodyId: UUID, value: Value) => {
         setBodies(bodyId, "value", value)
         const node = bodies[bodyId].node
-        schedule(() => notifySubscribers(node))
+        notifySubscribers(node)
         evaluate(node)
     }
     const deleteNode = (nodeId: UUID) => {

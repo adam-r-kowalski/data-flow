@@ -3,14 +3,15 @@ import { styled } from "solid-styled-components"
 import { FiSearch } from "solid-icons/fi"
 import { FaSolidTrashCan } from "solid-icons/fa"
 
-import { Graph, UUID, Node, Nodes, NodeKind } from "./graph"
+import { UUID, Node, NodeKind } from "./graph"
 import { Pointers } from "./pointers"
 import { Positions } from "./positions"
 import { BodyContent } from "./BodyContent"
 import { Root } from "./root"
 import { Selected } from "./selected"
-import { useMenu } from "./Menu"
-import { useCamera } from "./camera"
+import { useMenu } from "../Menu"
+import { useCamera } from "../camera"
+import { useGraph } from "./GraphProvider"
 
 const Scene = styled("div")({
     "transform-origin": "top left",
@@ -73,8 +74,6 @@ const Name = styled("div")({
 })
 
 interface Props {
-    nodes: Nodes
-    graph: Graph
     positions: Positions
     pointers: Pointers
     root: Root
@@ -83,6 +82,7 @@ interface Props {
 
 export const NodeCards = (props: Props) => {
     const camera = useCamera()!
+    const graph = useGraph()!
     const translate = () => {
         const [x, y] = camera.position()
         return `translate(${x}px, ${y}px)`
@@ -94,16 +94,15 @@ export const NodeCards = (props: Props) => {
     }
     const inputs = (node: Node) => {
         if (node.kind === NodeKind.SOURCE) return []
-        return node.inputs.map((id) => props.graph.inputs[id])
+        return node.inputs.map((id) => graph.inputs[id])
     }
-    const outputs = (node: Node) =>
-        node.outputs.map((id) => props.graph.outputs[id])
+    const outputs = (node: Node) => node.outputs.map((id) => graph.outputs[id])
     const translateNode = (node: Node) =>
         `translate(${node.position[0]}px, ${node.position[1]}px)`
     const menu = useMenu()!
     return (
         <Scene style={{ transform: transform() }}>
-            <For each={Object.values(props.nodes)}>
+            <For each={Object.values(graph.nodes)}>
                 {(node) => (
                     <Card
                         style={{ transform: translateNode(node) }}
@@ -118,7 +117,7 @@ export const NodeCards = (props: Props) => {
                                     {
                                         icon: FaSolidTrashCan,
                                         onClick: () =>
-                                            props.graph.deleteNode(node.id),
+                                            graph.deleteNode(node.id),
                                     },
                                     {
                                         icon: FiSearch,
@@ -147,7 +146,7 @@ export const NodeCards = (props: Props) => {
                                                     {
                                                         icon: FaSolidTrashCan,
                                                         onClick: () =>
-                                                            props.graph.deleteInputEdge(
+                                                            graph.deleteInputEdge(
                                                                 input.id
                                                             ),
                                                     },
@@ -175,10 +174,9 @@ export const NodeCards = (props: Props) => {
                         <Content>
                             <Name>{node.name}</Name>
                             <BodyContent
-                                graph={props.graph}
                                 positions={props.positions}
                                 root={props.root}
-                                body={props.graph.bodies[node.body]}
+                                body={graph.bodies[node.body]}
                             />
                         </Content>
                         <Outputs>
@@ -198,7 +196,7 @@ export const NodeCards = (props: Props) => {
                                                     {
                                                         icon: FaSolidTrashCan,
                                                         onClick: () =>
-                                                            props.graph.deleteOutputEdges(
+                                                            graph.deleteOutputEdges(
                                                                 output.id
                                                             ),
                                                     },

@@ -4,17 +4,17 @@ import { FiSearch, FiMinus } from "solid-icons/fi"
 import { TbNumbers } from "solid-icons/tb"
 import { VsAdd } from "solid-icons/vs"
 
-import { Graph } from "./graph"
 import { BezierCurves } from "./BezierCurves"
 import { NodeCards } from "./NodeCards"
 import { createPositions } from "./positions"
 import { createPointers } from "./pointers"
-import { sub, Vec2 } from "./vec2"
+import { sub, Vec2 } from "../vec2"
 import { createRoot } from "./root"
 import { createSelected } from "./selected"
-import { useFinder } from "./Finder"
-import { useMenu } from "./Menu"
-import { useCamera } from "./camera"
+import { useFinder } from "../Finder"
+import { useMenu } from "../Menu"
+import { useCamera } from "../camera"
+import { useGraph } from "./GraphProvider"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -27,19 +27,16 @@ const FullScreen = styled("div")({
         "radial-gradient(circle, #3b4261 1px, rgba(0, 0, 0, 0) 1px)",
 })
 
-interface Props {
-    graph: Graph
-}
-
-export const GraphCanvas = (props: Props) => {
+export const GraphCanvas = () => {
     const finder = useFinder()!
     const menu = useMenu()!
     const camera = useCamera()!
+    const graph = useGraph()!
     const root = createRoot()
-    const positions = createPositions(props.graph, camera, root)
+    const positions = createPositions(graph, camera, root)
     const pointers = createPointers(camera)
     const [down, setDown] = createSignal(false)
-    const selected = createSelected(props.graph)
+    const selected = createSelected(graph)
     const onPointerUp = (e: PointerEvent) => {
         setDown(false)
         pointers.up(e)
@@ -49,7 +46,7 @@ export const GraphCanvas = (props: Props) => {
         if (menu.visible()) return
         pointers.move(e, {
             dragNode: (id, delta) => {
-                props.graph.dragNode(id, delta, camera.zoom())
+                graph.dragNode(id, delta, camera.zoom())
             },
             offset: root.offset,
         })
@@ -73,10 +70,8 @@ export const GraphCanvas = (props: Props) => {
             camera.drag([-e.deltaX, -e.deltaY])
         }
     }
-    const addNode = (name: string, position: Vec2) => {
-        props.graph.addNode(name, camera.worldSpace(position))
-    }
-
+    const addNode = (name: string, position: Vec2) =>
+        graph.addNode(name, camera.worldSpace(position))
     const showMenu = (position: Vec2) => {
         menu.show({
             position,
@@ -117,10 +112,8 @@ export const GraphCanvas = (props: Props) => {
                 showMenu([e.clientX, e.clientY])
             }}
         >
-            <BezierCurves edges={props.graph.edges} positions={positions} />
+            <BezierCurves positions={positions} />
             <NodeCards
-                nodes={props.graph.nodes}
-                graph={props.graph}
                 positions={positions}
                 pointers={pointers}
                 root={root}

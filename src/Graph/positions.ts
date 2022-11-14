@@ -1,10 +1,10 @@
 import { batch } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Camera } from "./camera"
+import { Camera } from "../camera"
 import { Graph, NodeKind, UUID } from "./graph"
-import { inverse, vecMul } from "./mat3x3"
+import { inverse, vecMul } from "../mat3x3"
 import { Root } from "./root"
-import { Vec2, zero } from "./vec2"
+import { Vec2, zero } from "../vec2"
 
 export interface Positions {
     track: (id: UUID, el: HTMLElement) => void
@@ -40,13 +40,15 @@ export const createPositions = (
         }
     }
     const retrack = (id: UUID) => {
-        const transform = createTransform()
-        const node = graph.nodes[id]
-        const inputs = node.kind === NodeKind.TRANSFORM ? node.inputs : []
-        const outputs = node.outputs
-        const ids = [...inputs, ...outputs]
-        batch(() => {
-            for (const id of ids) transform(id)
+        requestAnimationFrame(() => {
+            const transform = createTransform()
+            const node = graph.nodes[id]
+            const inputs = node.kind === NodeKind.TRANSFORM ? node.inputs : []
+            const outputs = node.outputs
+            const ids = [...inputs, ...outputs]
+            batch(() => {
+                for (const id of ids) transform(id)
+            })
         })
     }
     graph.subscribe(retrack)
