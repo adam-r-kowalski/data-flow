@@ -1,10 +1,10 @@
 import { For } from "solid-js"
 
-import { Positions } from "./positions"
 import { UUID } from "./graph"
 import { styled } from "solid-styled-components"
 import { useCamera } from "../camera"
 import { useGraph } from "./GraphProvider"
+import { usePositions } from "./positions"
 
 const FullScreen = styled("svg")({
     width: "100%",
@@ -13,13 +13,10 @@ const FullScreen = styled("svg")({
     "pointer-events": "none",
 })
 
-interface Props {
-    positions: Positions
-}
-
-export const BezierCurves = (props: Props) => {
+export const BezierCurves = () => {
     const graph = useGraph()!
     const camera = useCamera()!
+    const positions = usePositions()!
     const translate = () => {
         const [x, y] = camera.position()
         return `translate(${x} ${y})`
@@ -27,8 +24,8 @@ export const BezierCurves = (props: Props) => {
     const scale = () => `scale(${camera.zoom()} ${camera.zoom()})`
     const transform = () => `${translate()} ${scale()}`
     const d = (output: UUID, input: UUID) => {
-        const [x0, y0] = props.positions.position(output)
-        const [x3, y3] = props.positions.position(input)
+        const [x0, y0] = positions.position(output)
+        const [x3, y3] = positions.position(input)
         const right = x0 < x3
         const delta = Math.min(Math.abs(x3 - x0), 50)
         const x1 = right ? x0 + delta : x0 - delta

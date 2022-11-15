@@ -66,7 +66,7 @@ export type Inputs = { [id: UUID]: Input }
 export type Outputs = { [id: UUID]: Output }
 export type Bodies = { [id: UUID]: Body }
 
-interface Between {
+export interface Between {
     input: UUID
     output: UUID
 }

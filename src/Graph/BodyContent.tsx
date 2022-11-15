@@ -2,11 +2,10 @@ import { styled } from "solid-styled-components"
 import { Match, Switch, createSignal, For, createMemo } from "solid-js"
 
 import { Body } from "./graph"
-import { Positions } from "./positions"
-import { Root } from "./root"
 import { ValueKind, Number, Tensor, Value, Error, Scatter, Line } from "./value"
 import { Vec2 } from "../vec2"
 import { useGraph } from "./GraphProvider"
+import { usePositions } from "./positions"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -15,8 +14,6 @@ const Container = styled("div")({
 })
 
 interface Props {
-    positions: Positions
-    root: Root
     body: Body
 }
 
@@ -26,6 +23,7 @@ context.font = "normal 20px monospace"
 
 const NumberContent = (props: Props) => {
     const graph = useGraph()!
+    const positions = usePositions()!
     const [editing, setEditing] = createSignal(false)
     let input: HTMLInputElement | undefined = undefined
     const inputString = () => (props.body.value as Number).value.toString()
@@ -37,7 +35,7 @@ const NumberContent = (props: Props) => {
                 <Container
                     onClick={() => {
                         setEditing(true)
-                        props.positions.retrack(props.body.node)
+                        positions.retrack(props.body.node)
                         input!.value = inputString()
                         input!.focus()
                         input!.click()
@@ -62,7 +60,7 @@ const NumberContent = (props: Props) => {
                     }}
                     onBlur={() => {
                         setEditing(false)
-                        props.positions.retrack(props.body.node)
+                        positions.retrack(props.body.node)
                     }}
                     style={{
                         padding: "20px",

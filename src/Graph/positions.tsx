@@ -1,10 +1,11 @@
-import { batch } from "solid-js"
+import { batch, createContext, JSXElement, useContext } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Camera } from "../camera"
+import { Camera, useCamera } from "../camera"
 import { Graph, NodeKind, UUID } from "./graph"
 import { inverse, vecMul } from "../mat3x3"
-import { Root } from "./root"
+import { Root, useRoot } from "./root"
 import { Vec2, zero } from "../vec2"
+import { useGraph } from "./GraphProvider"
 
 export interface Positions {
     track: (id: UUID, el: HTMLElement) => void
@@ -61,3 +62,23 @@ export const createPositions = (
         retrack,
     }
 }
+
+const PositionsContext = createContext<Positions>()
+
+interface Props {
+    children: JSXElement
+}
+
+export const PositionsProvider = (props: Props) => {
+    const camera = useCamera()!
+    const graph = useGraph()!
+    const root = useRoot()!
+    const positions = createPositions(graph, camera, root)
+    return (
+        <PositionsContext.Provider value={positions}>
+            {props.children}
+        </PositionsContext.Provider>
+    )
+}
+
+export const usePositions = () => useContext(PositionsContext)

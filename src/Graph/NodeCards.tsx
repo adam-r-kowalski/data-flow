@@ -4,14 +4,13 @@ import { FiSearch } from "solid-icons/fi"
 import { FaSolidTrashCan } from "solid-icons/fa"
 
 import { UUID, Node, NodeKind } from "./graph"
-import { Pointers } from "./pointers"
-import { Positions } from "./positions"
 import { BodyContent } from "./BodyContent"
-import { Root } from "./root"
-import { Selected } from "./selected"
 import { useMenu } from "../Menu"
 import { useCamera } from "../camera"
 import { useGraph } from "./GraphProvider"
+import { usePositions } from "./positions"
+import { usePointers } from "./pointers"
+import { useSelected } from "./selected"
 
 const Scene = styled("div")({
     "transform-origin": "top left",
@@ -73,16 +72,10 @@ const Name = styled("div")({
     color: "#bb9af7",
 })
 
-interface Props {
-    positions: Positions
-    pointers: Pointers
-    root: Root
-    selected: Selected
-}
-
-export const NodeCards = (props: Props) => {
+export const NodeCards = () => {
     const camera = useCamera()!
     const graph = useGraph()!
+    const positions = usePositions()!
     const translate = () => {
         const [x, y] = camera.position()
         return `translate(${x}px, ${y}px)`
@@ -90,7 +83,7 @@ export const NodeCards = (props: Props) => {
     const scale = () => `scale(${camera.zoom()}, ${camera.zoom()})`
     const transform = () => `${translate()} ${scale()}`
     const track = (id: UUID) => (el: HTMLElement) => {
-        requestAnimationFrame(() => props.positions.track(id, el))
+        requestAnimationFrame(() => positions.track(id, el))
     }
     const inputs = (node: Node) => {
         if (node.kind === NodeKind.SOURCE) return []
@@ -100,6 +93,8 @@ export const NodeCards = (props: Props) => {
     const translateNode = (node: Node) =>
         `translate(${node.position[0]}px, ${node.position[1]}px)`
     const menu = useMenu()!
+    const pointers = usePointers()!
+    const selected = useSelected()!
     return (
         <Scene style={{ transform: transform() }}>
             <For each={Object.values(graph.nodes)}>
@@ -107,8 +102,7 @@ export const NodeCards = (props: Props) => {
                     <Card
                         style={{ transform: translateNode(node) }}
                         onPointerDown={(e) => {
-                            if (e.button === 0)
-                                props.pointers.downOnNode(e, node.id)
+                            if (e.button === 0) pointers.downOnNode(e, node.id)
                         }}
                         onContextMenu={(e) => {
                             menu.show({
@@ -134,7 +128,7 @@ export const NodeCards = (props: Props) => {
                                 {(input) => (
                                     <Input
                                         onClick={() => {
-                                            props.selected.setInput(input.id)
+                                            selected.setInput(input.id)
                                         }}
                                         onContextMenu={(e) => {
                                             menu.show({
@@ -160,7 +154,7 @@ export const NodeCards = (props: Props) => {
                                             ref={track(input.id)}
                                             style={{
                                                 background:
-                                                    props.selected.input() ===
+                                                    selected.input() ===
                                                     input.id
                                                         ? "#bb9af7"
                                                         : "#7aa2f7",
@@ -173,18 +167,14 @@ export const NodeCards = (props: Props) => {
                         </Inputs>
                         <Content>
                             <Name>{node.name}</Name>
-                            <BodyContent
-                                positions={props.positions}
-                                root={props.root}
-                                body={graph.bodies[node.body]}
-                            />
+                            <BodyContent body={graph.bodies[node.body]} />
                         </Content>
                         <Outputs>
                             <For each={outputs(node)}>
                                 {(output) => (
                                     <Output
                                         onClick={() => {
-                                            props.selected.setOutput(output.id)
+                                            selected.setOutput(output.id)
                                         }}
                                         onContextMenu={(e) => {
                                             menu.show({
@@ -211,7 +201,7 @@ export const NodeCards = (props: Props) => {
                                             ref={track(output.id)}
                                             style={{
                                                 background:
-                                                    props.selected.output() ===
+                                                    selected.output() ===
                                                     output.id
                                                         ? "#bb9af7"
                                                         : "#7aa2f7",

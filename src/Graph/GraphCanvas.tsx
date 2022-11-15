@@ -6,15 +6,15 @@ import { VsAdd } from "solid-icons/vs"
 
 import { BezierCurves } from "./BezierCurves"
 import { NodeCards } from "./NodeCards"
-import { createPositions } from "./positions"
-import { createPointers } from "./pointers"
+import { PointersProvider, usePointers } from "./pointers"
 import { sub, Vec2 } from "../vec2"
-import { createRoot } from "./root"
-import { createSelected } from "./selected"
+import { RootProvider, useRoot } from "./root"
+import { SelectedProvider, useSelected } from "./selected"
 import { useFinder } from "../Finder"
 import { useMenu } from "../Menu"
 import { useCamera } from "../camera"
 import { useGraph } from "./GraphProvider"
+import { PositionsProvider } from "./positions"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -27,16 +27,15 @@ const FullScreen = styled("div")({
         "radial-gradient(circle, #3b4261 1px, rgba(0, 0, 0, 0) 1px)",
 })
 
-export const GraphCanvas = () => {
+const Content = () => {
     const finder = useFinder()!
     const menu = useMenu()!
     const camera = useCamera()!
     const graph = useGraph()!
-    const root = createRoot()
-    const positions = createPositions(graph, camera, root)
-    const pointers = createPointers(camera)
+    const pointers = usePointers()!
+    const selected = useSelected()!
+    const root = useRoot()!
     const [down, setDown] = createSignal(false)
-    const selected = createSelected(graph)
     const onPointerUp = (e: PointerEvent) => {
         setDown(false)
         pointers.up(e)
@@ -44,12 +43,7 @@ export const GraphCanvas = () => {
     const onPointerMove = (e: PointerEvent) => {
         setDown(false)
         if (menu.visible()) return
-        pointers.move(e, {
-            dragNode: (id, delta) => {
-                graph.dragNode(id, delta, camera.zoom())
-            },
-            offset: root.offset,
-        })
+        pointers.move(e)
     }
     document.addEventListener("pointerup", onPointerUp)
     document.addEventListener("pointermove", onPointerMove)
@@ -70,7 +64,7 @@ export const GraphCanvas = () => {
             camera.drag([-e.deltaX, -e.deltaY])
         }
     }
-    const addNode = (name: string, position: Vec2) =>
+    const addNode = (name: string, position: Vec2) => () =>
         graph.addNode(name, camera.worldSpace(position))
     const showMenu = (position: Vec2) => {
         menu.show({
@@ -79,15 +73,15 @@ export const GraphCanvas = () => {
                 { icon: FiSearch, onClick: () => finder.show(position) },
                 {
                     icon: TbNumbers,
-                    onClick: () => addNode("number", position),
+                    onClick: addNode("number", position),
                 },
                 {
                     icon: VsAdd,
-                    onClick: () => addNode("add", position),
+                    onClick: addNode("add", position),
                 },
                 {
                     icon: FiMinus,
-                    onClick: () => addNode("sub", position),
+                    onClick: addNode("sub", position),
                 },
             ],
         })
@@ -112,13 +106,22 @@ export const GraphCanvas = () => {
                 showMenu([e.clientX, e.clientY])
             }}
         >
-            <BezierCurves positions={positions} />
-            <NodeCards
-                positions={positions}
-                pointers={pointers}
-                root={root}
-                selected={selected}
-            />
+            <BezierCurves />
+            <NodeCards />
         </FullScreen>
+    )
+}
+
+export const GraphCanvas = () => {
+    return (
+        <RootProvider>
+            <PositionsProvider>
+                <PointersProvider>
+                    <SelectedProvider>
+                        <Content />
+                    </SelectedProvider>
+                </PointersProvider>
+            </PositionsProvider>
+        </RootProvider>
     )
 }

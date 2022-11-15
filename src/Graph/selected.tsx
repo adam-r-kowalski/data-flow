@@ -1,5 +1,12 @@
-import { createEffect, createSignal } from "solid-js"
+import {
+    createContext,
+    createEffect,
+    createSignal,
+    JSXElement,
+    useContext,
+} from "solid-js"
 import { Graph, UUID } from "./graph"
+import { useGraph } from "./GraphProvider"
 
 type Selection = UUID | undefined
 
@@ -36,3 +43,21 @@ export const createSelected = (graph: Graph): Selected => {
         },
     }
 }
+
+const SelectedContext = createContext<Selected>()
+
+interface Props {
+    children: JSXElement
+}
+
+export const SelectedProvider = (props: Props) => {
+    const graph = useGraph()!
+    const selected = createSelected(graph)
+    return (
+        <SelectedContext.Provider value={selected}>
+            {props.children}
+        </SelectedContext.Provider>
+    )
+}
+
+export const useSelected = () => useContext(SelectedContext)
