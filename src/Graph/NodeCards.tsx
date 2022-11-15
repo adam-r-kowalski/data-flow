@@ -87,9 +87,10 @@ export const NodeCards = () => {
     }
     const inputs = (node: Node) => {
         if (node.kind === NodeKind.SOURCE) return []
-        return node.inputs.map((id) => graph.inputs[id])
+        return node.inputs.map((id) => graph.database.inputs[id])
     }
-    const outputs = (node: Node) => node.outputs.map((id) => graph.outputs[id])
+    const outputs = (node: Node) =>
+        node.outputs.map((id) => graph.database.outputs[id])
     const translateNode = (node: Node) =>
         `translate(${node.position[0]}px, ${node.position[1]}px)`
     const menu = useMenu()!
@@ -97,7 +98,7 @@ export const NodeCards = () => {
     const selected = useSelected()!
     return (
         <Scene style={{ transform: transform() }}>
-            <For each={Object.values(graph.nodes)}>
+            <For each={Object.values(graph.database.nodes)}>
                 {(node) => (
                     <Card
                         style={{ transform: translateNode(node) }}
@@ -167,7 +168,9 @@ export const NodeCards = () => {
                         </Inputs>
                         <Content>
                             <Name>{node.name}</Name>
-                            <BodyContent body={graph.bodies[node.body]} />
+                            <BodyContent
+                                body={graph.database.bodies[node.body]}
+                            />
                         </Content>
                         <Outputs>
                             <For each={outputs(node)}>
