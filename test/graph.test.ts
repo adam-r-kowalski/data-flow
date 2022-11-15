@@ -64,16 +64,16 @@ test("connecting a new output to an input replaces the old output", () => {
         input: node2.inputs[0],
     })
     {
-        const output = graph.outputs[node0.outputs[0]]
+        const output = graph.database.outputs[node0.outputs[0]]
         expect(output.edges).toEqual([])
     }
     {
-        const output = graph.outputs[node1.outputs[0]]
+        const output = graph.database.outputs[node1.outputs[0]]
         expect(output.edges).toEqual([edge1!.id])
     }
-    const input = graph.inputs[node2.inputs[0]]
+    const input = graph.database.inputs[node2.inputs[0]]
     expect(input.edge).toEqual(edge1!.id)
-    expect(graph.edges[edge0!.id]).toBeUndefined()
+    expect(graph.database.edges[edge0!.id]).toBeUndefined()
 })
 
 test("cycles between nodes are not allowed", () => {
@@ -129,11 +129,11 @@ test("delete a node with a connected output edge", () => {
         input: node1.inputs[0],
     })!
     graph.deleteNode(node0.id)
-    expect(graph.nodes[node0.id]).toBeUndefined()
-    expect(graph.bodies[node0.body]).toBeUndefined()
-    expect(graph.outputs[node0.outputs[0]]).toBeUndefined()
-    expect(graph.edges[edge.id]).toBeUndefined()
-    expect(graph.inputs[node1.inputs[0]].edge).toBeUndefined()
+    expect(graph.database.nodes[node0.id]).toBeUndefined()
+    expect(graph.database.bodies[node0.body]).toBeUndefined()
+    expect(graph.database.outputs[node0.outputs[0]]).toBeUndefined()
+    expect(graph.database.edges[edge.id]).toBeUndefined()
+    expect(graph.database.inputs[node1.inputs[0]].edge).toBeUndefined()
 })
 
 test("delete a node with a connected input edge", () => {
@@ -145,11 +145,11 @@ test("delete a node with a connected input edge", () => {
         input: node1.inputs[0],
     })!
     graph.deleteNode(node1.id)
-    expect(graph.nodes[node1.id]).toBeUndefined()
-    expect(graph.bodies[node1.body]).toBeUndefined()
-    expect(graph.outputs[node1.outputs[0]]).toBeUndefined()
-    expect(graph.edges[edge.id]).toBeUndefined()
-    expect(graph.outputs[node0.outputs[0]].edges).toEqual([])
+    expect(graph.database.nodes[node1.id]).toBeUndefined()
+    expect(graph.database.bodies[node1.body]).toBeUndefined()
+    expect(graph.database.outputs[node1.outputs[0]]).toBeUndefined()
+    expect(graph.database.edges[edge.id]).toBeUndefined()
+    expect(graph.database.outputs[node0.outputs[0]].edges).toEqual([])
 })
 
 test("delete input edge", () => {
@@ -161,9 +161,9 @@ test("delete input edge", () => {
         input: node1.inputs[0],
     })!
     graph.deleteInputEdge(node1.inputs[0])
-    expect(graph.edges[edge.id]).toBeUndefined()
-    expect(graph.inputs[edge.input].edge).toBeUndefined()
-    expect(graph.outputs[edge.output].edges).toEqual([])
+    expect(graph.database.edges[edge.id]).toBeUndefined()
+    expect(graph.database.inputs[edge.input].edge).toBeUndefined()
+    expect(graph.database.outputs[edge.output].edges).toEqual([])
 })
 
 test("delete output edges", () => {
@@ -175,7 +175,7 @@ test("delete output edges", () => {
         input: node1.inputs[0],
     })!
     graph.deleteOutputEdges(node0.outputs[0])
-    expect(graph.edges[edge.id]).toBeUndefined()
-    expect(graph.inputs[edge.input].edge).toBeUndefined()
-    expect(graph.outputs[edge.output].edges).toEqual([])
+    expect(graph.database.edges[edge.id]).toBeUndefined()
+    expect(graph.database.inputs[edge.input].edge).toBeUndefined()
+    expect(graph.database.outputs[edge.output].edges).toEqual([])
 })
