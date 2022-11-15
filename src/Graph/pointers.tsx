@@ -1,8 +1,11 @@
-import { createSignal } from "solid-js"
-import { Camera } from "../camera"
-import { UUID } from "./graph"
+import { createContext, createSignal, JSXElement, useContext } from "solid-js"
+
+import { Camera, useCamera } from "../camera"
+import { Graph, UUID } from "./graph"
 
 import { sub, Vec2, midpoint, distance } from "../vec2"
+import { Root, useRoot } from "./root"
+import { useGraph } from "./GraphProvider"
 
 export enum PointersKind {
     ZERO,
@@ -89,16 +92,12 @@ export const onPointerDown = (
     }
 }
 
-export interface Effects {
-    dragNode: (id: UUID, delta: Vec2) => void
-    offset: () => Vec2
-}
-
 export const onPointerMove = (
     pointers: PointerData,
     pointer: Pointer,
-    effects: Effects,
-    camera: Camera
+    root: Root,
+    camera: Camera,
+    graph: Graph
 ): PointerData => {
     switch (pointers.kind) {
         case PointersKind.ZERO:
@@ -117,9 +116,10 @@ export const onPointerMove = (
                     }
                 }
                 case TargetKind.NODE: {
-                    effects.dragNode(
+                    graph.dragNode(
                         target.id,
-                        sub(pointer.position, pointers.pointer.position)
+                        sub(pointer.position, pointers.pointer.position),
+                        camera.zoom()
                     )
                     return {
                         kind: PointersKind.ONE,
@@ -136,7 +136,7 @@ export const onPointerMove = (
             const newDistance = distance(p1.position, p2.position)
             const delta = pointers.distance - newDistance
             camera.drag(sub(newMidpoint, pointers.midpoint))
-            camera.pinch(sub(newMidpoint, effects.offset()), delta)
+            camera.pinch(sub(newMidpoint, root.offset()), delta)
             return {
                 kind: PointersKind.TWO,
                 data,
@@ -195,13 +195,17 @@ const transform = (event: PointerEvent): Pointer => ({
 export interface Pointers {
     downOnBackground: (event: PointerEvent) => void
     downOnNode: (event: PointerEvent, id: UUID) => void
-    move: (event: PointerEvent, effects: Effects) => void
+    move: (event: PointerEvent) => void
     up: (event: PointerEvent) => void
     draggingNode: () => boolean
     twoPointersDown: () => boolean
 }
 
-export const createPointers = (camera: Camera): Pointers => {
+export const createPointers = (
+    camera: Camera,
+    root: Root,
+    graph: Graph
+): Pointers => {
     const [pointers, setPointers] = createSignal<PointerData>({
         kind: PointersKind.ZERO,
     })
@@ -218,9 +222,9 @@ export const createPointers = (camera: Camera): Pointers => {
             const target: Target = { kind: TargetKind.NODE, id }
             setPointers(onPointerDown(pointers(), pointer, target))
         },
-        move: (event: PointerEvent, effects: Effects) => {
+        move: (event: PointerEvent) => {
             const pointer = transform(event)
-            setPointers(onPointerMove(pointers(), pointer, effects, camera))
+            setPointers(onPointerMove(pointers(), pointer, root, camera, graph))
         },
         up: (event: PointerEvent) => {
             const pointer = transform(event)
@@ -235,3 +239,23 @@ export const createPointers = (camera: Camera): Pointers => {
         twoPointersDown: () => pointers().kind == PointersKind.TWO,
     }
 }
+
+const PointersContext = createContext<Pointers>()
+
+interface Props {
+    children: JSXElement
+}
+
+export const PointersProvider = (props: Props) => {
+    const camera = useCamera()!
+    const root = useRoot()!
+    const graph = useGraph()!
+    const pointers = createPointers(camera, root, graph)
+    return (
+        <PointersContext.Provider value={pointers}>
+            {props.children}
+        </PointersContext.Provider>
+    )
+}
+
+export const usePointers = () => useContext(PointersContext)

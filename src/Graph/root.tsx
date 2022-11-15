@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js"
+import { createContext, createSignal, JSXElement, useContext } from "solid-js"
 import { Vec2 } from "../vec2"
 
 export interface Root {
@@ -26,3 +26,20 @@ export const createRoot = (): Root => {
         },
     }
 }
+
+const RootContext = createContext<Root>()
+
+interface Props {
+    children: JSXElement
+}
+
+export const RootProvider = (props: Props) => {
+    const root = createRoot()
+    return (
+        <RootContext.Provider value={root}>
+            {props.children}
+        </RootContext.Provider>
+    )
+}
+
+export const useRoot = () => useContext(RootContext)
