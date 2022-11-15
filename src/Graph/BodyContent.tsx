@@ -6,6 +6,7 @@ import { ValueKind, Number, Tensor, Value, Error, Scatter, Line } from "./value"
 import { Vec2 } from "../vec2"
 import { useGraph } from "./GraphProvider"
 import { usePositions } from "./positions"
+import { useMeasureText } from "../MeasureText"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -17,18 +18,15 @@ interface Props {
     body: Body
 }
 
-const canvas = document.createElement("canvas")!
-const context = canvas.getContext("2d")!
-context.font = "normal 20px monospace"
-
 const NumberContent = (props: Props) => {
     const graph = useGraph()!
     const positions = usePositions()!
+    const measureText = useMeasureText()!
     const [editing, setEditing] = createSignal(false)
     let input: HTMLInputElement | undefined = undefined
     const inputString = () => (props.body.value as Number).value.toString()
-    const width = () =>
-        Math.floor(context.measureText(inputString()).width) + 70
+    const font = "normal 20px monospace"
+    const width = () => Math.floor(measureText.width(font, inputString())) + 70
     return (
         <Switch>
             <Match when={!editing()}>
