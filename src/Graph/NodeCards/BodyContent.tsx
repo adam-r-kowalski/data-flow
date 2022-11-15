@@ -1,12 +1,20 @@
 import { styled } from "solid-styled-components"
 import { Match, Switch, createSignal, For, createMemo } from "solid-js"
 
-import { Body } from "./graph"
-import { ValueKind, Number, Tensor, Value, Error, Scatter, Line } from "./value"
-import { Vec2 } from "../vec2"
-import { useGraph } from "./GraphProvider"
-import { usePositions } from "./positions"
-import { useMeasureText } from "../MeasureText"
+import { Body } from "../graph"
+import {
+    ValueKind,
+    Number,
+    Tensor,
+    Value,
+    Error,
+    Scatter,
+    Line,
+} from "../value"
+import { Vec2 } from "../../vec2"
+import { useGraph } from "../GraphProvider"
+import { usePositions } from "../positions"
+import { useMeasureText } from "../../MeasureText"
 
 const Container = styled("div")({
     background: "#24283b",
