@@ -7,6 +7,7 @@ import { FinderPane, FinderProvider, useFinder } from "./Finder"
 import { RadialMenu, MenuProvider, useMenu } from "./Menu"
 import { demoScene } from "./demo_scene"
 import { GraphCanvas } from "./Graph/GraphCanvas"
+import { MeasureTextProvider } from "./MeasureText"
 
 const FullScreen = styled("div")({
     width: "100vw",
@@ -48,9 +49,11 @@ export const DataFlow = () => {
             <CameraProvider>
                 <FinderProvider>
                     <MenuProvider>
-                        <FullScreen>
-                            <Content />
-                        </FullScreen>
+                        <MeasureTextProvider>
+                            <FullScreen>
+                                <Content />
+                            </FullScreen>
+                        </MeasureTextProvider>
                     </MenuProvider>
                 </FinderProvider>
             </CameraProvider>
