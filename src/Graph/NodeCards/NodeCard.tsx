@@ -77,10 +77,12 @@ export const NodeCard = (props: Props) => {
                     options: [
                         {
                             icon: FaSolidTrashCan,
+                            label: "delete",
                             onClick: () => graph.deleteNode(props.node.id),
                         },
                         {
                             icon: FiSearch,
+                            label: "replace",
                             onClick: () => console.log("replace"),
                         },
                     ],

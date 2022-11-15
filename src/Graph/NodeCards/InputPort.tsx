@@ -42,6 +42,7 @@ export const InputPort = (props: Props) => {
                     options: [
                         {
                             icon: FaSolidTrashCan,
+                            label: "delete",
                             onClick: () =>
                                 graph.deleteInputEdge(props.input.id),
                         },

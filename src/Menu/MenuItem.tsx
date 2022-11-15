@@ -4,8 +4,8 @@ import { styled } from "solid-styled-components"
 import { Option } from "./menu"
 import { useMenu } from "./MenuProvider"
 
-export const diameter = 44
-const distance = 50
+export const diameter = 50
+const distance = 60
 const delta = Math.PI / 3
 
 const Circle = styled("div")({
@@ -17,10 +17,16 @@ const Circle = styled("div")({
     width: `${diameter}px`,
     height: `${diameter}px`,
     display: "flex",
+    "flex-direction": "column",
     "justify-content": "center",
     "align-items": "center",
-    "font-size": "20px",
+    "font-size": "18px",
     cursor: "pointer",
+})
+
+const Text = styled("div")({
+    "font-size": "8px",
+    "padding-top": "4px",
 })
 
 interface Props {
@@ -49,6 +55,7 @@ export const MenuItem = (props: Props) => {
             }}
         >
             <props.option.icon />
+            <Text>{props.option.label}</Text>
         </Circle>
     )
 }

@@ -42,6 +42,7 @@ export const OutputPort = (props: Props) => {
                     options: [
                         {
                             icon: FaSolidTrashCan,
+                            label: "delete",
                             onClick: () =>
                                 graph.deleteOutputEdges(props.output.id),
                         },
