@@ -43,7 +43,7 @@ export const createPositions = (
     const retrack = (id: UUID) => {
         requestAnimationFrame(() => {
             const transform = createTransform()
-            const node = graph.nodes[id]
+            const node = graph.database.nodes[id]
             const inputs = node.kind === NodeKind.TRANSFORM ? node.inputs : []
             const outputs = node.outputs
             const ids = [...inputs, ...outputs]

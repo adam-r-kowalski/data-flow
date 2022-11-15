@@ -37,7 +37,7 @@ export const BezierCurves = () => {
     return (
         <FullScreen>
             <g transform={transform()}>
-                <For each={Object.values(graph.edges)}>
+                <For each={Object.values(graph.database.edges)}>
                     {(edge) => {
                         return (
                             <path
