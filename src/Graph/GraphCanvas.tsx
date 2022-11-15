@@ -70,17 +70,24 @@ const Content = () => {
         menu.show({
             position,
             options: [
-                { icon: FiSearch, onClick: () => finder.show(position) },
+                {
+                    icon: FiSearch,
+                    label: "search",
+                    onClick: () => finder.show(position),
+                },
                 {
                     icon: TbNumbers,
+                    label: "number",
                     onClick: addNode("number", position),
                 },
                 {
                     icon: VsAdd,
+                    label: "add",
                     onClick: addNode("add", position),
                 },
                 {
                     icon: FiMinus,
+                    label: "sub",
                     onClick: addNode("sub", position),
                 },
             ],

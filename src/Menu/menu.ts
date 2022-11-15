@@ -5,6 +5,7 @@ import { Vec2 } from "../vec2"
 
 export interface Option {
     icon: IconTypes
+    label: string
     onClick: () => void
 }
 
