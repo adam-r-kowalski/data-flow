@@ -88,6 +88,7 @@ export interface Graph {
     deleteNode: (nodeId: UUID) => void
     deleteInputEdge: (inputId: UUID) => void
     deleteOutputEdges: (outputId: UUID) => void
+    replaceNode: (nodeId: UUID, name: string) => void
 }
 
 type SetDatabase = SetStoreFunction<Database>
@@ -371,6 +372,23 @@ const deleteOutputEdges = (context: Context, outputId: UUID) => {
     }
 }
 
+const replaceNode = (context: Context, nodeId: UUID, name: string) => {
+    const { setDatabase } = context
+    const operation = operations[name]
+    if (operation.kind !== OperationKind.TRANSFORM) return
+    setDatabase(
+        produce((database) => {
+            const node = database.nodes[nodeId]
+            if (node.kind !== NodeKind.TRANSFORM) return
+            if (operation.inputs.length !== node.inputs.length) return
+            if (operation.outputs.length !== node.outputs.length) return
+            node.name = name
+            node.func = operation.func
+        })
+    )
+    evaluate(context, nodeId)
+}
+
 export const createGraph = (): Graph => {
     const [database, setDatabase] = createStore<Database>({
         nodes: {},
@@ -406,6 +424,7 @@ export const createGraph = (): Graph => {
         deleteNode: deleteNode.bind(null, context),
         deleteInputEdge: deleteInputEdge.bind(null, context),
         deleteOutputEdges: deleteOutputEdges.bind(null, context),
+        replaceNode: replaceNode.bind(null, context),
     }
     return graph
 }

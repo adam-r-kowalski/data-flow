@@ -10,6 +10,8 @@ import { useGraph } from "../GraphProvider"
 import { InputPort } from "./InputPort"
 import { OutputPort } from "./OutputPort"
 import { BodyContent } from "./BodyContent"
+import { useFinder } from "../../Finder"
+import { FinderModeKind } from "../../Finder/finder"
 
 const Container = styled("div")({
     position: "absolute",
@@ -65,6 +67,7 @@ export const NodeCard = (props: Props) => {
     const pointers = usePointers()!
     const menu = useMenu()!
     const graph = useGraph()!
+    const finder = useFinder()!
     return (
         <Container
             style={{ transform: translateNode() }}
@@ -83,7 +86,11 @@ export const NodeCard = (props: Props) => {
                         {
                             icon: FiSearch,
                             label: "replace",
-                            onClick: () => console.log("replace"),
+                            onClick: () =>
+                                finder.show({
+                                    kind: FinderModeKind.REPLACE,
+                                    node: props.node.id,
+                                }),
                         },
                     ],
                 })

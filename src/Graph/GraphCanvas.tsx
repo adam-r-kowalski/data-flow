@@ -3,6 +3,7 @@ import { styled } from "solid-styled-components"
 import { FiSearch, FiMinus } from "solid-icons/fi"
 import { TbNumbers } from "solid-icons/tb"
 import { VsAdd } from "solid-icons/vs"
+import { BiRegularSelection } from "solid-icons/bi"
 
 import { BezierCurves } from "./BezierCurves"
 import { NodeCards } from "./NodeCards"
@@ -15,6 +16,7 @@ import { useMenu } from "../Menu"
 import { useCamera } from "../camera"
 import { useGraph } from "./GraphProvider"
 import { PositionsProvider } from "./positions"
+import { FinderModeKind } from "../Finder/finder"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -71,9 +73,15 @@ const Content = () => {
             position,
             options: [
                 {
+                    icon: BiRegularSelection,
+                    label: "select",
+                    onClick: () => console.log("select"),
+                },
+                {
                     icon: FiSearch,
                     label: "search",
-                    onClick: () => finder.show(position),
+                    onClick: () =>
+                        finder.show({ kind: FinderModeKind.INSERT, position }),
                 },
                 {
                     icon: TbNumbers,

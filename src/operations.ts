@@ -8,7 +8,7 @@ export enum OperationKind {
     TRANSFORM,
 }
 
-interface Source {
+export interface SourceOperation {
     kind: OperationKind.SOURCE
     name: string
     outputs: string[]
@@ -17,7 +17,7 @@ interface Source {
 
 export type Func = (inputs: Value[]) => Value
 
-interface Transform {
+export interface TransformOperation {
     kind: OperationKind.TRANSFORM
     name: string
     inputs: string[]
@@ -25,7 +25,7 @@ interface Transform {
     func: Func
 }
 
-type Operation = Source | Transform
+type Operation = SourceOperation | TransformOperation
 
 type Operations = { [name: string]: Operation }
 
