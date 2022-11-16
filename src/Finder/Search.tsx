@@ -4,6 +4,7 @@ import { useFinder } from "./FinderProvider"
 import { createEffect } from "solid-js"
 import { useGraph } from "../Graph"
 import { useCamera } from "../camera"
+import { FinderModeKind } from "./finder"
 
 const Container = styled("div")({
     padding: "10px 20px",
@@ -35,9 +36,21 @@ export const Search = () => {
             case "Escape":
                 return finder.hide()
             case "Enter":
-                const position = finder.position()
                 const option = finder.filtered()[0]
-                option && graph.addNode(option, camera.worldSpace(position))
+                if (option) {
+                    const mode = finder.mode()
+                    switch (mode.kind) {
+                        case FinderModeKind.INSERT:
+                            graph.addNode(
+                                option,
+                                camera.worldSpace(mode.position)
+                            )
+                            break
+                        case FinderModeKind.REPLACE:
+                            graph.replaceNode(mode.node, option)
+                            break
+                    }
+                }
                 return finder.hide()
             default:
                 return

@@ -4,7 +4,7 @@ import { styled } from "solid-styled-components"
 import { Option } from "./menu"
 import { useMenu } from "./MenuProvider"
 
-export const diameter = 50
+export const diameter = 54
 const distance = 60
 const delta = Math.PI / 3
 
@@ -20,13 +20,13 @@ const Circle = styled("div")({
     "flex-direction": "column",
     "justify-content": "center",
     "align-items": "center",
-    "font-size": "18px",
+    "font-size": "20px",
     cursor: "pointer",
 })
 
 const Text = styled("div")({
-    "font-size": "8px",
-    "padding-top": "4px",
+    "font-size": "10px",
+    "padding-top": "2px",
 })
 
 interface Props {

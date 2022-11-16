@@ -8,6 +8,7 @@ import { RadialMenu, MenuProvider, useMenu } from "./Menu"
 import { demoScene } from "./demo_scene"
 import { GraphCanvas } from "./Graph/GraphCanvas"
 import { MeasureTextProvider } from "./MeasureText"
+import { FinderModeKind } from "./Finder/finder"
 
 const FullScreen = styled("div")({
     width: "100vw",
@@ -22,10 +23,10 @@ const Content = () => {
         switch (e.key) {
             case "f":
                 e.preventDefault()
-                return finder.show([
-                    window.innerWidth / 2,
-                    window.innerHeight / 2,
-                ])
+                return finder.show({
+                    kind: FinderModeKind.INSERT,
+                    position: [window.innerWidth / 2, window.innerHeight / 2],
+                })
             default:
                 return
         }

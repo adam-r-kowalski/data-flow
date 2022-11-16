@@ -1,6 +1,7 @@
 import { test, expect } from "vitest"
 
 import { createGraph, Transform } from "../src/Graph"
+import { operations, TransformOperation } from "../src/operations"
 import { Vec2 } from "../src/vec2"
 
 const position: Vec2 = [0, 0]
@@ -178,4 +179,20 @@ test("delete output edges", () => {
     expect(graph.database.edges[edge.id]).toBeUndefined()
     expect(graph.database.inputs[edge.input].edge).toBeUndefined()
     expect(graph.database.outputs[edge.output].edges).toEqual([])
+})
+
+test("replace a node", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode("number", position)
+    const node2 = graph.addNode("add", position) as Transform
+    graph.addEdge({
+        output: node0.outputs[0],
+        input: node2.inputs[0],
+    })!
+    graph.replaceNode(node2.id, "sub")
+    expect(graph.database.nodes[node2.id]).toEqual({
+        ...node2,
+        name: "sub",
+        func: (operations.sub as TransformOperation).func,
+    })
 })

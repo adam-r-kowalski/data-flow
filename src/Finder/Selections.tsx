@@ -2,6 +2,7 @@ import { For } from "solid-js"
 import { styled } from "solid-styled-components"
 import { useCamera } from "../camera"
 import { useGraph } from "../Graph"
+import { FinderModeKind } from "./finder"
 import { useFinder } from "./FinderProvider"
 
 const Container = styled("div")({
@@ -29,8 +30,18 @@ export const Selections = () => {
             <For each={finder.filtered()}>
                 {(option) => {
                     const onClick = () => {
-                        const position = finder.position()
-                        graph.addNode(option, camera.worldSpace(position))
+                        const mode = finder.mode()
+                        switch (mode.kind) {
+                            case FinderModeKind.INSERT:
+                                graph.addNode(
+                                    option,
+                                    camera.worldSpace(mode.position)
+                                )
+                                break
+                            case FinderModeKind.REPLACE:
+                                graph.replaceNode(mode.node, option)
+                                break
+                        }
                         finder.hide()
                     }
                     return <Selection onClick={onClick}>{option}</Selection>
