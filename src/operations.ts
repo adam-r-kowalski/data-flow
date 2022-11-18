@@ -120,6 +120,13 @@ export const operations: Operations = {
         outputs: ["out"],
         func: tensorFunc(tf.add),
     },
+    abs: {
+        kind: OperationKind.TRANSFORM,
+        name: "abs",
+        inputs: ["a"],
+        outputs: ["out"],
+        func: tensorFunc(tf.abs),
+    },
     sub: {
         kind: OperationKind.TRANSFORM,
         name: "sub",
@@ -147,6 +154,13 @@ export const operations: Operations = {
         inputs: ["a", "b"],
         outputs: ["out"],
         func: tensorFunc(tf.maximum),
+    },
+    mean: {
+        kind: OperationKind.TRANSFORM,
+        name: "mean",
+        inputs: ["a"],
+        outputs: ["out"],
+        func: tensorFunc(tf.mean as TensorFunc),
     },
     minimum: {
         kind: OperationKind.TRANSFORM,
