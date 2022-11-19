@@ -7,6 +7,7 @@ export enum ValueKind {
     ERROR,
     SCATTER,
     LINE,
+    LABEL,
 }
 
 export interface None {
@@ -46,4 +47,9 @@ export interface Line {
     range: [number, number]
 }
 
-export type Value = None | Number | Tensor | Error | Scatter | Line
+export interface Label {
+    kind: ValueKind.LABEL
+    name: string
+}
+
+export type Value = None | Number | Tensor | Error | Scatter | Line | Label

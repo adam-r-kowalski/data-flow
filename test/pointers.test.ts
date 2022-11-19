@@ -226,11 +226,13 @@ const mockCamera = (): Camera => ({
 })
 
 const mockGraph = (): Graph => ({
-    nodes: {},
-    edges: {},
-    inputs: {},
-    outputs: {},
-    bodies: {},
+    database: {
+        nodes: {},
+        edges: {},
+        inputs: {},
+        outputs: {},
+        bodies: {},
+    },
     dragNode: vi.fn<[UUID, Vec2, number], void>(),
     addNode: vi.fn<[string, Vec2], Node>(),
     addEdge: vi.fn<[Between], Edge | undefined>(),
@@ -239,6 +241,7 @@ const mockGraph = (): Graph => ({
     deleteNode: vi.fn<[UUID], void>(),
     deleteInputEdge: vi.fn<[UUID], void>(),
     deleteOutputEdges: vi.fn<[UUID], void>(),
+    replaceNode: vi.fn<[UUID, string], void>(),
 })
 
 test("pointer move with no pointers down", () => {
