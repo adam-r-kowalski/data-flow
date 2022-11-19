@@ -51,6 +51,7 @@ export interface Line {
 export interface Label {
     kind: ValueKind.LABEL
     name: string
+    value: Value
 }
 
 export interface Read {

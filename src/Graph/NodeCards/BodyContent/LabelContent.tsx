@@ -1,4 +1,4 @@
-import { createSignal, Match, Switch } from "solid-js"
+import { createEffect, createSignal, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
 
 import { useMeasureText } from "../../../MeasureText"

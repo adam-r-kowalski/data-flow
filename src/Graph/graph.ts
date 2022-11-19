@@ -114,6 +114,8 @@ interface Context {
     setDatabase: SetDatabase
     notifySubscribers: (nodeId: UUID) => void
     generateId: () => UUID
+    labels: { [name: string]: Value }
+    readers: { [name: string]: Set<UUID> }
 }
 
 const dragNode = (
@@ -132,9 +134,9 @@ const dragNode = (
 const addNode = (context: Context, name: string, position: Vec2): Node => {
     const { database, setDatabase, generateId, notifySubscribers } = context
     const nodeId = generateId()
+    const operation = operations[name]
     setDatabase(
         produce((database) => {
-            const operation = operations[name]
             const outputs: UUID[] = []
             if (operation.kind !== OperationKind.SINK) {
                 for (const name of operation.outputs) {
@@ -232,7 +234,9 @@ const evaluateOutputs = (context: Context, node: Node) => {
 const evaluate = (context: Context, nodeId: UUID) => {
     const { database, setDatabase, notifySubscribers } = context
     const node = database.nodes[nodeId]
-    if (node.kind === NodeKind.SOURCE) return evaluateOutputs(context, node)
+    if (node.kind === NodeKind.SOURCE) {
+        return evaluateOutputs(context, node)
+    }
     const values: Value[] = []
     for (const input of node.inputs) {
         const edgeId = database.inputs[input].edge
@@ -241,7 +245,12 @@ const evaluate = (context: Context, nodeId: UUID) => {
             const outputNode =
                 database.nodes[database.outputs[edge.output].node]
             const outputBody = database.bodies[outputNode.body]
-            values.push(outputBody.value)
+            if (outputBody.value.kind === ValueKind.READ) {
+                const label = context.labels[outputBody.value.name]
+                values.push(label)
+            } else {
+                values.push(outputBody.value)
+            }
         }
     }
     if (node.kind === NodeKind.TRANSFORM) {
@@ -254,6 +263,19 @@ const evaluate = (context: Context, nodeId: UUID) => {
         notifySubscribers(node.id)
     } else if (node.kind === NodeKind.SINK) {
         node.func(values)
+        const body = database.bodies[node.body]
+        if (body.value.kind === ValueKind.LABEL) {
+            if (values.length > 0) {
+                context.labels[body.value.name] = values[0]
+            } else {
+                context.labels[body.value.name] = { kind: ValueKind.NONE }
+            }
+            const readers = context.readers[body.value.name]
+            if (!readers) return
+            for (const reader of readers) {
+                evaluate(context, reader)
+            }
+        }
     }
 }
 
@@ -327,9 +349,14 @@ const addEdge = (
 const setValue = (context: Context, bodyId: UUID, value: Value) => {
     const { database, setDatabase, notifySubscribers } = context
     setDatabase("bodies", bodyId, "value", value)
-    const node = database.bodies[bodyId].node
-    notifySubscribers(node)
-    evaluate(context, node)
+    const body = database.bodies[bodyId]
+    if (body.value.kind === ValueKind.READ) {
+        const readers = context.readers[body.value.name]
+        if (readers) readers.add(body.node)
+        else context.readers[body.value.name] = new Set([body.node])
+    }
+    notifySubscribers(body.node)
+    evaluate(context, body.node)
 }
 
 const deleteNode = (context: Context, nodeId: UUID) => {
@@ -461,6 +488,8 @@ export const createGraph = (): Graph => {
         setDatabase,
         notifySubscribers,
         generateId,
+        labels: {},
+        readers: {},
     }
     const graph: Graph = {
         database,
