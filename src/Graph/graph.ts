@@ -151,15 +151,29 @@ const addNode = (context: Context, name: string, position: Vec2): Node => {
                 }
             }
             const value: Value = (() => {
-                if (operation.kind !== OperationKind.SOURCE)
-                    return { kind: ValueKind.NONE }
-                switch (operation.name) {
-                    case "num":
-                        return { kind: ValueKind.NUMBER, value: 0 }
-                    case "read":
-                        return { kind: ValueKind.READ, name: "" }
-                    default:
+                switch (operation.kind) {
+                    case OperationKind.SOURCE:
+                        switch (operation.name) {
+                            case "num":
+                                return { kind: ValueKind.NUMBER, value: 0 }
+                            case "read":
+                                return { kind: ValueKind.READ, name: "" }
+                            default:
+                                return { kind: ValueKind.NONE }
+                        }
+                    case OperationKind.TRANSFORM:
                         return { kind: ValueKind.NONE }
+                    case OperationKind.SINK:
+                        switch (operation.name) {
+                            case "label":
+                                return {
+                                    kind: ValueKind.LABEL,
+                                    name: "",
+                                    value: { kind: ValueKind.NONE },
+                                }
+                            default:
+                                return { kind: ValueKind.NONE }
+                        }
                 }
             })()
             const body: Body = {
