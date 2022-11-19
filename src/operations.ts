@@ -13,7 +13,6 @@ export interface SourceOperation {
     kind: OperationKind.SOURCE
     name: string
     outputs: string[]
-    value: number
 }
 
 export type TransformFunc = (inputs: Value[]) => Value
@@ -126,7 +125,6 @@ export const operations: Operations = {
         kind: OperationKind.SOURCE,
         name: "num",
         outputs: [""],
-        value: 0,
     },
     add: {
         kind: OperationKind.TRANSFORM,
@@ -238,5 +236,10 @@ export const operations: Operations = {
         name: "label",
         inputs: [""],
         func: label,
+    },
+    read: {
+        kind: OperationKind.SOURCE,
+        name: "read",
+        outputs: [""],
     },
 }

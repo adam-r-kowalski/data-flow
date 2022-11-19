@@ -8,6 +8,7 @@ export enum ValueKind {
     SCATTER,
     LINE,
     LABEL,
+    READ,
 }
 
 export interface None {
@@ -52,4 +53,17 @@ export interface Label {
     name: string
 }
 
-export type Value = None | Number | Tensor | Error | Scatter | Line | Label
+export interface Read {
+    kind: ValueKind.READ
+    name: string
+}
+
+export type Value =
+    | None
+    | Number
+    | Tensor
+    | Error
+    | Scatter
+    | Line
+    | Label
+    | Read

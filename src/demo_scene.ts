@@ -13,16 +13,19 @@ export const demoScene = (graph: Graph): void => {
     graph.addEdge({ output: stop.outputs[0], input: linspace.inputs[1] })
     graph.addEdge({ output: step.outputs[0], input: linspace.inputs[2] })
 
-    const x = graph.addNode("label", [730, 550]) as Sink
-    graph.setValue(x.body, { kind: ValueKind.LABEL, name: "x" })
-    graph.addEdge({ output: linspace.outputs[0], input: x.inputs[0] })
+    const label = graph.addNode("label", [730, 550]) as Sink
+    graph.setValue(label.body, { kind: ValueKind.LABEL, name: "x" })
+    graph.addEdge({ output: linspace.outputs[0], input: label.inputs[0] })
+
+    const read = graph.addNode("read", [350, 250]) as Source
+    graph.setValue(read.body, { kind: ValueKind.READ, name: "x" })
 
     const three = graph.addNode("num", [430, 50]) as Source
     graph.setValue(three.body, { kind: ValueKind.NUMBER, value: 3 })
 
     const mul = graph.addNode("mul", [700, 200]) as Transform
     graph.addEdge({ output: three.outputs[0], input: mul.inputs[0] })
-    graph.addEdge({ output: linspace.outputs[0], input: mul.inputs[1] })
+    graph.addEdge({ output: read.outputs[0], input: mul.inputs[1] })
 
     const five = graph.addNode("num", [785, 50]) as Source
     graph.setValue(five.body, { kind: ValueKind.NUMBER, value: 5 })

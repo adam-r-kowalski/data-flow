@@ -148,12 +148,21 @@ const addNode = (context: Context, name: string, position: Vec2): Node => {
                     outputs.push(output.id)
                 }
             }
+            const value: Value = (() => {
+                if (operation.kind !== OperationKind.SOURCE)
+                    return { kind: ValueKind.NONE }
+                switch (operation.name) {
+                    case "num":
+                        return { kind: ValueKind.NUMBER, value: 0 }
+                    case "read":
+                        return { kind: ValueKind.READ, name: "" }
+                    default:
+                        return { kind: ValueKind.NONE }
+                }
+            })()
             const body: Body = {
                 id: generateId(),
-                value:
-                    operation.kind === OperationKind.SOURCE
-                        ? { kind: ValueKind.NUMBER, value: operation.value }
-                        : { kind: ValueKind.NONE },
+                value,
                 node: nodeId,
             }
             database.bodies[body.id] = body
