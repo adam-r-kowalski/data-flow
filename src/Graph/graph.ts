@@ -105,6 +105,7 @@ export interface Graph {
     deleteInputEdge: (inputId: UUID) => void
     deleteOutputEdges: (outputId: UUID) => void
     replaceNode: (nodeId: UUID, name: string) => void
+    untrackLabel: (nodeId: UUID, label: string) => void
 }
 
 type SetDatabase = SetStoreFunction<Database>
@@ -261,7 +262,7 @@ const evaluate = (context: Context, nodeId: UUID) => {
             const outputBody = database.bodies[outputNode.body]
             if (outputBody.value.kind === ValueKind.READ) {
                 const label = context.labels[outputBody.value.name]
-                values.push(label)
+                if (label) values.push(label)
             } else {
                 values.push(outputBody.value)
             }
@@ -478,6 +479,12 @@ const replaceNode = (context: Context, nodeId: UUID, name: string) => {
     evaluate(context, nodeId)
 }
 
+const untrackLabel = (context: Context, nodeId: UUID, label: string): void => {
+    const readers = context.readers[label]
+    if (!readers) return
+    readers.delete(nodeId)
+}
+
 export const createGraph = (): Graph => {
     const [database, setDatabase] = createStore<Database>({
         nodes: {},
@@ -516,6 +523,7 @@ export const createGraph = (): Graph => {
         deleteInputEdge: deleteInputEdge.bind(null, context),
         deleteOutputEdges: deleteOutputEdges.bind(null, context),
         replaceNode: replaceNode.bind(null, context),
+        untrackLabel: untrackLabel.bind(null, context),
     }
     return graph
 }

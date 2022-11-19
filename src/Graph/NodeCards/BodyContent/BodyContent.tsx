@@ -61,6 +61,7 @@ export const BodyContent = (props: Props) => {
             <Match when={props.body.value.kind == ValueKind.READ}>
                 <ReadContent
                     node={props.body.node}
+                    body={props.body.id}
                     value={props.body.value as Read}
                 />
             </Match>

@@ -1,4 +1,4 @@
-import { createEffect, createSignal, Match, Switch } from "solid-js"
+import { createSignal, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
 
 import { useMeasureText } from "../../../MeasureText"
@@ -51,6 +51,7 @@ export const LabelContent = (props: Props) => {
                         const value: Value = {
                             kind: ValueKind.LABEL,
                             name: input!.value,
+                            value: props.value.value,
                         }
                         graph.setValue(props.body, value)
                     }}
