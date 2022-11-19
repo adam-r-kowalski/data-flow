@@ -17,6 +17,7 @@ import { useCamera } from "../camera"
 import { useGraph } from "./GraphProvider"
 import { PositionsProvider } from "./positions"
 import { FinderModeKind } from "../Finder/finder"
+import { LabelsProvider } from "./Labels"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -145,14 +146,16 @@ const Content = () => {
 
 export const GraphCanvas = () => {
     return (
-        <RootProvider>
-            <PositionsProvider>
-                <PointersProvider>
-                    <SelectedProvider>
-                        <Content />
-                    </SelectedProvider>
-                </PointersProvider>
-            </PositionsProvider>
-        </RootProvider>
+        <LabelsProvider>
+            <RootProvider>
+                <PositionsProvider>
+                    <PointersProvider>
+                        <SelectedProvider>
+                            <Content />
+                        </SelectedProvider>
+                    </PointersProvider>
+                </PositionsProvider>
+            </RootProvider>
+        </LabelsProvider>
     )
 }

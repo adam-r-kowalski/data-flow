@@ -115,9 +115,8 @@ const line = (inputs: Value[]): Value => {
     return { kind: ValueKind.LINE, x, y, domain, range }
 }
 
-const label = (inputs: Value[]) => {
-    if (inputs.length !== 1) return
-    console.log("label")
+const label = (inputs: Value[]): Value => {
+    return { kind: ValueKind.NONE }
 }
 
 export const operations: Operations = {
