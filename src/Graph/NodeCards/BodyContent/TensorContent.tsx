@@ -5,7 +5,7 @@ import { Tensor } from "../../value"
 
 const Container = styled("div")({
     background: "#24283b",
-    padding: "20px 30px",
+    padding: "20px",
     "border-radius": "5px",
 })
 
