@@ -26,7 +26,7 @@ export const Selections = () => {
     const graph = useGraph()!
     const camera = useCamera()!
     return (
-        <Container>
+        <Container onWheel={(e) => (e.currentTarget.scrollTop += e.deltaY)}>
             <For each={finder.filtered()}>
                 {(option) => {
                     const onClick = () => {

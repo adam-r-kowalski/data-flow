@@ -34,7 +34,7 @@ export const FinderPane = () => {
         <Show when={finder.visible()}>
             <FullScreen
                 onClick={finder.hide}
-                onWheel={(e) => e.deltaX !== 0 && e.preventDefault()}
+                onWheel={(e) => e.preventDefault()}
                 onContextMenu={(e) => e.preventDefault()}
             >
                 <Panel onClick={(e) => e.stopPropagation()}>

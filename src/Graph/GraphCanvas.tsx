@@ -38,14 +38,27 @@ const Content = () => {
     const selected = useSelected()!
     const root = useRoot()!
     const [down, setDown] = createSignal(false)
+    const [position, setPosition] = createSignal<Vec2>([0, 0])
+    const [middleMouse, setMiddleMouse] = createSignal(false)
     const onPointerUp = (e: PointerEvent) => {
-        setDown(false)
-        pointers.up(e)
+        if (e.button === 0) {
+            setDown(false)
+            pointers.up(e)
+        } else if (e.button === 1) {
+            setMiddleMouse(false)
+        }
     }
     const onPointerMove = (e: PointerEvent) => {
         setDown(false)
         if (menu.visible()) return
-        pointers.move(e)
+        if (middleMouse()) {
+            const current: Vec2 = [e.clientX, e.clientY]
+            const delta = sub(current, position())
+            setPosition(current)
+            camera.drag(delta)
+        } else {
+            pointers.move(e)
+        }
     }
     document.addEventListener("pointerup", onPointerUp)
     document.addEventListener("pointermove", onPointerMove)
@@ -109,6 +122,9 @@ const Content = () => {
             setTimeout(() => {
                 if (down()) showMenu([e.clientX, e.clientY])
             }, 300)
+        } else if (e.button === 1) {
+            setMiddleMouse(true)
+            setPosition([e.clientX, e.clientY])
         }
     }
     return (
