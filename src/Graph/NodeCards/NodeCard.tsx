@@ -1,7 +1,7 @@
 import { styled } from "solid-styled-components"
 import { FaSolidTrashCan } from "solid-icons/fa"
 import { FiSearch } from "solid-icons/fi"
-import { For } from "solid-js"
+import { For, Show } from "solid-js"
 
 import { useMenu } from "../../Menu"
 import { Node, NodeKind } from "../graph"
@@ -30,12 +30,14 @@ const Inputs = styled("div")({
     display: "flex",
     "flex-direction": "column",
     gap: "10px",
+    transform: "translateX(-10px)",
 })
 
 const Outputs = styled("div")({
     display: "flex",
     "flex-direction": "column",
     gap: "10px",
+    transform: "translateX(10px)",
 })
 
 const Content = styled("div")({
@@ -62,8 +64,10 @@ export const NodeCard = (props: Props) => {
         if (props.node.kind === NodeKind.SOURCE) return []
         return props.node.inputs.map((id) => graph.database.inputs[id])
     }
-    const outputs = () =>
-        props.node.outputs.map((id) => graph.database.outputs[id])
+    const outputs = () => {
+        if (props.node.kind === NodeKind.SINK) return []
+        return props.node.outputs.map((id) => graph.database.outputs[id])
+    }
     const pointers = usePointers()!
     const menu = useMenu()!
     const graph = useGraph()!
@@ -99,18 +103,28 @@ export const NodeCard = (props: Props) => {
             }}
         >
             <Inputs>
-                <For each={inputs()}>
-                    {(input) => <InputPort input={input} />}
-                </For>
+                <Show
+                    when={inputs().length > 0}
+                    fallback={<div style={{ width: "10px" }} />}
+                >
+                    <For each={inputs()}>
+                        {(input) => <InputPort input={input} />}
+                    </For>
+                </Show>
             </Inputs>
             <Content>
                 <Name>{props.node.name}</Name>
                 <BodyContent body={graph.database.bodies[props.node.body]} />
             </Content>
             <Outputs>
-                <For each={outputs()}>
-                    {(output) => <OutputPort output={output} />}
-                </For>
+                <Show
+                    when={outputs().length > 0}
+                    fallback={<div style={{ width: "10px" }} />}
+                >
+                    <For each={outputs()}>
+                        {(output) => <OutputPort output={output} />}
+                    </For>
+                </Show>
             </Outputs>
         </Container>
     )

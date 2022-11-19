@@ -1,6 +1,7 @@
 import { test, expect } from "vitest"
 
 import { createGraph, Transform } from "../src/Graph"
+import { Source } from "../src/Graph/graph"
 import { operations, TransformOperation } from "../src/operations"
 import { Vec2 } from "../src/vec2"
 
@@ -8,7 +9,7 @@ const position: Vec2 = [0, 0]
 
 test("add an edge between two nodes", () => {
     const graph = createGraph()
-    const node0 = graph.addNode("number", position)
+    const node0 = graph.addNode("num", position) as Source
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
         output: node0.outputs[0],
@@ -33,7 +34,7 @@ test("disallow edges between inputs and outputs of same node", () => {
 
 test("disallow multiple edges between the same input and output", () => {
     const graph = createGraph()
-    const node0 = graph.addNode("number", position)
+    const node0 = graph.addNode("num", position) as Source
     const node1 = graph.addNode("add", position) as Transform
     graph.addEdge({
         output: node0.outputs[0],
@@ -48,8 +49,8 @@ test("disallow multiple edges between the same input and output", () => {
 
 test("connecting a new output to an input replaces the old output", () => {
     const graph = createGraph()
-    const node0 = graph.addNode("number", position)
-    const node1 = graph.addNode("number", position)
+    const node0 = graph.addNode("num", position) as Source
+    const node1 = graph.addNode("num", position) as Source
     const node2 = graph.addNode("add", position) as Transform
     const edge0 = graph.addEdge({
         output: node0.outputs[0],
@@ -123,7 +124,7 @@ test("transforms where inputs don't have data don't run", () => {
 
 test("delete a node with a connected output edge", () => {
     const graph = createGraph()
-    const node0 = graph.addNode("number", position)
+    const node0 = graph.addNode("num", position) as Source
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
         output: node0.outputs[0],
@@ -139,7 +140,7 @@ test("delete a node with a connected output edge", () => {
 
 test("delete a node with a connected input edge", () => {
     const graph = createGraph()
-    const node0 = graph.addNode("number", position)
+    const node0 = graph.addNode("num", position) as Source
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
         output: node0.outputs[0],
@@ -155,7 +156,7 @@ test("delete a node with a connected input edge", () => {
 
 test("delete input edge", () => {
     const graph = createGraph()
-    const node0 = graph.addNode("number", position)
+    const node0 = graph.addNode("num", position) as Source
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
         output: node0.outputs[0],
@@ -169,7 +170,7 @@ test("delete input edge", () => {
 
 test("delete output edges", () => {
     const graph = createGraph()
-    const node0 = graph.addNode("number", position)
+    const node0 = graph.addNode("num", position) as Source
     const node1 = graph.addNode("add", position) as Transform
     const edge = graph.addEdge({
         output: node0.outputs[0],
@@ -183,7 +184,7 @@ test("delete output edges", () => {
 
 test("replace a node", () => {
     const graph = createGraph()
-    const node0 = graph.addNode("number", position)
+    const node0 = graph.addNode("num", position) as Source
     const node2 = graph.addNode("add", position) as Transform
     graph.addEdge({
         output: node0.outputs[0],

@@ -2,11 +2,22 @@ import { styled } from "solid-styled-components"
 import { Match, Switch } from "solid-js"
 
 import { Body } from "../../graph"
-import { ValueKind, Number, Tensor, Error, Scatter, Line } from "../../value"
+import {
+    ValueKind,
+    Number,
+    Tensor,
+    Error,
+    Scatter,
+    Line,
+    Label,
+    Read,
+} from "../../value"
 import { NumberContent } from "./NumberContent"
 import { TensorContent } from "./TensorContent"
 import { ScatterContent } from "./ScatterContent"
 import { LineContent } from "./LineContent"
+import { LabelContent } from "./LabelContent"
+import { ReadContent } from "./ReadContent"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -39,6 +50,20 @@ export const BodyContent = (props: Props) => {
             </Match>
             <Match when={props.body.value.kind == ValueKind.LINE}>
                 <LineContent value={props.body.value as Line} />
+            </Match>
+            <Match when={props.body.value.kind == ValueKind.LABEL}>
+                <LabelContent
+                    node={props.body.node}
+                    body={props.body.id}
+                    value={props.body.value as Label}
+                />
+            </Match>
+            <Match when={props.body.value.kind == ValueKind.READ}>
+                <ReadContent
+                    node={props.body.node}
+                    body={props.body.id}
+                    value={props.body.value as Read}
+                />
             </Match>
             <Match when={props.body.value.kind == ValueKind.ERROR}>
                 <Container

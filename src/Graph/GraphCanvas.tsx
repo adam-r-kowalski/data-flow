@@ -98,8 +98,8 @@ const Content = () => {
                 },
                 {
                     icon: TbNumbers,
-                    label: "number",
-                    onClick: addNode("number", position),
+                    label: "num",
+                    onClick: addNode("num", position),
                 },
                 {
                     icon: VsAdd,

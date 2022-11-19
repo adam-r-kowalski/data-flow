@@ -6,32 +6,41 @@ import { Vec2 } from "./vec2"
 export enum OperationKind {
     SOURCE,
     TRANSFORM,
+    SINK,
 }
 
 export interface SourceOperation {
     kind: OperationKind.SOURCE
     name: string
     outputs: string[]
-    value: number
 }
 
-export type Func = (inputs: Value[]) => Value
+export type TransformFunc = (inputs: Value[]) => Value
 
 export interface TransformOperation {
     kind: OperationKind.TRANSFORM
     name: string
     inputs: string[]
     outputs: string[]
-    func: Func
+    func: TransformFunc
 }
 
-type Operation = SourceOperation | TransformOperation
+export type SinkFunc = (inputs: Value[]) => void
+
+export interface SinkOperation {
+    kind: OperationKind.SINK
+    name: string
+    inputs: string[]
+    func: SinkFunc
+}
+
+type Operation = SourceOperation | TransformOperation | SinkOperation
 
 type Operations = { [name: string]: Operation }
 
 type TensorFunc = (...tensors: tf.TensorLike[]) => tf.Tensor
 
-const tensorFunc = (func: TensorFunc): Func => {
+const tensorFunc = (func: TensorFunc): TransformFunc => {
     return (inputs: Value[]) => {
         const tensors: tf.TensorLike[] = []
         for (const input of inputs) {
@@ -106,116 +115,128 @@ const line = (inputs: Value[]): Value => {
     return { kind: ValueKind.LINE, x, y, domain, range }
 }
 
+const label = (inputs: Value[]) => {}
+
 export const operations: Operations = {
-    number: {
+    num: {
         kind: OperationKind.SOURCE,
-        name: "number",
-        outputs: ["out"],
-        value: 0,
+        name: "num",
+        outputs: [""],
     },
     add: {
         kind: OperationKind.TRANSFORM,
         name: "add",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.add),
     },
     abs: {
         kind: OperationKind.TRANSFORM,
         name: "abs",
-        inputs: ["a"],
-        outputs: ["out"],
+        inputs: [""],
+        outputs: [""],
         func: tensorFunc(tf.abs),
     },
     sub: {
         kind: OperationKind.TRANSFORM,
         name: "sub",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.sub),
     },
     mul: {
         kind: OperationKind.TRANSFORM,
         name: "mul",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.mul),
     },
     div: {
         kind: OperationKind.TRANSFORM,
         name: "div",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.div),
     },
     maximum: {
         kind: OperationKind.TRANSFORM,
         name: "maximum",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.maximum),
     },
     mean: {
         kind: OperationKind.TRANSFORM,
         name: "mean",
-        inputs: ["a"],
-        outputs: ["out"],
+        inputs: [""],
+        outputs: [""],
         func: tensorFunc(tf.mean as TensorFunc),
     },
     minimum: {
         kind: OperationKind.TRANSFORM,
         name: "minimum",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.minimum),
     },
     mod: {
         kind: OperationKind.TRANSFORM,
         name: "mod",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.mod),
     },
     pow: {
         kind: OperationKind.TRANSFORM,
         name: "pow",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.pow),
     },
     "squared difference": {
         kind: OperationKind.TRANSFORM,
         name: "squared difference",
-        inputs: ["a", "b"],
-        outputs: ["out"],
+        inputs: ["", ""],
+        outputs: [""],
         func: tensorFunc(tf.squaredDifference),
     },
     linspace: {
         kind: OperationKind.TRANSFORM,
         name: "linspace",
         inputs: ["start", "stop", "num"],
-        outputs: ["out"],
+        outputs: [""],
         func: tensorFunc(tf.linspace as TensorFunc),
     },
     square: {
         kind: OperationKind.TRANSFORM,
         name: "square",
         inputs: ["x"],
-        outputs: ["out"],
+        outputs: [""],
         func: tensorFunc(tf.square),
     },
     scatter: {
         kind: OperationKind.TRANSFORM,
         name: "scatter",
         inputs: ["x", "y"],
-        outputs: ["out"],
-        func: scatter as Func,
+        outputs: [""],
+        func: scatter as TransformFunc,
     },
     line: {
         kind: OperationKind.TRANSFORM,
         name: "line",
         inputs: ["x", "y"],
-        outputs: ["out"],
-        func: line as Func,
+        outputs: [""],
+        func: line as TransformFunc,
+    },
+    label: {
+        kind: OperationKind.SINK,
+        name: "label",
+        inputs: [""],
+        func: label,
+    },
+    read: {
+        kind: OperationKind.SOURCE,
+        name: "read",
+        outputs: [""],
     },
 }

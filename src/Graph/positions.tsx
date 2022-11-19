@@ -44,8 +44,8 @@ export const createPositions = (
         requestAnimationFrame(() => {
             const transform = createTransform()
             const node = graph.database.nodes[id]
-            const inputs = node.kind === NodeKind.TRANSFORM ? node.inputs : []
-            const outputs = node.outputs
+            const inputs = node.kind === NodeKind.SOURCE ? [] : node.inputs
+            const outputs = node.kind === NodeKind.SINK ? [] : node.outputs
             const ids = [...inputs, ...outputs]
             batch(() => {
                 for (const id of ids) transform(id)

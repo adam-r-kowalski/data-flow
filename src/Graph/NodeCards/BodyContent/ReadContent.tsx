@@ -5,7 +5,7 @@ import { useMeasureText } from "../../../MeasureText"
 import { UUID } from "../../graph"
 import { useGraph } from "../../GraphProvider"
 import { usePositions } from "../../positions"
-import { Number, Value, ValueKind } from "../../value"
+import { Read, Value, ValueKind } from "../../value"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -16,18 +16,18 @@ const Container = styled("div")({
 interface Props {
     node: UUID
     body: UUID
-    value: Number
+    value: Read
 }
 
-export const NumberContent = (props: Props) => {
+export const ReadContent = (props: Props) => {
     const graph = useGraph()!
     const positions = usePositions()!
     const measureText = useMeasureText()!
     const [editing, setEditing] = createSignal(false)
     let input: HTMLInputElement | undefined = undefined
-    const inputString = () => props.value.value.toString()
     const font = "normal 20px monospace"
-    const width = () => Math.floor(measureText.width(font, inputString())) + 70
+    const width = () =>
+        Math.floor(measureText.width(font, props.value.name)) + 70
     return (
         <Switch>
             <Match when={!editing()}>
@@ -35,25 +35,24 @@ export const NumberContent = (props: Props) => {
                     onClick={() => {
                         setEditing(true)
                         positions.retrack(props.node)
-                        input!.value = inputString()
+                        input!.value = props.value.name
                         input!.focus()
                         input!.click()
                     }}
                 >
-                    {props.value.value}
+                    {props.value.name}
                 </Container>
             </Match>
             <Match when={editing()}>
                 <input
-                    type="number"
-                    step="any"
                     ref={input}
                     onPointerDown={(e) => e.stopPropagation()}
                     onInput={() => {
                         const value: Value = {
-                            kind: ValueKind.NUMBER,
-                            value: parseFloat(input!.value),
+                            kind: ValueKind.READ,
+                            name: input!.value,
                         }
+                        graph.untrackLabel(props.node, props.value.name)
                         graph.setValue(props.body, value)
                     }}
                     onBlur={() => {

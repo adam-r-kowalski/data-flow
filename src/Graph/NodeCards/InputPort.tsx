@@ -10,7 +10,6 @@ import { useSelected } from "../selected"
 const Container = styled("div")({
     display: "flex",
     gap: "10px",
-    transform: "translateX(-10px)",
     cursor: "pointer",
 })
 
