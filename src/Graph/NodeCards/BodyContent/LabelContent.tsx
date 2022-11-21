@@ -51,7 +51,6 @@ export const LabelContent = (props: Props) => {
                         const value: Value = {
                             kind: ValueKind.LABEL,
                             name: input!.value,
-                            value: props.value.value,
                         }
                         graph.setValue(props.body, value)
                     }}
