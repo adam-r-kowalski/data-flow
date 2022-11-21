@@ -228,3 +228,20 @@ test("add label then read node", () => {
         )
     )
 })
+
+test("delete label deletes edge", () => {
+    const graph = createGraph()
+    const num = graph.addNode("num", position) as Source
+    const label = graph.addNode("label", position) as Sink
+    const edge = graph.addEdge({
+        output: num.outputs[0],
+        input: label.inputs[0],
+    })
+    expect(edge).toEqual({
+        id: edge!.id,
+        output: num.outputs[0],
+        input: label.inputs[0],
+    })
+    graph.deleteNode(label.id)
+    expect(graph.database.edges[edge!.id]).toBeUndefined()
+})
