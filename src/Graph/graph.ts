@@ -390,7 +390,7 @@ const deleteNode = (context: Context, nodeId: UUID) => {
                 }
             }
             const inputEdges: UUID[] = []
-            if (node.kind === NodeKind.TRANSFORM) {
+            if (node.kind !== NodeKind.SOURCE) {
                 for (const input of node.inputs) {
                     const edge = database.inputs[input].edge
                     if (edge) inputEdges.push(edge)
