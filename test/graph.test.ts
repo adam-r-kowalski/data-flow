@@ -1,7 +1,7 @@
 import { test, expect } from "vitest"
 
-import { createGraph, Transform } from "../src/Graph"
-import { Source } from "../src/Graph/graph"
+import { createGraph, Transform, ValueKind } from "../src/Graph"
+import { Sink, Source } from "../src/Graph/graph"
 import { operations, TransformOperation } from "../src/operations"
 import { Vec2 } from "../src/vec2"
 
@@ -196,4 +196,26 @@ test("replace a node", () => {
         name: "sub",
         func: (operations.sub as TransformOperation).func,
     })
+})
+
+test("add label then read node", () => {
+    const graph = createGraph()
+    const num = graph.addNode("num", position) as Source
+    graph.setValue(num.body, { kind: ValueKind.NUMBER, value: 42 })
+    const label = graph.addNode("label", position) as Sink
+    graph.setValue(label.body, {
+        kind: ValueKind.LABEL,
+        name: "label",
+        value: { kind: ValueKind.NONE },
+    })
+    graph.addEdge({ output: num.outputs[0], input: label.inputs[0] })
+    const read = graph.addNode("read", position) as Source
+    graph.setValue(read.body, {
+        kind: ValueKind.READ,
+        name: "label",
+    })
+    const id = graph.addNode("id", position) as Transform
+    graph.addEdge({ output: read.outputs[0], input: id.inputs[0] })
+    const body = graph.database.bodies[id.body]
+    expect(body.value).toEqual({ kind: ValueKind.NUMBER, value: 42 })
 })

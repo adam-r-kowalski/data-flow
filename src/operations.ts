@@ -115,8 +115,6 @@ const line = (inputs: Value[]): Value => {
     return { kind: ValueKind.LINE, x, y, domain, range }
 }
 
-const label = (inputs: Value[]) => {}
-
 export const operations: Operations = {
     num: {
         kind: OperationKind.SOURCE,
@@ -232,11 +230,18 @@ export const operations: Operations = {
         kind: OperationKind.SINK,
         name: "label",
         inputs: [""],
-        func: label,
+        func: (inputs: Value[]): void => {},
     },
     read: {
         kind: OperationKind.SOURCE,
         name: "read",
         outputs: [""],
+    },
+    id: {
+        kind: OperationKind.TRANSFORM,
+        name: "id",
+        inputs: [""],
+        outputs: [""],
+        func: (inputs: Value[]) => inputs[0],
     },
 }
