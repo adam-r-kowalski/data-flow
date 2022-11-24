@@ -2,10 +2,10 @@ import { createSignal, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
 
 import { useMeasureText } from "../../../MeasureText"
+import { Value } from "../../../value"
 import { UUID } from "../../graph"
 import { useGraph } from "../../GraphProvider"
 import { usePositions } from "../../positions"
-import { Number, Value, ValueKind } from "../../value"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -16,7 +16,7 @@ const Container = styled("div")({
 interface Props {
     node: UUID
     body: UUID
-    value: Number
+    value: Value
 }
 
 export const NumberContent = (props: Props) => {
@@ -25,7 +25,7 @@ export const NumberContent = (props: Props) => {
     const measureText = useMeasureText()!
     const [editing, setEditing] = createSignal(false)
     let input: HTMLInputElement | undefined = undefined
-    const inputString = () => props.value.value.toString()
+    const inputString = () => props.value.data.toString()
     const font = "normal 20px monospace"
     const width = () => Math.floor(measureText.width(font, inputString())) + 70
     return (
@@ -40,7 +40,7 @@ export const NumberContent = (props: Props) => {
                         input!.click()
                     }}
                 >
-                    {props.value.value}
+                    {props.value.data}
                 </Container>
             </Match>
             <Match when={editing()}>
@@ -51,8 +51,8 @@ export const NumberContent = (props: Props) => {
                     onPointerDown={(e) => e.stopPropagation()}
                     onInput={() => {
                         const value: Value = {
-                            kind: ValueKind.NUMBER,
-                            value: parseFloat(input!.value),
+                            type: "Number",
+                            data: input!.valueAsNumber,
                         }
                         graph.setValue(props.body, value)
                     }}

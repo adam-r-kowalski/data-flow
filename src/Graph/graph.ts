@@ -1,13 +1,8 @@
 import { createStore, produce, SetStoreFunction } from "solid-js/store"
 
 import { add, scale, Vec2 } from "../vec2"
-import {
-    TransformFunc,
-    SinkFunc,
-    OperationKind,
-    operations,
-} from "../operations"
-import { Value, ValueKind } from "./value"
+import { OperationKind, operations } from "../operations"
+import { base, call, Value } from "../value"
 
 export type UUID = number
 
@@ -34,7 +29,7 @@ export interface Transform {
     inputs: UUID[]
     outputs: UUID[]
     body: UUID
-    func: TransformFunc
+    func: string
 }
 
 export interface Sink {
@@ -44,7 +39,7 @@ export interface Sink {
     position: Vec2
     inputs: UUID[]
     body: UUID
-    func: SinkFunc
+    func: string
 }
 
 export type Node = Source | Transform | Sink
@@ -156,24 +151,20 @@ const addNode = (context: Context, name: string, position: Vec2): Node => {
                     case OperationKind.SOURCE:
                         switch (operation.name) {
                             case "num":
-                                return { kind: ValueKind.NUMBER, value: 0 }
+                                return { type: "Number", data: 0 }
                             case "read":
-                                return { kind: ValueKind.READ, name: "" }
+                                return { type: "Read", name: "" }
                             default:
-                                return { kind: ValueKind.NONE }
+                                return { type: "None" }
                         }
                     case OperationKind.TRANSFORM:
-                        return { kind: ValueKind.NONE }
+                        return { type: "None" }
                     case OperationKind.SINK:
                         switch (operation.name) {
                             case "label":
-                                return {
-                                    kind: ValueKind.LABEL,
-                                    name: "",
-                                    value: { kind: ValueKind.NONE },
-                                }
+                                return { type: "Label", name: "" }
                             default:
-                                return { kind: ValueKind.NONE }
+                                return { type: "None" }
                         }
                 }
             })()
@@ -260,7 +251,7 @@ const evaluate = (context: Context, nodeId: UUID) => {
             const outputNode =
                 database.nodes[database.outputs[edge.output].node]
             const outputBody = database.bodies[outputNode.body]
-            if (outputBody.value.kind === ValueKind.READ) {
+            if (outputBody.value.type === "Read") {
                 const label = context.labels[outputBody.value.name]
                 if (label) values.push(label)
             } else {
@@ -271,19 +262,19 @@ const evaluate = (context: Context, nodeId: UUID) => {
     if (node.kind === NodeKind.TRANSFORM) {
         const value: Value =
             values.length === node.inputs.length
-                ? node.func(values)
-                : { kind: ValueKind.NONE }
+                ? call(base, node.func, values)
+                : { type: "None" }
         setDatabase("bodies", node.body, "value", value)
         evaluateOutputs(context, node)
         notifySubscribers(node.id)
     } else if (node.kind === NodeKind.SINK) {
-        node.func(values)
+        call(base, node.func, values)
         const body = database.bodies[node.body]
-        if (body.value.kind === ValueKind.LABEL) {
+        if (body.value.type === "Label") {
             if (values.length > 0) {
                 context.labels[body.value.name] = values[0]
             } else {
-                context.labels[body.value.name] = { kind: ValueKind.NONE }
+                context.labels[body.value.name] = { type: "None" }
             }
             const readers = context.readers[body.value.name]
             if (!readers) return
@@ -365,7 +356,7 @@ const setValue = (context: Context, bodyId: UUID, value: Value) => {
     const { database, setDatabase, notifySubscribers } = context
     setDatabase("bodies", bodyId, "value", value)
     const body = database.bodies[bodyId]
-    if (body.value.kind === ValueKind.READ) {
+    if (body.value.type === "Read") {
         const readers = context.readers[body.value.name]
         if (readers) readers.add(body.node)
         else context.readers[body.value.name] = new Set([body.node])

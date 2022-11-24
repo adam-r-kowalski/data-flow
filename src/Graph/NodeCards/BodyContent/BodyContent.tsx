@@ -2,16 +2,6 @@ import { styled } from "solid-styled-components"
 import { Match, Switch } from "solid-js"
 
 import { Body } from "../../graph"
-import {
-    ValueKind,
-    Number,
-    Tensor,
-    Error,
-    Scatter,
-    Line,
-    Label,
-    Read,
-} from "../../value"
 import { NumberContent } from "./NumberContent"
 import { TensorContent } from "./TensorContent"
 import { ScatterContent } from "./ScatterContent"
@@ -32,40 +22,40 @@ interface Props {
 export const BodyContent = (props: Props) => {
     return (
         <Switch fallback={<>NOT IMPLEMENTED!</>}>
-            <Match when={props.body.value.kind == ValueKind.NONE}>
+            <Match when={props.body.value.type == "None"}>
                 <></>
             </Match>
-            <Match when={props.body.value.kind == ValueKind.NUMBER}>
+            <Match when={props.body.value.type == "Number"}>
                 <NumberContent
                     node={props.body.node}
                     body={props.body.id}
-                    value={props.body.value as Number}
+                    value={props.body.value}
                 />
             </Match>
-            <Match when={props.body.value.kind == ValueKind.TENSOR}>
-                <TensorContent value={props.body.value as Tensor} />
+            <Match when={props.body.value.type == "Tensor"}>
+                <TensorContent value={props.body.value} />
             </Match>
-            <Match when={props.body.value.kind == ValueKind.SCATTER}>
-                <ScatterContent value={props.body.value as Scatter} />
+            <Match when={props.body.value.type == "Scatter"}>
+                <ScatterContent value={props.body.value} />
             </Match>
-            <Match when={props.body.value.kind == ValueKind.LINE}>
-                <LineContent value={props.body.value as Line} />
+            <Match when={props.body.value.type == "Line"}>
+                <LineContent value={props.body.value} />
             </Match>
-            <Match when={props.body.value.kind == ValueKind.LABEL}>
+            <Match when={props.body.value.type == "Label"}>
                 <LabelContent
                     node={props.body.node}
                     body={props.body.id}
-                    value={props.body.value as Label}
+                    value={props.body.value}
                 />
             </Match>
-            <Match when={props.body.value.kind == ValueKind.READ}>
+            <Match when={props.body.value.type == "Read"}>
                 <ReadContent
                     node={props.body.node}
                     body={props.body.id}
-                    value={props.body.value as Read}
+                    value={props.body.value}
                 />
             </Match>
-            <Match when={props.body.value.kind == ValueKind.ERROR}>
+            <Match when={props.body.value.type == "Error"}>
                 <Container
                     style={{
                         color: "#db4b4b",
@@ -73,7 +63,7 @@ export const BodyContent = (props: Props) => {
                         "max-width": "200px",
                     }}
                 >
-                    {(props.body.value as Error).text}
+                    {props.body.value.message}
                 </Container>
             </Match>
         </Switch>

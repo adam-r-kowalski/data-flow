@@ -1,6 +1,6 @@
 import { createMemo, For } from "solid-js"
+import { Value } from "../../../value"
 import { Vec2 } from "../../../vec2"
-import { Scatter } from "../../value"
 
 const scaled = (xs: number[], from: Vec2, to: Vec2) => {
     const [minX, maxX] = from
@@ -9,7 +9,7 @@ const scaled = (xs: number[], from: Vec2, to: Vec2) => {
 }
 
 interface Props {
-    value: Scatter
+    value: Value
 }
 
 export const ScatterContent = (props: Props) => {
