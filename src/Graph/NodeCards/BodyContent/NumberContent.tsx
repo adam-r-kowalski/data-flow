@@ -25,7 +25,7 @@ export const NumberContent = (props: Props) => {
     const measureText = useMeasureText()!
     const [editing, setEditing] = createSignal(false)
     let input: HTMLInputElement | undefined = undefined
-    const inputString = () => props.value.value.toString()
+    const inputString = () => props.value.data.toString()
     const font = "normal 20px monospace"
     const width = () => Math.floor(measureText.width(font, inputString())) + 70
     return (
@@ -40,7 +40,7 @@ export const NumberContent = (props: Props) => {
                         input!.click()
                     }}
                 >
-                    {props.value.value}
+                    {props.value.data}
                 </Container>
             </Match>
             <Match when={editing()}>

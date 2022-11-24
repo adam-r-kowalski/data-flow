@@ -1,13 +1,8 @@
 import { createStore, produce, SetStoreFunction } from "solid-js/store"
 
 import { add, scale, Vec2 } from "../vec2"
-import {
-    TransformFunc,
-    SinkFunc,
-    OperationKind,
-    operations,
-} from "../operations"
-import { Value } from "../value"
+import { OperationKind, operations } from "../operations"
+import { base, call, Value } from "../value"
 
 export type UUID = number
 
@@ -34,7 +29,7 @@ export interface Transform {
     inputs: UUID[]
     outputs: UUID[]
     body: UUID
-    func: TransformFunc
+    func: string
 }
 
 export interface Sink {
@@ -44,7 +39,7 @@ export interface Sink {
     position: Vec2
     inputs: UUID[]
     body: UUID
-    func: SinkFunc
+    func: string
 }
 
 export type Node = Source | Transform | Sink
@@ -156,7 +151,7 @@ const addNode = (context: Context, name: string, position: Vec2): Node => {
                     case OperationKind.SOURCE:
                         switch (operation.name) {
                             case "num":
-                                return { type: "Number", value: 0 }
+                                return { type: "Number", data: 0 }
                             case "read":
                                 return { type: "Read", name: "" }
                             default:
@@ -267,13 +262,13 @@ const evaluate = (context: Context, nodeId: UUID) => {
     if (node.kind === NodeKind.TRANSFORM) {
         const value: Value =
             values.length === node.inputs.length
-                ? node.func(values)
+                ? call(base, node.func, values)
                 : { type: "None" }
         setDatabase("bodies", node.body, "value", value)
         evaluateOutputs(context, node)
         notifySubscribers(node.id)
     } else if (node.kind === NodeKind.SINK) {
-        node.func(values)
+        call(base, node.func, values)
         const body = database.bodies[node.body]
         if (body.value.type === "Label") {
             if (values.length > 0) {

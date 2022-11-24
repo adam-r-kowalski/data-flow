@@ -4,6 +4,16 @@ export interface Value {
 }
 
 export const call = (module: Value, name: string, args: Value[]): Value => {
-    const fn = module[name].fn
-    return fn(args)
+    try {
+        const fn = module[name].fn
+        return fn(args)
+    } catch (e) {
+        if (e instanceof Error) {
+            return {
+                type: "Error",
+                message: e.message,
+            }
+        }
+        throw e
+    }
 }

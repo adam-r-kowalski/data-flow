@@ -16,9 +16,7 @@ export const TensorContent = (props: Props) => {
     return (
         <Switch fallback={<>NOT IMPLEMENTED!</>}>
             <Match when={props.value.rank == 0}>
-                <Container>
-                    {(props.value.value as number).toFixed(2)}
-                </Container>
+                <Container>{(props.value.data as number).toFixed(2)}</Container>
             </Match>
             <Match when={props.value.rank == 1}>
                 <Container
@@ -34,7 +32,7 @@ export const TensorContent = (props: Props) => {
                         e.preventDefault()
                     }}
                 >
-                    <For each={props.value.value as number[]}>
+                    <For each={props.value.data as number[]}>
                         {(number) => <div>{number.toFixed(2)}</div>}
                     </For>
                 </Container>
