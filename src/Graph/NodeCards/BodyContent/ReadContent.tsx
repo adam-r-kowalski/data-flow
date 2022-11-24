@@ -2,10 +2,10 @@ import { createSignal, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
 
 import { useMeasureText } from "../../../MeasureText"
+import { Value } from "../../../value"
 import { UUID } from "../../graph"
 import { useGraph } from "../../GraphProvider"
 import { usePositions } from "../../positions"
-import { Read, Value, ValueKind } from "../../value"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -16,7 +16,7 @@ const Container = styled("div")({
 interface Props {
     node: UUID
     body: UUID
-    value: Read
+    value: Value
 }
 
 export const ReadContent = (props: Props) => {
@@ -49,7 +49,7 @@ export const ReadContent = (props: Props) => {
                     onPointerDown={(e) => e.stopPropagation()}
                     onInput={() => {
                         const value: Value = {
-                            kind: ValueKind.READ,
+                            type: "Read",
                             name: input!.value,
                         }
                         graph.untrackLabel(props.node, props.value.name)
