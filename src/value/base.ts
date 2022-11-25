@@ -6,6 +6,7 @@ import { Vec2 } from "../vec2"
 tf.setBackend("cpu")
 
 import { Value } from "./value"
+import { show } from "./show"
 
 type TensorFunc = (...tensors: tf.TensorLike[]) => tf.Tensor
 const tensorFunc = (f: TensorFunc): Value => ({
@@ -92,4 +93,5 @@ export const base: Value = {
     label,
     scatter,
     line,
+    show,
 }
