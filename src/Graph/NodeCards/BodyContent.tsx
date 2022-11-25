@@ -1,5 +1,5 @@
-import { base, call } from "../../../value"
-import { Body } from "../../graph"
+import { base, call } from "../../value"
+import { Body } from "../graph"
 
 export const BodyContent = (props: { body: Body }) => {
     const Component = () => {
