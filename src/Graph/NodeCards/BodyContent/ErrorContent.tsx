@@ -1,6 +1,6 @@
 import { styled } from "solid-styled-components"
 
-import { Props } from "./props"
+import { Body } from "../../graph"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -8,7 +8,7 @@ const Container = styled("div")({
     "border-radius": "5px",
 })
 
-export const ErrorContent = (props: Props) => {
+export const ErrorContent = (props: { body: Body }) => {
     return (
         <Container
             style={{
@@ -17,7 +17,7 @@ export const ErrorContent = (props: Props) => {
                 "max-width": "200px",
             }}
         >
-            {props.value.message}
+            {props.body.value.message}
         </Container>
     )
 }

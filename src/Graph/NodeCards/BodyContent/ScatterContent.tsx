@@ -1,6 +1,6 @@
 import { createMemo, For } from "solid-js"
 import { Vec2 } from "../../../vec2"
-import { Props } from "./props"
+import { Body } from "../../graph"
 
 const scaled = (xs: number[], from: Vec2, to: Vec2) => {
     const [minX, maxX] = from
@@ -8,13 +8,13 @@ const scaled = (xs: number[], from: Vec2, to: Vec2) => {
     return xs.map((m) => ((m - minX) / (maxX - minX)) * (maxT - minT) + minT)
 }
 
-export const ScatterContent = (props: Props) => {
+export const ScatterContent = (props: { body: Body }) => {
     const to: Vec2 = [10, 290]
     const scaledX = createMemo(() =>
-        scaled(props.value.x, props.value.domain, to)
+        scaled(props.body.value.x, props.body.value.domain, to)
     )
     const scaledY = createMemo(() =>
-        scaled(props.value.y, props.value.range, to)
+        scaled(props.body.value.y, props.body.value.range, to)
     )
     return (
         <svg
