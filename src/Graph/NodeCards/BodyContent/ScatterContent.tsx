@@ -1,15 +1,11 @@
 import { createMemo, For } from "solid-js"
-import { Value } from "../../../value"
 import { Vec2 } from "../../../vec2"
+import { Props } from "./props"
 
 const scaled = (xs: number[], from: Vec2, to: Vec2) => {
     const [minX, maxX] = from
     const [minT, maxT] = to
     return xs.map((m) => ((m - minX) / (maxX - minX)) * (maxT - minT) + minT)
-}
-
-interface Props {
-    value: Value
 }
 
 export const ScatterContent = (props: Props) => {

@@ -3,21 +3,15 @@ import { styled } from "solid-styled-components"
 
 import { useMeasureText } from "../../../MeasureText"
 import { Value } from "../../../value"
-import { UUID } from "../../graph"
 import { useGraph } from "../../GraphProvider"
 import { usePositions } from "../../positions"
+import { Props } from "./props"
 
 const Container = styled("div")({
     background: "#24283b",
     padding: "20px 30px",
     "border-radius": "5px",
 })
-
-interface Props {
-    node: UUID
-    body: UUID
-    value: Value
-}
 
 export const NumberContent = (props: Props) => {
     const graph = useGraph()!

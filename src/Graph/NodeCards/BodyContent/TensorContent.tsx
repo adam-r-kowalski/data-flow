@@ -1,16 +1,12 @@
 import { For, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
-import { Value } from "../../../value"
+import { Props } from "./props"
 
 const Container = styled("div")({
     background: "#24283b",
     padding: "20px",
     "border-radius": "5px",
 })
-
-interface Props {
-    value: Value
-}
 
 export const TensorContent = (props: Props) => {
     return (
