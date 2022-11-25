@@ -1,6 +1,7 @@
 import { For, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
-import { Body } from "../../graph"
+
+import { Body } from "../../Graph"
 import { Value } from "../value"
 
 const Container = styled("div")({

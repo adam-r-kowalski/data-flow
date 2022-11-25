@@ -1,7 +1,7 @@
 import { createSignal, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
 
-import { Body, useGraph } from "../../graph"
+import { Body, useGraph } from "../../Graph"
 import { usePositions } from "../../Graph/positions"
 import { useMeasureText } from "../../MeasureText"
 import { Value } from "../value"
