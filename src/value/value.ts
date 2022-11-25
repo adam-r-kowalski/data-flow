@@ -5,8 +5,18 @@ export interface Value {
 
 export const call = (module: Value, name: string, args: Value[]): Value => {
     try {
-        const fn = module[name].fn
-        return fn(args)
+        const value = module[name]
+        switch (value.type) {
+            case "Function":
+                return value.fn(args)
+            case "Functions":
+                return value.fns[args[0].type](args)
+            default:
+                return {
+                    type: "Error",
+                    message: `Cannot call ${name} on ${module.name}`,
+                }
+        }
     } catch (e) {
         if (e instanceof Error) {
             return {

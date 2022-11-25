@@ -3,7 +3,7 @@ import { styled } from "solid-styled-components"
 
 import { useMeasureText } from "../../../MeasureText"
 import { Value } from "../../../value"
-import { UUID } from "../../graph"
+import { Body } from "../../graph"
 import { useGraph } from "../../GraphProvider"
 import { usePositions } from "../../positions"
 
@@ -13,19 +13,13 @@ const Container = styled("div")({
     "border-radius": "5px",
 })
 
-interface Props {
-    node: UUID
-    body: UUID
-    value: Value
-}
-
-export const NumberContent = (props: Props) => {
+export const NumberContent = (props: { body: Body }) => {
     const graph = useGraph()!
     const positions = usePositions()!
     const measureText = useMeasureText()!
     const [editing, setEditing] = createSignal(false)
     let input: HTMLInputElement | undefined = undefined
-    const inputString = () => props.value.data.toString()
+    const inputString = () => props.body.value.data.toString()
     const font = "normal 20px monospace"
     const width = () => Math.floor(measureText.width(font, inputString())) + 70
     return (
@@ -34,13 +28,13 @@ export const NumberContent = (props: Props) => {
                 <Container
                     onClick={() => {
                         setEditing(true)
-                        positions.retrack(props.node)
+                        positions.retrack(props.body.node)
                         input!.value = inputString()
                         input!.focus()
                         input!.click()
                     }}
                 >
-                    {props.value.data}
+                    {props.body.value.data}
                 </Container>
             </Match>
             <Match when={editing()}>
@@ -54,11 +48,11 @@ export const NumberContent = (props: Props) => {
                             type: "Number",
                             data: input!.valueAsNumber,
                         }
-                        graph.setValue(props.body, value)
+                        graph.setValue(props.body.id, value)
                     }}
                     onBlur={() => {
                         setEditing(false)
-                        positions.retrack(props.node)
+                        positions.retrack(props.body.node)
                     }}
                     style={{
                         padding: "20px",

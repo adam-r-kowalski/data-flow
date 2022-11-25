@@ -1,6 +1,6 @@
 import { For, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
-import { Value } from "../../../value"
+import { Body } from "../../graph"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -8,17 +8,15 @@ const Container = styled("div")({
     "border-radius": "5px",
 })
 
-interface Props {
-    value: Value
-}
-
-export const TensorContent = (props: Props) => {
+export const TensorContent = (props: { body: Body }) => {
     return (
         <Switch fallback={<>NOT IMPLEMENTED!</>}>
-            <Match when={props.value.rank == 0}>
-                <Container>{(props.value.data as number).toFixed(2)}</Container>
+            <Match when={props.body.value.rank == 0}>
+                <Container>
+                    {(props.body.value.data as number).toFixed(2)}
+                </Container>
             </Match>
-            <Match when={props.value.rank == 1}>
+            <Match when={props.body.value.rank == 1}>
                 <Container
                     style={{
                         display: "grid",
@@ -32,7 +30,7 @@ export const TensorContent = (props: Props) => {
                         e.preventDefault()
                     }}
                 >
-                    <For each={props.value.data as number[]}>
+                    <For each={props.body.value.data as number[]}>
                         {(number) => <div>{number.toFixed(2)}</div>}
                     </For>
                 </Container>
