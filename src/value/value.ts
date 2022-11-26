@@ -10,7 +10,13 @@ export const call = (module: Value, name: string, args: Value[]): Value => {
             case "Function":
                 return value.fn(args)
             case "Functions":
-                return value.fns[args[0].type](args)
+                const fn = value.fns[args[0].type]
+                switch (fn.type) {
+                    case "Function":
+                        return fn.fn(args)
+                    default:
+                        return { type: "Error", message: "Not a function" }
+                }
             default:
                 return {
                     type: "Error",
