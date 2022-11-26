@@ -1,7 +1,7 @@
 import { styled } from "solid-styled-components"
 
-import { Body } from "../../Graph"
 import { Value } from "../value"
+import { Props } from "./props"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -13,7 +13,7 @@ export const Error: Value = {
     type: "Function",
     fn: {
         type: "Function",
-        fn: (props: { body: Body }) => {
+        fn: (props: Props) => {
             return (
                 <Container
                     style={{

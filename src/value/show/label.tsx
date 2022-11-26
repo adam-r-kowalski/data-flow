@@ -1,10 +1,11 @@
 import { createSignal, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
 
-import { Body, useGraph } from "../../Graph"
+import { useGraph } from "../../Graph"
 import { usePositions } from "../../Graph/positions"
 import { useMeasureText } from "../../MeasureText"
 import { Value } from "../value"
+import { Props } from "./props"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -16,7 +17,7 @@ export const Label: Value = {
     type: "Function",
     fn: () => ({
         type: "Function",
-        fn: (props: { body: Body }) => {
+        fn: (props: Props) => {
             const graph = useGraph()!
             const positions = usePositions()!
             const measureText = useMeasureText()!

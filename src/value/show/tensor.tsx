@@ -1,8 +1,8 @@
 import { For, Match, Switch } from "solid-js"
 import { styled } from "solid-styled-components"
 
-import { Body } from "../../Graph"
 import { Value } from "../value"
+import { Props } from "./props"
 
 const Container = styled("div")({
     background: "#24283b",
@@ -14,7 +14,7 @@ export const Tensor: Value = {
     type: "Function",
     fn: () => ({
         type: "Function",
-        fn: (props: { body: Body }) => {
+        fn: (props: Props) => {
             return (
                 <Switch fallback={<>NOT IMPLEMENTED!</>}>
                     <Match when={props.body.value.rank == 0}>
