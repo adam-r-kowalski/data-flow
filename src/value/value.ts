@@ -3,7 +3,7 @@ export interface Value {
     [name: string]: any
 }
 
-const dispatch = (f: Value, args: Value[], i: number, name: str): Value => {
+const dispatch = (f: Value, args: Value[], i: number, name: string): Value => {
     switch (f.type) {
         case "Function":
             return f.fn(args)
