@@ -140,6 +140,13 @@ export const operations: Operations = {
         outputs: [""],
         func: "line",
     },
+    overlay: {
+        kind: OperationKind.TRANSFORM,
+        name: "overlay",
+        inputs: ["", ""],
+        outputs: [""],
+        func: "overlay",
+    },
     label: {
         kind: OperationKind.SINK,
         name: "label",

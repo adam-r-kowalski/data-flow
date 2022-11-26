@@ -17,6 +17,9 @@ export default defineConfig({
         deps: {
             registerNodeLoader: true,
         },
-        environment: "happy-dom",
+        environment: "jsdom",
+        globals: true,
+        setupFiles: ["node_modules/@testing-library/jest-dom/extend-expect"],
+        transformMode: { web: [/\.[jt]sx?$/] },
     },
 })

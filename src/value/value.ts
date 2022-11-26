@@ -3,20 +3,25 @@ export interface Value {
     [name: string]: any
 }
 
+const dispatch = (f: Value, args: Value[], i: number, name: string): Value => {
+    switch (f.type) {
+        case "Function":
+            return f.fn(args)
+        case "Functions":
+            const g = f.fns[args[i].type]
+            return dispatch(g, args, i + 1, name)
+        default:
+            const types = args.map((arg) => arg.type)
+            return {
+                type: "Error",
+                message: `Cannot call ${name} with ${types}`,
+            }
+    }
+}
+
 export const call = (module: Value, name: string, args: Value[]): Value => {
     try {
-        const value = module[name]
-        switch (value.type) {
-            case "Function":
-                return value.fn(args)
-            case "Functions":
-                return value.fns[args[0].type](args)
-            default:
-                return {
-                    type: "Error",
-                    message: `Cannot call ${name} on ${module.name}`,
-                }
-        }
+        return dispatch(module[name], args, 0, name)
     } catch (e) {
         if (e instanceof Error) {
             return {

@@ -81,6 +81,10 @@ export const demoScene = (graph: Graph): void => {
     graph.addEdge({ output: xRead3.outputs[0], input: line.inputs[0] })
     graph.addEdge({ output: yHatRead.outputs[0], input: line.inputs[1] })
 
+    const overlay = graph.addNode("overlay", [1900, 50]) as Transform
+    graph.addEdge({ output: scatter.outputs[0], input: overlay.inputs[0] })
+    graph.addEdge({ output: line.outputs[0], input: overlay.inputs[1] })
+
     const yRead1 = graph.addNode("read", [1200, 850]) as Source
     graph.setValue(yRead1.body, { type: "Read", name: "y" })
 

@@ -17,7 +17,7 @@ export const clamp = (value: number, min: number, max: number) =>
 
 export const createCamera = (): Camera => {
     const [position, setPosition] = createSignal<Vec2>([0, 0])
-    const [zoom, setZoom] = createSignal(1)
+    const [zoom, setZoom] = createSignal(0.5)
     //prettier-ignore
     const transform = (): Mat3x3 => [
 		zoom(), 0,      position()[0],

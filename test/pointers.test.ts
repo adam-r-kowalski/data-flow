@@ -18,7 +18,7 @@ import {
     Target,
     TargetKind,
 } from "../src/Graph/pointers"
-import { Value } from "../src/Graph"
+import { Value } from "../src/value"
 
 const N = fc.integer({ min: -10000, max: 10000 })
 
@@ -242,6 +242,7 @@ const mockGraph = (): Graph => ({
     deleteInputEdge: vi.fn<[UUID], void>(),
     deleteOutputEdges: vi.fn<[UUID], void>(),
     replaceNode: vi.fn<[UUID, string], void>(),
+    untrackLabel: vi.fn<[UUID, string], void>(),
 })
 
 test("pointer move with no pointers down", () => {

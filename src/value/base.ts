@@ -12,7 +12,11 @@ type TensorFunc = (...tensors: tf.TensorLike[]) => tf.Tensor
 const tensorFunc = (f: TensorFunc): Value => ({
     type: "Function",
     fn: (args: Value[]): Value => {
-        const tensors = args.map((x) => x.data)
+        const tensors: tf.TensorLike[] = []
+        for (const arg of args) {
+            if (arg.type === "None") return { type: "None" }
+            tensors.push(arg.data)
+        }
         const result = f.apply(null, tensors)
         const data = result.arraySync()
         return {
@@ -69,6 +73,30 @@ const line: Value = {
     },
 }
 
+const overlay: Value = {
+    type: "Function",
+    fn: (plots: Value[]): Value => {
+        const { domain, range } = plots.reduce(
+            (acc, plot) => {
+                const domain = [
+                    Math.min(acc.domain[0], plot.domain[0]),
+                    Math.max(acc.domain[1], plot.domain[1]),
+                ]
+                const range = [
+                    Math.min(acc.range[0], plot.range[0]),
+                    Math.max(acc.range[1], plot.range[1]),
+                ]
+                return { domain, range }
+            },
+            {
+                domain: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER],
+                range: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER],
+            }
+        )
+        return { type: "Overlay", plots, domain, range }
+    },
+}
+
 const id: Value = {
     type: "Function",
     fn: (args: Value[]): Value => args[0],
@@ -92,6 +120,7 @@ export const base: Value = {
     id,
     label,
     scatter,
+    overlay,
     line,
     show,
 }

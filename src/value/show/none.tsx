@@ -1,6 +1,9 @@
 import { Value } from "../value"
 
-export const None = (): Value => ({
+export const None: Value = {
     type: "Function",
-    fn: () => <></>,
-})
+    fn: () => ({
+        type: "Function",
+        fn: () => <></>,
+    }),
+}
