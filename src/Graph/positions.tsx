@@ -63,7 +63,7 @@ export const createPositions = (
     }
 }
 
-const PositionsContext = createContext<Positions>()
+export const PositionsContext = createContext<Positions>()
 
 interface Props {
     children: JSXElement

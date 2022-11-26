@@ -1,10 +1,10 @@
 import { createContext, JSXElement, useContext } from "solid-js"
 
-interface MeasureText {
+export interface MeasureText {
     width: (font: string, text: string) => number
 }
 
-const MeasureTextContext = createContext<MeasureText>()
+export const MeasureTextContext = createContext<MeasureText>()
 
 interface Props {
     children: JSXElement
