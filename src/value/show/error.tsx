@@ -11,7 +11,7 @@ const Container = styled("div")({
 
 export const Error: Value = {
     type: "Function",
-    fn: {
+    fn: () => ({
         type: "Function",
         fn: (props: Props) => {
             return (
@@ -26,5 +26,5 @@ export const Error: Value = {
                 </Container>
             )
         },
-    },
+    }),
 }

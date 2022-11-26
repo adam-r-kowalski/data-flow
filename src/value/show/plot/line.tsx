@@ -5,10 +5,10 @@ import { scaled } from "./scaled"
 
 export const Line = (props: Props) => {
     const scaledX = createMemo(() =>
-        scaled(props.body.value.x, props.domain, props.to)
+        scaled(props.value.x, props.domain, props.to)
     )
     const scaledY = createMemo(() =>
-        scaled(props.body.value.y, props.range, props.to)
+        scaled(props.value.y, props.range, props.to)
     )
     const d = () =>
         scaledX()
