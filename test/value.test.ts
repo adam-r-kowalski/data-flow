@@ -43,3 +43,48 @@ test("add 2 and [1, 2, 3] to get [3, 4, 5]", () => {
         dtype: "float32",
     })
 })
+
+test("multiple dispatch", () => {
+    const mod: Value = {
+        type: "Module",
+        f: {
+            type: "Functions",
+            fns: {
+                Number: {
+                    type: "Functions",
+                    fns: {
+                        String: {
+                            type: "Function",
+                            fn: () => ({
+                                type: "String",
+                                data: "Number + String",
+                            }),
+                        },
+                    },
+                },
+                String: {
+                    type: "Functions",
+                    fns: {
+                        Number: {
+                            type: "Function",
+                            fn: () => ({
+                                type: "String",
+                                data: "String + Number",
+                            }),
+                        },
+                    },
+                },
+            },
+        },
+    }
+    const num = { type: "Number", data: 1 }
+    const str = { type: "String", data: "a" }
+    expect(call(mod, "f", [num, str])).toEqual({
+        type: "String",
+        data: "Number + String",
+    })
+    expect(call(mod, "f", [str, num])).toEqual({
+        type: "String",
+        data: "String + Number",
+    })
+})
