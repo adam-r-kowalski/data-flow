@@ -7,7 +7,7 @@ import { Read } from "./read"
 import { None } from "./none"
 
 export const show = {
-    type: "Functions",
+    type: "fns",
     fns: {
         ...{
             Number,
@@ -19,4 +19,5 @@ export const show = {
         },
         ...plot,
     },
+    inputs: [""],
 }

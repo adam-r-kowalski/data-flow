@@ -9,8 +9,8 @@ import { Value } from "./value"
 import { show } from "./show"
 
 type TensorFunc = (...tensors: tf.TensorLike[]) => tf.Tensor
-const tensorFunc = (f: TensorFunc): Value => ({
-    type: "Function",
+const tensorFunc = (f: TensorFunc, inputs: string[]): Value => ({
+    type: "fn",
     fn: (args: Value[]): Value => {
         const tensors: tf.TensorLike[] = []
         for (const arg of args) {
@@ -20,7 +20,7 @@ const tensorFunc = (f: TensorFunc): Value => ({
         const result = f.apply(null, tensors)
         const data = result.arraySync()
         return {
-            type: "Tensor",
+            type: "tensor",
             data,
             size: result.size,
             shape: result.shape,
@@ -28,11 +28,13 @@ const tensorFunc = (f: TensorFunc): Value => ({
             dtype: result.dtype,
         }
     },
+    inputs,
 })
 
 const label: Value = {
-    type: "Function",
+    type: "fn",
     fn: (args: Value[]): Value => ({ type: "None" }),
+    inputs: [""],
 }
 
 const bounds = (value: tf.TensorLike): Vec2 => {
@@ -44,7 +46,7 @@ const bounds = (value: tf.TensorLike): Vec2 => {
 }
 
 const scatter: Value = {
-    type: "Function",
+    type: "fn",
     fn: (args: Value[]): Value => {
         let data: tf.TensorLike[] = []
         for (const arg of args) {
@@ -56,10 +58,11 @@ const scatter: Value = {
         const range = bounds(y)
         return { type: "Scatter", x, y, domain, range }
     },
+    inputs: ["x", "y"],
 }
 
 const line: Value = {
-    type: "Function",
+    type: "fn",
     fn: (args: Value[]): Value => {
         let data: tf.TensorLike[] = []
         for (const arg of args) {
@@ -71,10 +74,11 @@ const line: Value = {
         const range = bounds(y)
         return { type: "Line", x, y, domain, range }
     },
+    inputs: ["x", "y"],
 }
 
 const overlay: Value = {
-    type: "Function",
+    type: "fn",
     fn: (plots: Value[]): Value => {
         const { domain, range } = plots.reduce(
             (acc, plot) => {
@@ -95,28 +99,30 @@ const overlay: Value = {
         )
         return { type: "Overlay", plots, domain, range }
     },
+    inputs: ["", ""],
 }
 
 const id: Value = {
-    type: "Function",
+    type: "fn",
     fn: (args: Value[]): Value => args[0],
+    inputs: [""],
 }
 
 export const base: Value = {
     type: "Module",
-    add: tensorFunc(tf.add),
-    sub: tensorFunc(tf.sub),
-    mul: tensorFunc(tf.mul),
-    div: tensorFunc(tf.div),
-    abs: tensorFunc(tf.abs),
-    mean: tensorFunc(tf.mean as TensorFunc),
-    maximum: tensorFunc(tf.maximum),
-    minimum: tensorFunc(tf.minimum),
-    mod: tensorFunc(tf.mod),
-    pow: tensorFunc(tf.pow),
-    linspace: tensorFunc(tf.linspace as TensorFunc),
-    "squared difference": tensorFunc(tf.squaredDifference),
-    square: tensorFunc(tf.square),
+    add: tensorFunc(tf.add, ["", ""]),
+    sub: tensorFunc(tf.sub, ["", ""]),
+    mul: tensorFunc(tf.mul, ["", ""]),
+    div: tensorFunc(tf.div, ["", ""]),
+    abs: tensorFunc(tf.abs, [""]),
+    mean: tensorFunc(tf.mean as TensorFunc, [""]),
+    maximum: tensorFunc(tf.maximum, [""]),
+    minimum: tensorFunc(tf.minimum, [""]),
+    mod: tensorFunc(tf.mod, ["", ""]),
+    pow: tensorFunc(tf.pow, ["", ""]),
+    linspace: tensorFunc(tf.linspace as TensorFunc, ["", "", ""]),
+    "squared difference": tensorFunc(tf.squaredDifference, ["", ""]),
+    square: tensorFunc(tf.square, [""]),
     id,
     label,
     scatter,

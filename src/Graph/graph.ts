@@ -1,48 +1,9 @@
 import { createStore, produce, SetStoreFunction } from "solid-js/store"
 
 import { add, scale, Vec2 } from "../vec2"
-import { OperationKind, operations } from "../operations"
 import { base, call, Value } from "../value"
 
 export type UUID = number
-
-export enum NodeKind {
-    SOURCE,
-    TRANSFORM,
-    SINK,
-}
-
-export interface Source {
-    kind: NodeKind.SOURCE
-    id: UUID
-    name: string
-    position: Vec2
-    outputs: UUID[]
-    body: UUID
-}
-
-export interface Transform {
-    kind: NodeKind.TRANSFORM
-    id: UUID
-    name: string
-    position: Vec2
-    inputs: UUID[]
-    outputs: UUID[]
-    body: UUID
-    func: string
-}
-
-export interface Sink {
-    kind: NodeKind.SINK
-    id: UUID
-    name: string
-    position: Vec2
-    inputs: UUID[]
-    body: UUID
-    func: string
-}
-
-export type Node = Source | Transform | Sink
 
 export interface Input {
     id: UUID
@@ -52,53 +13,49 @@ export interface Input {
 }
 
 export interface Output {
-    id: UUID
-    name: string
-    node: UUID
+    value: Value
     edges: UUID[]
 }
 
-export interface Body {
+export interface Node {
     id: UUID
-    value: Value
-    node: UUID
+    self: Value
+    position: Vec2
+    inputs: UUID[]
+    output: Output
 }
 
 export interface Edge {
     id: UUID
-    output: UUID
+    node: UUID
     input: UUID
 }
 
 export type Nodes = { [id: UUID]: Node }
 export type Edges = { [id: UUID]: Edge }
 export type Inputs = { [id: UUID]: Input }
-export type Outputs = { [id: UUID]: Output }
-export type Bodies = { [id: UUID]: Body }
 
 export interface Between {
     input: UUID
-    output: UUID
+    node: UUID
 }
 
 export interface Database {
     nodes: Nodes
     edges: Edges
     inputs: Inputs
-    outputs: Outputs
-    bodies: Bodies
 }
 
 export interface Graph {
     database: Database
     dragNode: (nodeId: UUID, delta: Vec2, zoom: number) => void
-    addNode: (name: string, position: Vec2) => Node
+    addNode: (value: Value, position: Vec2) => Node
     addEdge: (between: Between) => Edge | undefined
-    setValue: (bodyId: UUID, value: Value) => void
+    setValue: (nodeId: UUID, value: Value) => void
     subscribe: (callback: (nodeId: UUID) => void) => void
     deleteNode: (nodeId: UUID) => void
     deleteInputEdge: (inputId: UUID) => void
-    deleteOutputEdges: (outputId: UUID) => void
+    deleteOutputEdges: (nodeId: UUID) => void
     replaceNode: (nodeId: UUID, name: string) => void
     untrackLabel: (nodeId: UUID, label: string) => void
 }
@@ -127,99 +84,35 @@ const dragNode = (
     notifySubscribers(nodeId)
 }
 
-const addNode = (context: Context, name: string, position: Vec2): Node => {
+const addNode = (context: Context, value: Value, position: Vec2): Node => {
     const { database, setDatabase, generateId, notifySubscribers } = context
     const nodeId = generateId()
-    const operation = operations[name]
     setDatabase(
         produce((database) => {
-            const outputs: UUID[] = []
-            if (operation.kind !== OperationKind.SINK) {
-                for (const name of operation.outputs) {
-                    const output: Output = {
-                        id: generateId(),
-                        name,
-                        node: nodeId,
-                        edges: [],
-                    }
-                    database.outputs[output.id] = output
-                    outputs.push(output.id)
-                }
+            const isCall = value.type === "call"
+            const output: Output = {
+                edges: [],
+                value: isCall ? { type: "none" } : value,
             }
-            const value: Value = (() => {
-                switch (operation.kind) {
-                    case OperationKind.SOURCE:
-                        switch (operation.name) {
-                            case "num":
-                                return { type: "Number", data: 0 }
-                            case "read":
-                                return { type: "Read", name: "" }
-                            default:
-                                return { type: "None" }
-                        }
-                    case OperationKind.TRANSFORM:
-                        return { type: "None" }
-                    case OperationKind.SINK:
-                        switch (operation.name) {
-                            case "label":
-                                return { type: "Label", name: "" }
-                            default:
-                                return { type: "None" }
-                        }
-                }
-            })()
-            const body: Body = {
-                id: generateId(),
-                value,
-                node: nodeId,
-            }
-            database.bodies[body.id] = body
             const inputs: UUID[] = []
-            if (operation.kind !== OperationKind.SOURCE) {
-                for (const name of operation.inputs) {
-                    const input: Input = {
-                        id: generateId(),
-                        name,
-                        node: nodeId,
-                    }
-                    database.inputs[input.id] = input
-                    inputs.push(input.id)
+            const args = isCall ? base[value.name].inputs : []
+            for (const name of args) {
+                const id = generateId()
+                database.inputs[id] = {
+                    id,
+                    name,
+                    node: nodeId,
                 }
+                inputs.push(id)
             }
-            if (operation.kind === OperationKind.SOURCE) {
-                const node: Source = {
-                    kind: NodeKind.SOURCE,
-                    id: nodeId,
-                    name,
-                    position,
-                    outputs,
-                    body: body.id,
-                }
-                database.nodes[nodeId] = node
-            } else if (operation.kind === OperationKind.TRANSFORM) {
-                const node: Transform = {
-                    kind: NodeKind.TRANSFORM,
-                    id: nodeId,
-                    name,
-                    position,
-                    inputs,
-                    outputs,
-                    body: body.id,
-                    func: operation.func,
-                }
-                database.nodes[nodeId] = node
-            } else {
-                const node: Sink = {
-                    kind: NodeKind.SINK,
-                    id: nodeId,
-                    name,
-                    position,
-                    inputs,
-                    body: body.id,
-                    func: operation.func,
-                }
-                database.nodes[nodeId] = node
+            const node: Node = {
+                id: nodeId,
+                self: value,
+                position,
+                inputs,
+                output,
             }
+            database.nodes[nodeId] = node
         })
     )
     notifySubscribers(nodeId)
@@ -227,20 +120,17 @@ const addNode = (context: Context, name: string, position: Vec2): Node => {
 }
 
 const evaluateOutputs = (context: Context, node: Node) => {
-    if (node.kind === NodeKind.SINK) return
     const { database } = context
-    for (const output of node.outputs) {
-        for (const edgeId of database.outputs[output].edges) {
-            const edge = database.edges[edgeId]
-            evaluate(context, database.inputs[edge.input].node)
-        }
+    for (const edgeId of node.output.edges) {
+        const edge = database.edges[edgeId]
+        evaluate(context, database.inputs[edge.input].node)
     }
 }
 
 const evaluate = (context: Context, nodeId: UUID) => {
     const { database, setDatabase, notifySubscribers } = context
     const node = database.nodes[nodeId]
-    if (node.kind === NodeKind.SOURCE) {
+    if (node.inputs.length === 0) {
         return evaluateOutputs(context, node)
     }
     const values: Value[] = []
@@ -248,41 +138,41 @@ const evaluate = (context: Context, nodeId: UUID) => {
         const edgeId = database.inputs[input].edge
         if (edgeId) {
             const edge = database.edges[edgeId]
-            const outputNode =
-                database.nodes[database.outputs[edge.output].node]
-            const outputBody = database.bodies[outputNode.body]
-            if (outputBody.value.type === "Read") {
-                const label = context.labels[outputBody.value.name]
+            const outputNode = database.nodes[edge.node]
+            const value = outputNode.output.value
+            if (value.type === "Read") {
+                const label = context.labels[value.name]
                 if (label) values.push(label)
             } else {
-                values.push(outputBody.value)
+                values.push(value)
             }
         }
     }
-    if (node.kind === NodeKind.TRANSFORM) {
+    if (node.self.type === "call") {
         const value: Value =
             values.length === node.inputs.length
-                ? call(base, node.func, values)
-                : { type: "None" }
-        setDatabase("bodies", node.body, "value", value)
+                ? call(base, node.self.name, values)
+                : { type: "none" }
+        setDatabase("nodes", nodeId, "output", "value", value)
         evaluateOutputs(context, node)
         notifySubscribers(node.id)
-    } else if (node.kind === NodeKind.SINK) {
-        call(base, node.func, values)
-        const body = database.bodies[node.body]
-        if (body.value.type === "Label") {
-            if (values.length > 0) {
-                context.labels[body.value.name] = values[0]
-            } else {
-                context.labels[body.value.name] = { type: "None" }
-            }
-            const readers = context.readers[body.value.name]
-            if (!readers) return
-            for (const reader of readers) {
-                evaluate(context, reader)
-            }
-        }
     }
+    // } else if (node.kind === NodeKind.SINK) {
+    //     call(base, node.func, values)
+    //     const body = database.bodies[node.body]
+    //     if (body.value.type === "Label") {
+    //         if (values.length > 0) {
+    //             context.labels[body.value.name] = values[0]
+    //         } else {
+    //             context.labels[body.value.name] = { type: "None" }
+    //         }
+    //         const readers = context.readers[body.value.name]
+    //         if (!readers) return
+    //         for (const reader of readers) {
+    //             evaluate(context, reader)
+    //         }
+    //     }
+    // }
 }
 
 const wouldContainCycle = (
@@ -294,13 +184,10 @@ const wouldContainCycle = (
     const visited = new Set([stop, start])
     const visit = (nodeId: UUID): boolean => {
         const node = database.nodes[nodeId]
-        if (node.kind === NodeKind.SINK) return false
         const outputNodes: Set<UUID> = new Set()
-        for (const output of node.outputs) {
-            for (const edgeId of database.outputs[output].edges) {
-                const edge = database.edges[edgeId]
-                outputNodes.add(database.inputs[edge.input].node)
-            }
+        for (const edgeId of node.output.edges) {
+            const edge = database.edges[edgeId]
+            outputNodes.add(database.inputs[edge.input].node)
         }
         for (const output of outputNodes) {
             if (visited.has(output)) return true
@@ -314,37 +201,35 @@ const wouldContainCycle = (
 
 const addEdge = (
     context: Context,
-    { input: inputId, output: outputId }: Between
+    { input: inputId, node: nodeId }: Between
 ): Edge | undefined => {
     const { database, setDatabase, generateId } = context
     const input = database.inputs[inputId]
     const inputNode = input.node
-    const output = database.outputs[outputId]
-    const outputNode = output.node
-    if (inputNode === outputNode) {
+    if (inputNode === nodeId) {
         return undefined
     }
     const inputEdge = input.edge ? database.edges[input.edge] : undefined
-    if (inputEdge && inputEdge.output === outputId) {
+    if (inputEdge && inputEdge.node === nodeId) {
         return undefined
     }
-    if (wouldContainCycle(context, outputNode, inputNode)) {
+    if (wouldContainCycle(context, nodeId, inputNode)) {
         return undefined
     }
     const edge: Edge = {
         id: generateId(),
-        output: outputId,
+        node: nodeId,
         input: inputId,
     }
     setDatabase(
         produce((database) => {
+            const output = database.nodes[nodeId].output
             if (inputEdge) {
-                const output = database.outputs[inputEdge.output]
                 output.edges = output.edges.filter((id) => id !== inputEdge.id)
                 delete database.edges[inputEdge.id]
             }
             database.edges[edge.id] = edge
-            database.outputs[outputId].edges.push(edge.id)
+            output.edges.push(edge.id)
             database.inputs[inputId].edge = edge.id
         })
     )
@@ -481,8 +366,6 @@ export const createGraph = (): Graph => {
         nodes: {},
         edges: {},
         inputs: {},
-        outputs: {},
-        bodies: {},
     })
     let nextId: UUID = 0
     const generateId = (): UUID => nextId++
