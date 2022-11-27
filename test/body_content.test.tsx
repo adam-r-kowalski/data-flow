@@ -180,3 +180,41 @@ test("show read and edit value", () => {
     expect(queryByRole("button", { name })).toBeInTheDocument()
     unmount()
 })
+
+test("show tensor", () => {
+    const graph = createGraph()
+    const pos: Vec2 = [0, 0]
+    const start = graph.addNode({ type: "num", data: -10 }, pos)
+    const stop = graph.addNode({ type: "num", data: 10 }, pos)
+    const num = graph.addNode({ type: "num", data: 3 }, pos)
+    const linspace = graph.addNode({ type: "call", name: "linspace" }, pos)
+    graph.addEdge({ input: linspace.inputs[0], node: start.id })
+    graph.addEdge({ input: linspace.inputs[1], node: stop.id })
+    graph.addEdge({ input: linspace.inputs[2], node: num.id })
+    expect(linspace.self).toEqual({ type: "call", name: "linspace" })
+    expect(linspace.output!.value).toEqual({
+        type: "tensor",
+        data: [-10, 0, 10],
+        size: 3,
+        shape: [3],
+        rank: 1,
+        dtype: "float32",
+    })
+    const { queryByRole, unmount } = render(() => (
+        <GraphProvider graph={graph}>
+            <MockMeasureTextProvider>
+                <MockPositionsProvider>
+                    <BodyContent node={linspace} />
+                </MockPositionsProvider>
+            </MockMeasureTextProvider>
+        </GraphProvider>
+    ))
+    const name = `body ${linspace.id}`
+    const container = queryByRole("grid", { name })!
+    expect(container).toBeInTheDocument()
+    expect(container.children.length).toEqual(3)
+    expect(container.children[0]).toHaveTextContent("-10")
+    expect(container.children[1]).toHaveTextContent("0")
+    expect(container.children[2]).toHaveTextContent("10")
+    unmount()
+})
