@@ -25,9 +25,7 @@ export const label: Value = {
             let input: HTMLInputElement | undefined = undefined
             const font = "normal 20px monospace"
             const width = () =>
-                Math.floor(
-                    measureText.width(font, props.node.output.value.name)
-                ) + 70
+                Math.floor(measureText.width(font, props.node.self.name)) + 70
             return (
                 <Switch>
                     <Match when={!editing()}>
@@ -35,12 +33,12 @@ export const label: Value = {
                             onClick={() => {
                                 setEditing(true)
                                 positions.retrack(props.node.id)
-                                input!.value = props.node.output.value.name
+                                input!.value = props.node.self.name
                                 input!.focus()
                                 input!.click()
                             }}
                         >
-                            {props.node.output.value.name}
+                            {props.node.self.name}
                         </Container>
                     </Match>
                     <Match when={editing()}>

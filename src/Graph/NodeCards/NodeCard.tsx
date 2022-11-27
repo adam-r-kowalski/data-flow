@@ -119,7 +119,12 @@ export const NodeCard = (props: Props) => {
                 <BodyContent node={props.node} />
             </Content>
             <Outputs>
-                <OutputPort node={props.node.id} />
+                <Show
+                    when={props.node.output}
+                    fallback={<div style={{ width: "10px" }} />}
+                >
+                    <OutputPort node={props.node.id} />
+                </Show>
             </Outputs>
         </Container>
     )

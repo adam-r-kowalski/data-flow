@@ -22,7 +22,7 @@ export interface Node {
     self: Value
     position: Vec2
     inputs: UUID[]
-    output: Output
+    output?: Output
 }
 
 export interface Edge {
@@ -89,10 +89,6 @@ const addNode = (context: Context, value: Value, position: Vec2): Node => {
     const nodeId = generateId()
     setDatabase(
         produce((database) => {
-            const output: Output = {
-                edges: [],
-                value: value.type === "call" ? { type: "none" } : value,
-            }
             const inputs: UUID[] = []
             const args = (() => {
                 switch (value.type) {
@@ -113,6 +109,14 @@ const addNode = (context: Context, value: Value, position: Vec2): Node => {
                 }
                 inputs.push(id)
             }
+            const output: Output | undefined =
+                value.type === "label"
+                    ? undefined
+                    : {
+                          edges: [],
+                          value:
+                              value.type === "call" ? { type: "none" } : value,
+                      }
             const node: Node = {
                 id: nodeId,
                 self: value,
@@ -132,9 +136,12 @@ const addNode = (context: Context, value: Value, position: Vec2): Node => {
     return database.nodes[nodeId]
 }
 
+const outputEdges = (node: Node): UUID[] =>
+    node.output ? node.output.edges : []
+
 const evaluateOutputs = (context: Context, node: Node) => {
     const { database } = context
-    for (const edgeId of node.output.edges) {
+    for (const edgeId of outputEdges(node)) {
         const edge = database.edges[edgeId]
         evaluate(context, database.inputs[edge.input].node)
     }
@@ -152,12 +159,17 @@ const evaluate = (context: Context, nodeId: UUID) => {
         if (edgeId) {
             const edge = database.edges[edgeId]
             const outputNode = database.nodes[edge.node]
-            const value = outputNode.output.value
-            if (value.type === "read") {
-                const label = context.labels[value.name]
-                if (label) values.push(label)
-            } else {
-                values.push(value)
+            const value = outputNode.self
+            switch (value.type) {
+                case "call":
+                    values.push(outputNode.output!.value)
+                    break
+                case "read":
+                    const label = context.labels[value.name]
+                    if (label) values.push(label)
+                    break
+                default:
+                    values.push(value)
             }
         }
     }
@@ -189,7 +201,7 @@ const wouldContainCycle = (
     const visit = (nodeId: UUID): boolean => {
         const node = database.nodes[nodeId]
         const outputNodes: Set<UUID> = new Set()
-        for (const edgeId of node.output.edges) {
+        for (const edgeId of outputEdges(node)) {
             const edge = database.edges[edgeId]
             outputNodes.add(database.inputs[edge.input].node)
         }
@@ -228,12 +240,12 @@ const addEdge = (
     setDatabase(
         produce((database) => {
             if (inputEdge) {
-                const output = database.nodes[inputEdge.node].output
-                output.edges = output.edges.filter((id) => id !== inputEdge.id)
+                const output = database.nodes[inputEdge.node].output!
+                output.edges = output.edges.filter((e) => e !== inputEdge.id)
                 delete database.edges[inputEdge.id]
             }
             database.edges[edge.id] = edge
-            database.nodes[nodeId].output.edges.push(edge.id)
+            database.nodes[nodeId].output!.edges.push(edge.id)
             database.inputs[inputId].edge = edge.id
         })
     )
@@ -268,7 +280,7 @@ const deleteNode = (context: Context, nodeId: UUID) => {
             }
             const inputIds: UUID[] = []
             const outputIds: UUID[] = []
-            for (const edge of node.output.edges) {
+            for (const edge of outputEdges(node)) {
                 const input = database.edges[edge].input
                 nodesToEvaluate.push(database.inputs[input].node)
                 inputIds.push(input)
@@ -283,7 +295,7 @@ const deleteNode = (context: Context, nodeId: UUID) => {
             }
             outputIds.forEach((outputId, i) => {
                 const inputEdge = inputEdges[i]
-                const output = database.nodes[outputId].output
+                const output = database.nodes[outputId].output!
                 output.edges = output.edges.filter((e) => e !== inputEdge)
             })
         })
@@ -300,7 +312,7 @@ const deleteInputEdge = (context: Context, inputId: UUID) => {
     if (!edgeId) return
     setDatabase(
         produce((database) => {
-            const output = database.nodes[database.edges[edgeId].node].output
+            const output = database.nodes[database.edges[edgeId].node].output!
             output.edges = output.edges.filter((e) => e !== edgeId)
             delete database.edges[edgeId]
             database.inputs[inputId].edge = undefined
@@ -314,7 +326,7 @@ const deleteOutputEdges = (context: Context, nodeId: UUID) => {
     const nodesToEvaluate: UUID[] = []
     setDatabase(
         produce((database) => {
-            const output = database.nodes[nodeId].output
+            const output = database.nodes[nodeId].output!
             for (const edgeId of output.edges) {
                 nodesToEvaluate.push(
                     database.inputs[database.edges[edgeId].input].node
