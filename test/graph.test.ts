@@ -102,112 +102,110 @@ test("disallow edges between inputs and outputs of same node", () => {
     expect(edge).toBeUndefined()
 })
 
-// test("disallow multiple edges between the same input and output", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("num", position) as Source
-//     const node1 = graph.addNode("add", position) as Transform
-//     graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })
-//     const edge = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })
-//     expect(edge).toBeUndefined()
-// })
-//
-// test("connecting a new output to an input replaces the old output", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("num", position) as Source
-//     const node1 = graph.addNode("num", position) as Source
-//     const node2 = graph.addNode("add", position) as Transform
-//     const edge0 = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node2.inputs[0],
-//     })
-//     const edge1 = graph.addEdge({
-//         output: node1.outputs[0],
-//         input: node2.inputs[0],
-//     })
-//     expect(edge1).toEqual({
-//         id: edge1!.id,
-//         output: node1.outputs[0],
-//         input: node2.inputs[0],
-//     })
-//     {
-//         const output = graph.database.outputs[node0.outputs[0]]
-//         expect(output.edges).toEqual([])
-//     }
-//     {
-//         const output = graph.database.outputs[node1.outputs[0]]
-//         expect(output.edges).toEqual([edge1!.id])
-//     }
-//     const input = graph.database.inputs[node2.inputs[0]]
-//     expect(input.edge).toEqual(edge1!.id)
-//     expect(graph.database.edges[edge0!.id]).toBeUndefined()
-// })
-//
-// test("cycles between nodes are not allowed", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("add", position) as Transform
-//     const node1 = graph.addNode("add", position) as Transform
-//     const edge0 = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })
-//     expect(edge0).toEqual({
-//         id: edge0!.id,
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })
-//     const edge1 = graph.addEdge({
-//         output: node1.outputs[0],
-//         input: node0.inputs[0],
-//     })
-//     expect(edge1).toBeUndefined()
-// })
-//
-// test("transforms where inputs don't have data don't run", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("add", position) as Transform
-//     const node1 = graph.addNode("add", position) as Transform
-//     const edge0 = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })
-//     expect(edge0).toEqual({
-//         id: edge0!.id,
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })
-//     const edge1 = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[1],
-//     })
-//     expect(edge1).toEqual({
-//         id: edge1!.id,
-//         output: node0.outputs[0],
-//         input: node1.inputs[1],
-//     })
-// })
-//
-// test("delete a node with a connected output edge", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("num", position) as Source
-//     const node1 = graph.addNode("add", position) as Transform
-//     const edge = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })!
-//     graph.deleteNode(node0.id)
-//     expect(graph.database.nodes[node0.id]).toBeUndefined()
-//     expect(graph.database.bodies[node0.body]).toBeUndefined()
-//     expect(graph.database.outputs[node0.outputs[0]]).toBeUndefined()
-//     expect(graph.database.edges[edge.id]).toBeUndefined()
-//     expect(graph.database.inputs[node1.inputs[0]].edge).toBeUndefined()
-// })
-//
+test("disallow multiple edges between the same input and output", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "num", data: 0 }, position)
+    const node1 = graph.addNode({ type: "call", name: "add" }, position)
+    graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[0],
+    })
+    const edge = graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[0],
+    })
+    expect(edge).toBeUndefined()
+})
+
+test("connecting a new output to an input replaces the old output", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "num", data: 0 }, position)
+    const node1 = graph.addNode({ type: "num", data: 0 }, position)
+    const node2 = graph.addNode({ type: "call", name: "add" }, position)
+    const edge0 = graph.addEdge({
+        node: node0.id,
+        input: node2.inputs[0],
+    })
+    const edge1 = graph.addEdge({
+        node: node1.id,
+        input: node2.inputs[0],
+    })
+    expect(edge1).toEqual({
+        id: edge1!.id,
+        node: node1.id,
+        input: node2.inputs[0],
+    })
+    {
+        const output = graph.database.nodes[node0.id].output
+        expect(output.edges).toEqual([])
+    }
+    {
+        const output = graph.database.nodes[node1.id].output
+        expect(output.edges).toEqual([edge1!.id])
+    }
+    const input = graph.database.inputs[node2.inputs[0]]
+    expect(input.edge).toEqual(edge1!.id)
+    expect(graph.database.edges[edge0!.id]).toBeUndefined()
+})
+
+test("cycles between nodes are not allowed", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "call", name: "add" }, position)
+    const node1 = graph.addNode({ type: "call", name: "add" }, position)
+    const edge0 = graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[0],
+    })
+    expect(edge0).toEqual({
+        id: edge0!.id,
+        node: node0.id,
+        input: node1.inputs[0],
+    })
+    const edge1 = graph.addEdge({
+        node: node1.id,
+        input: node0.inputs[0],
+    })
+    expect(edge1).toBeUndefined()
+})
+
+test("transforms where inputs don't have data don't run", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "call", name: "add" }, position)
+    const node1 = graph.addNode({ type: "call", name: "add" }, position)
+    const edge0 = graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[0],
+    })
+    expect(edge0).toEqual({
+        id: edge0!.id,
+        node: node0.id,
+        input: node1.inputs[0],
+    })
+    const edge1 = graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[1],
+    })
+    expect(edge1).toEqual({
+        id: edge1!.id,
+        node: node0.id,
+        input: node1.inputs[1],
+    })
+})
+
+test("delete a node with a connected output edge", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "num", data: 0 }, position)
+    const node1 = graph.addNode({ type: "call", name: "add" }, position)
+    const edge = graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[0],
+    })!
+    graph.deleteNode(node0.id)
+    expect(graph.database.nodes[node0.id]).toBeUndefined()
+    expect(graph.database.edges[edge.id]).toBeUndefined()
+    expect(graph.database.inputs[node1.inputs[0]].edge).toBeUndefined()
+})
+
 // test("delete a node with a connected input edge", () => {
 //     const graph = createGraph()
 //     const node0 = graph.addNode("num", position) as Source

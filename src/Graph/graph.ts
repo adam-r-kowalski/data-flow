@@ -223,13 +223,13 @@ const addEdge = (
     }
     setDatabase(
         produce((database) => {
-            const output = database.nodes[nodeId].output
             if (inputEdge) {
+                const output = database.nodes[inputEdge.node].output
                 output.edges = output.edges.filter((id) => id !== inputEdge.id)
                 delete database.edges[inputEdge.id]
             }
             database.edges[edge.id] = edge
-            output.edges.push(edge.id)
+            database.nodes[nodeId].output.edges.push(edge.id)
             database.inputs[inputId].edge = edge.id
         })
     )
@@ -257,32 +257,22 @@ const deleteNode = (context: Context, nodeId: UUID) => {
     setDatabase(
         produce((database) => {
             delete database.nodes[nodeId]
-            delete database.bodies[node.body]
-            const outputEdges: UUID[] = []
-            if (node.kind !== NodeKind.SINK) {
-                for (const output of node.outputs) {
-                    outputEdges.push(...database.outputs[output].edges)
-                    delete database.outputs[output]
-                }
-            }
             const inputEdges: UUID[] = []
-            if (node.kind !== NodeKind.SOURCE) {
-                for (const input of node.inputs) {
-                    const edge = database.inputs[input].edge
-                    if (edge) inputEdges.push(edge)
-                    delete database.inputs[input]
-                }
+            for (const input of node.inputs) {
+                const edge = database.inputs[input].edge
+                if (edge) inputEdges.push(edge)
+                delete database.inputs[input]
             }
             const inputIds: UUID[] = []
             const outputIds: UUID[] = []
-            for (const edge of outputEdges) {
+            for (const edge of node.output.edges) {
                 const input = database.edges[edge].input
                 nodesToEvaluate.push(database.inputs[input].node)
                 inputIds.push(input)
                 delete database.edges[edge]
             }
             for (const edge of inputEdges) {
-                outputIds.push(database.edges[edge].output)
+                outputIds.push(database.edges[edge].node)
                 delete database.edges[edge]
             }
             for (const input of inputIds) {
@@ -290,7 +280,7 @@ const deleteNode = (context: Context, nodeId: UUID) => {
             }
             outputIds.forEach((outputId, i) => {
                 const inputEdge = inputEdges[i]
-                const output = database.outputs[outputId]
+                const output = database.nodes[outputId].output
                 output.edges = output.edges.filter((e) => e !== inputEdge)
             })
         })
