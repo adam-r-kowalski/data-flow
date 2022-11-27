@@ -2,7 +2,7 @@ import { FaSolidTrashCan } from "solid-icons/fa"
 import { styled } from "solid-styled-components"
 
 import { useMenu } from "../../Menu"
-import { Output, UUID } from "../graph"
+import { UUID } from "../graph"
 import { useGraph } from "../GraphProvider"
 import { usePositions } from "../positions"
 import { useSelected } from "../selected"
@@ -20,7 +20,7 @@ const Circle = styled("div")({
 })
 
 interface Props {
-    output: Output
+    node: UUID
 }
 
 export const OutputPort = (props: Props) => {
@@ -33,7 +33,7 @@ export const OutputPort = (props: Props) => {
     return (
         <Container
             onClick={() => {
-                selected.setOutput(props.output.id)
+                selected.setOutput(props.node)
             }}
             onContextMenu={(e) => {
                 menu.show({
@@ -42,8 +42,7 @@ export const OutputPort = (props: Props) => {
                         {
                             icon: FaSolidTrashCan,
                             label: "delete",
-                            onClick: () =>
-                                graph.deleteOutputEdges(props.output.id),
+                            onClick: () => graph.deleteOutputEdges(props.node),
                         },
                     ],
                 })
@@ -51,12 +50,11 @@ export const OutputPort = (props: Props) => {
                 e.stopPropagation()
             }}
         >
-            {props.output.name}
             <Circle
-                ref={track(props.output.id)}
+                ref={track(props.node)}
                 style={{
                     background:
-                        selected.output() === props.output.id
+                        selected.output() === props.node
                             ? "#bb9af7"
                             : "#7aa2f7",
                 }}

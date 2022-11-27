@@ -1,7 +1,7 @@
 import { batch, createContext, JSXElement, useContext } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Camera, useCamera } from "../camera"
-import { Graph, NodeKind, UUID } from "./graph"
+import { Graph, UUID } from "./graph"
 import { inverse, vecMul } from "../mat3x3"
 import { Root, useRoot } from "./root"
 import { Vec2, zero } from "../vec2"
@@ -44,11 +44,9 @@ export const createPositions = (
         requestAnimationFrame(() => {
             const transform = createTransform()
             const node = graph.database.nodes[id]
-            const inputs = node.kind === NodeKind.SOURCE ? [] : node.inputs
-            const outputs = node.kind === NodeKind.SINK ? [] : node.outputs
-            const ids = [...inputs, ...outputs]
             batch(() => {
-                for (const id of ids) transform(id)
+                for (const id of node.inputs) transform(id)
+                transform(node.id)
             })
         })
     }

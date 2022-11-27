@@ -34,14 +34,13 @@ export const MockPositionsProvider = (props: { children: JSXElement }) => {
 
 test("show number and edit value", () => {
     const graph = createGraph()
-    const node = graph.addNode("num", [0, 0])
-    const body = graph.database.bodies[node.body]
-    expect(body.value).toEqual({ type: "Number", data: 0 })
+    const node = graph.addNode({ type: "num", data: 0 }, [0, 0])
+    expect(node.output.value).toEqual({ type: "num", data: 0 })
     const { queryByText, unmount, queryByDisplayValue } = render(() => (
         <GraphProvider graph={graph}>
             <MockMeasureTextProvider>
                 <MockPositionsProvider>
-                    <BodyContent body={body} />
+                    <BodyContent node={node} />
                 </MockPositionsProvider>
             </MockMeasureTextProvider>
         </GraphProvider>
@@ -53,8 +52,8 @@ test("show number and edit value", () => {
     const input = queryByDisplayValue(0)!
     expect(input).toBeInTheDocument()
     fireEvent.input(input, { target: { value: 3 } })
-    const nextBody = graph.database.bodies[node.body]
-    expect(nextBody.value).toEqual({ type: "Number", data: 3 })
+    const nextNode = graph.database.nodes[node.id]
+    expect(nextNode.output.value).toEqual({ type: "num", data: 3 })
     fireEvent.blur(input)
     expect(input).not.toBeInTheDocument()
     expect(queryByText("3")!).toBeInTheDocument()

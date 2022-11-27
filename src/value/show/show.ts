@@ -1,5 +1,5 @@
 import { Error } from "./error"
-import { Number } from "./number"
+import { num } from "./num"
 import { Tensor } from "./tensor"
 import { plot } from "./plot"
 import { Label } from "./label"
@@ -10,7 +10,7 @@ export const show = {
     type: "fns",
     fns: {
         ...{
-            Number,
+            num,
             Tensor,
             Label,
             Read,

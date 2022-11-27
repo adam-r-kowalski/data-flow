@@ -44,7 +44,7 @@ export const BezierCurves = () => {
                                 fill="none"
                                 stroke="#7aa2f7"
                                 stroke-width="3"
-                                d={d(edge.output, edge.input)}
+                                d={d(edge.node, edge.input)}
                             />
                         )
                     }}

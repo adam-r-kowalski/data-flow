@@ -1,5 +1,5 @@
-import { Body } from "../../Graph"
+import { Node } from "../../Graph"
 
 export interface Props {
-    body: Body
+    node: Node
 }
