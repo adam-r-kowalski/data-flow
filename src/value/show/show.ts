@@ -1,20 +1,20 @@
 import { Error } from "./error"
 import { num } from "./num"
-import { Tensor } from "./tensor"
+import { tensor } from "./tensor"
 import { plot } from "./plot"
 import { Label } from "./label"
 import { Read } from "./read"
-import { None } from "./none"
+import { none } from "./none"
 
 export const show = {
     type: "fns",
     fns: {
         ...{
             num,
-            Tensor,
+            tensor,
             Label,
             Read,
-            None,
+            none,
             Error,
         },
         ...plot,
