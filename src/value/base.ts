@@ -31,12 +31,6 @@ const tensorFunc = (f: TensorFunc, inputs: string[]): Value => ({
     inputs,
 })
 
-const label: Value = {
-    type: "fn",
-    fn: (args: Value[]): Value => ({ type: "None" }),
-    inputs: [""],
-}
-
 const bounds = (value: tf.TensorLike): Vec2 => {
     const min = tf.min(value).arraySync() as number
     const max = tf.max(value).arraySync() as number
@@ -109,7 +103,7 @@ const id: Value = {
 }
 
 export const base: Value = {
-    type: "Module",
+    type: "module",
     add: tensorFunc(tf.add, ["", ""]),
     sub: tensorFunc(tf.sub, ["", ""]),
     mul: tensorFunc(tf.mul, ["", ""]),
@@ -120,11 +114,10 @@ export const base: Value = {
     minimum: tensorFunc(tf.minimum, [""]),
     mod: tensorFunc(tf.mod, ["", ""]),
     pow: tensorFunc(tf.pow, ["", ""]),
-    linspace: tensorFunc(tf.linspace as TensorFunc, ["", "", ""]),
+    linspace: tensorFunc(tf.linspace as TensorFunc, ["start", "stop", "num"]),
     "squared difference": tensorFunc(tf.squaredDifference, ["", ""]),
     square: tensorFunc(tf.square, [""]),
     id,
-    label,
     scatter,
     overlay,
     line,

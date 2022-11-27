@@ -290,49 +290,46 @@ test("replace a node", () => {
     })
 })
 
-// test("add label then read node", () => {
-//     fc.assert(
-//         fc.property(
-//             fc
-//                 .string()
-//                 .filter(
-//                     (x) => !["valueOf", "toString", "__proto__"].includes(x)
-//                 ),
-//             fc.integer(),
-//             (name, data) => {
-//                 const graph = createGraph()
-//                 const num = graph.addNode("num", position) as Source
-//                 graph.setValue(num.body, { type: "Number", data })
-//                 const label = graph.addNode("label", position) as Sink
-//                 graph.setValue(label.body, { type: "Label", name })
-//                 graph.addEdge({
-//                     output: num.outputs[0],
-//                     input: label.inputs[0],
-//                 })
-//                 const read = graph.addNode("read", position) as Source
-//                 graph.setValue(read.body, { type: "Read", name })
-//                 const id = graph.addNode("id", position) as Transform
-//                 graph.addEdge({ output: read.outputs[0], input: id.inputs[0] })
-//                 const body = graph.database.bodies[id.body]
-//                 expect(body.value).toEqual({ type: "Number", data })
-//             }
-//         )
-//     )
-// })
-//
-// test("delete label deletes edge", () => {
-//     const graph = createGraph()
-//     const num = graph.addNode("num", position) as Source
-//     const label = graph.addNode("label", position) as Sink
-//     const edge = graph.addEdge({
-//         output: num.outputs[0],
-//         input: label.inputs[0],
-//     })
-//     expect(edge).toEqual({
-//         id: edge!.id,
-//         output: num.outputs[0],
-//         input: label.inputs[0],
-//     })
-//     graph.deleteNode(label.id)
-//     expect(graph.database.edges[edge!.id]).toBeUndefined()
-// })
+test("add label then read node", () => {
+    fc.assert(
+        fc.property(
+            fc
+                .string()
+                .filter(
+                    (x) => !["valueOf", "toString", "__proto__"].includes(x)
+                ),
+            fc.integer(),
+            (name, data) => {
+                const graph = createGraph()
+                const num = graph.addNode({ type: "num", data }, position)
+                const label = graph.addNode({ type: "label", name }, position)
+                graph.addEdge({
+                    node: num.id,
+                    input: label.inputs[0],
+                })
+                const read = graph.addNode({ type: "read", name }, position)
+                const id = graph.addNode({ type: "call", name: "id" }, position)
+                graph.addEdge({ node: read.id, input: id.inputs[0] })
+                const value = graph.database.nodes[id.id].output.value
+                expect(value).toEqual({ type: "num", data })
+            }
+        )
+    )
+})
+
+test("delete label deletes edge", () => {
+    const graph = createGraph()
+    const num = graph.addNode({ type: "num", data: 0 }, position)
+    const label = graph.addNode({ type: "label", name: "foo" }, position)
+    const edge = graph.addEdge({
+        node: num.id,
+        input: label.inputs[0],
+    })
+    expect(edge).toEqual({
+        id: edge!.id,
+        node: num.id,
+        input: label.inputs[0],
+    })
+    graph.deleteNode(label.id)
+    expect(graph.database.edges[edge!.id]).toBeUndefined()
+})

@@ -89,13 +89,21 @@ const addNode = (context: Context, value: Value, position: Vec2): Node => {
     const nodeId = generateId()
     setDatabase(
         produce((database) => {
-            const isCall = value.type === "call"
             const output: Output = {
                 edges: [],
-                value: isCall ? { type: "none" } : value,
+                value: value.type === "call" ? { type: "none" } : value,
             }
             const inputs: UUID[] = []
-            const args = isCall ? base[value.name].inputs : []
+            const args = (() => {
+                switch (value.type) {
+                    case "call":
+                        return base[value.name].inputs
+                    case "label":
+                        return [""]
+                    default:
+                        return []
+                }
+            })()
             for (const name of args) {
                 const id = generateId()
                 database.inputs[id] = {
@@ -116,6 +124,11 @@ const addNode = (context: Context, value: Value, position: Vec2): Node => {
         })
     )
     notifySubscribers(nodeId)
+    if (value.type === "read") {
+        const readers = context.readers[value.name]
+        if (readers) readers.add(nodeId)
+        else context.readers[value.name] = new Set([nodeId])
+    }
     return database.nodes[nodeId]
 }
 
@@ -140,7 +153,7 @@ const evaluate = (context: Context, nodeId: UUID) => {
             const edge = database.edges[edgeId]
             const outputNode = database.nodes[edge.node]
             const value = outputNode.output.value
-            if (value.type === "Read") {
+            if (value.type === "read") {
                 const label = context.labels[value.name]
                 if (label) values.push(label)
             } else {
@@ -156,23 +169,14 @@ const evaluate = (context: Context, nodeId: UUID) => {
         setDatabase("nodes", nodeId, "output", "value", value)
         evaluateOutputs(context, node)
         notifySubscribers(node.id)
+    } else if (node.self.type === "label") {
+        context.labels[node.self.name] =
+            values.length === 1 ? values[0] : { type: "none" }
+        const readers = context.readers[node.self.name]
+        for (const reader of readers ?? []) {
+            evaluate(context, reader)
+        }
     }
-    // } else if (node.kind === NodeKind.SINK) {
-    //     call(base, node.func, values)
-    //     const body = database.bodies[node.body]
-    //     if (body.value.type === "Label") {
-    //         if (values.length > 0) {
-    //             context.labels[body.value.name] = values[0]
-    //         } else {
-    //             context.labels[body.value.name] = { type: "None" }
-    //         }
-    //         const readers = context.readers[body.value.name]
-    //         if (!readers) return
-    //         for (const reader of readers) {
-    //             evaluate(context, reader)
-    //         }
-    //     }
-    // }
 }
 
 const wouldContainCycle = (
@@ -237,17 +241,16 @@ const addEdge = (
     return edge
 }
 
-const setValue = (context: Context, bodyId: UUID, value: Value) => {
-    const { database, setDatabase, notifySubscribers } = context
-    setDatabase("bodies", bodyId, "value", value)
-    const body = database.bodies[bodyId]
-    if (body.value.type === "Read") {
-        const readers = context.readers[body.value.name]
-        if (readers) readers.add(body.node)
-        else context.readers[body.value.name] = new Set([body.node])
+const setValue = (context: Context, nodeId: UUID, value: Value) => {
+    const { setDatabase, notifySubscribers } = context
+    setDatabase("nodes", nodeId, "output", "value", value)
+    if (value.type === "read") {
+        const readers = context.readers[value.name]
+        if (readers) readers.add(nodeId)
+        else context.readers[value.name] = new Set([nodeId])
     }
-    notifySubscribers(body.node)
-    evaluate(context, body.node)
+    notifySubscribers(nodeId)
+    evaluate(context, nodeId)
 }
 
 const deleteNode = (context: Context, nodeId: UUID) => {
