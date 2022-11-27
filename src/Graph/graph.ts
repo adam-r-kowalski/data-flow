@@ -56,7 +56,7 @@ export interface Graph {
     deleteNode: (nodeId: UUID) => void
     deleteInputEdge: (inputId: UUID) => void
     deleteOutputEdges: (nodeId: UUID) => void
-    replaceNode: (nodeId: UUID, name: string) => void
+    replaceNode: (nodeId: UUID, value: Value) => void
     untrackLabel: (nodeId: UUID, label: string) => void
 }
 
@@ -328,18 +328,19 @@ const deleteOutputEdges = (context: Context, nodeId: UUID) => {
     }
 }
 
-const replaceNode = (context: Context, nodeId: UUID, name: string) => {
+const replaceNode = (context: Context, nodeId: UUID, value: Value) => {
     const { setDatabase } = context
-    const operation = operations[name]
-    if (operation.kind !== OperationKind.TRANSFORM) return
+    if (value.type !== "call") return
     setDatabase(
         produce((database) => {
             const node = database.nodes[nodeId]
-            if (node.kind !== NodeKind.TRANSFORM) return
-            if (operation.inputs.length !== node.inputs.length) return
-            if (operation.outputs.length !== node.outputs.length) return
-            node.name = name
-            node.func = operation.func
+            if (node.self.type !== "call") return
+            if (
+                base[value.name].inputs.length !==
+                base[node.self.name].inputs.length
+            )
+                return
+            node.self = value
         })
     )
     evaluate(context, nodeId)

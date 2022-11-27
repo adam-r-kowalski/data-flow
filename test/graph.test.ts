@@ -248,22 +248,48 @@ test("delete output edges", () => {
     expect(graph.database.nodes[edge.node].output.edges).toEqual([])
 })
 
-// test("replace a node", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("num", position) as Source
-//     const node2 = graph.addNode("add", position) as Transform
-//     graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node2.inputs[0],
-//     })!
-//     graph.replaceNode(node2.id, "sub")
-//     expect(graph.database.nodes[node2.id]).toEqual({
-//         ...node2,
-//         name: "sub",
-//         func: (operations.sub as TransformOperation).func,
-//     })
-// })
-//
+test("replace a node", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "num", data: 5 }, position)
+    const node1 = graph.addNode({ type: "num", data: 3 }, position)
+    const node2 = graph.addNode({ type: "call", name: "add" }, position)
+    graph.addEdge({
+        node: node0.id,
+        input: node2.inputs[0],
+    })!
+    graph.addEdge({
+        node: node1.id,
+        input: node2.inputs[1],
+    })!
+    expect(graph.database.nodes[node2.id].output.value).toEqual({
+        type: "tensor",
+        data: 8,
+        size: 1,
+        shape: [],
+        rank: 0,
+        dtype: "float32",
+    })
+    graph.replaceNode(node2.id, { type: "call", name: "sub" })
+    expect(graph.database.nodes[node2.id]).toEqual({
+        ...node2,
+        id: node2.id,
+        self: { type: "call", name: "sub" },
+        position,
+        inputs: node2.inputs,
+        output: {
+            value: {
+                type: "tensor",
+                data: 2,
+                size: 1,
+                shape: [],
+                rank: 0,
+                dtype: "float32",
+            },
+            edges: [],
+        },
+    })
+})
+
 // test("add label then read node", () => {
 //     fc.assert(
 //         fc.property(
