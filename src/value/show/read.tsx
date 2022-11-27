@@ -25,26 +25,27 @@ export const read: Value = {
             let input: HTMLInputElement | undefined = undefined
             const font = "normal 20px monospace"
             const width = () =>
-                Math.floor(
-                    measureText.width(font, props.node.output.value.name)
-                ) + 70
+                Math.floor(measureText.width(font, props.node.self.name)) + 70
             return (
                 <Switch>
                     <Match when={!editing()}>
                         <Container
+                            role="button"
+                            aria-label={`body ${props.node.id}`}
                             onClick={() => {
                                 setEditing(true)
                                 positions.retrack(props.node.id)
-                                input!.value = props.node.output.value.name
+                                input!.value = props.node.self.name
                                 input!.focus()
                                 input!.click()
                             }}
                         >
-                            {props.node.output.value.name}
+                            {props.node.self.name}
                         </Container>
                     </Match>
                     <Match when={editing()}>
                         <input
+                            aria-label={`body ${props.node.id}`}
                             ref={input}
                             onPointerDown={(e) => e.stopPropagation()}
                             onInput={() => {
@@ -54,7 +55,7 @@ export const read: Value = {
                                 }
                                 graph.untrackLabel(
                                     props.node.id,
-                                    props.node.output.value.name
+                                    props.node.self.name
                                 )
                                 graph.setValue(props.node.id, value)
                             }}

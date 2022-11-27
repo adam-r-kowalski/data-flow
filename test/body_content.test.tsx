@@ -66,7 +66,7 @@ test("show label and edit name", () => {
     const node = graph.addNode({ type: "label", name: "x" }, [0, 0])
     expect(node.self).toEqual({ type: "label", name: "x" })
     expect(node.output).toBeUndefined()
-    const { queryByText, unmount, queryByDisplayValue } = render(() => (
+    const { queryByRole, unmount } = render(() => (
         <GraphProvider graph={graph}>
             <MockMeasureTextProvider>
                 <MockPositionsProvider>
@@ -75,19 +75,24 @@ test("show label and edit name", () => {
             </MockMeasureTextProvider>
         </GraphProvider>
     ))
-    const container = queryByText("x")!
+    const name = `body ${node.id}`
+    const container = queryByRole("button", { name })!
     expect(container).toBeInTheDocument()
+    expect(container).toHaveTextContent("x")
     fireEvent.click(container)
     expect(container).not.toBeInTheDocument()
-    const input = queryByDisplayValue("x")!
+    const input = queryByRole("textbox", { name })!
     expect(input).toBeInTheDocument()
+    expect(input).toHaveValue("x")
     fireEvent.input(input, { target: { value: "y" } })
     const nextNode = graph.database.nodes[node.id]
     expect(nextNode.self).toEqual({ type: "label", name: "y" })
     expect(nextNode.output).toBeUndefined()
     fireEvent.blur(input)
     expect(input).not.toBeInTheDocument()
-    expect(queryByText("y")!).toBeInTheDocument()
+    const nextContainer = queryByRole("button", { name })!
+    expect(nextContainer).toBeInTheDocument()
+    expect(nextContainer).toHaveTextContent("y")
     unmount()
 })
 
@@ -128,6 +133,7 @@ test("show num and edit value", () => {
     const name = `body ${node.id}`
     const container = queryByRole("button", { name })!
     expect(container).toBeInTheDocument()
+    expect(container).toHaveTextContent("0")
     fireEvent.click(container)
     expect(container).not.toBeInTheDocument()
     const input = queryByRole("spinbutton", { name })!
@@ -138,16 +144,18 @@ test("show num and edit value", () => {
     expect(nextNode.self).toEqual(nextNode.output!.value)
     fireEvent.blur(input)
     expect(input).not.toBeInTheDocument()
-    expect(queryByRole("button", { name })!).toBeInTheDocument()
+    const nextContainer = queryByRole("button", { name })!
+    expect(nextContainer).toBeInTheDocument()
+    expect(nextContainer).toHaveTextContent("3")
     unmount()
 })
 
 test("show read and edit value", () => {
     const graph = createGraph()
-    const node = graph.addNode({ type: "num", data: 0 }, [0, 0])
-    expect(node.self).toEqual({ type: "num", data: 0 })
+    const node = graph.addNode({ type: "read", name: "x" }, [0, 0])
+    expect(node.self).toEqual({ type: "read", name: "x" })
     expect(node.self).toEqual(node.output!.value)
-    const { queryByText, unmount, queryByDisplayValue } = render(() => (
+    const { queryByRole, unmount } = render(() => (
         <GraphProvider graph={graph}>
             <MockMeasureTextProvider>
                 <MockPositionsProvider>
@@ -156,18 +164,19 @@ test("show read and edit value", () => {
             </MockMeasureTextProvider>
         </GraphProvider>
     ))
-    const container = queryByText("0")!
+    const name = `body ${node.id}`
+    const container = queryByRole("button", { name })!
     expect(container).toBeInTheDocument()
     fireEvent.click(container)
     expect(container).not.toBeInTheDocument()
-    const input = queryByDisplayValue(0)!
+    const input = queryByRole("textbox", { name })!
     expect(input).toBeInTheDocument()
-    fireEvent.input(input, { target: { value: 3 } })
+    fireEvent.input(input, { target: { value: "y" } })
     const nextNode = graph.database.nodes[node.id]
-    expect(nextNode.self).toEqual({ type: "num", data: 3 })
+    expect(nextNode.self).toEqual({ type: "read", name: "y" })
     expect(nextNode.self).toEqual(nextNode.output!.value)
     fireEvent.blur(input)
     expect(input).not.toBeInTheDocument()
-    expect(queryByText("3")!).toBeInTheDocument()
+    expect(queryByRole("button", { name })).toBeInTheDocument()
     unmount()
 })

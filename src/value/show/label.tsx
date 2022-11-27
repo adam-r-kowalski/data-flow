@@ -30,6 +30,8 @@ export const label: Value = {
                 <Switch>
                     <Match when={!editing()}>
                         <Container
+                            role="button"
+                            aria-label={`body ${props.node.id}`}
                             onClick={() => {
                                 setEditing(true)
                                 positions.retrack(props.node.id)
@@ -43,6 +45,7 @@ export const label: Value = {
                     </Match>
                     <Match when={editing()}>
                         <input
+                            aria-label={`body ${props.node.id}`}
                             ref={input}
                             onPointerDown={(e) => e.stopPropagation()}
                             onInput={() => {
