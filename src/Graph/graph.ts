@@ -297,7 +297,7 @@ const deleteInputEdge = (context: Context, inputId: UUID) => {
     if (!edgeId) return
     setDatabase(
         produce((database) => {
-            const output = database.outputs[database.edges[edgeId].output]
+            const output = database.nodes[database.edges[edgeId].node].output
             output.edges = output.edges.filter((e) => e !== edgeId)
             delete database.edges[edgeId]
             database.inputs[inputId].edge = undefined
@@ -306,12 +306,12 @@ const deleteInputEdge = (context: Context, inputId: UUID) => {
     evaluate(context, input.node)
 }
 
-const deleteOutputEdges = (context: Context, outputId: UUID) => {
-    const { database, setDatabase } = context
-    const output = database.outputs[outputId]
+const deleteOutputEdges = (context: Context, nodeId: UUID) => {
+    const { setDatabase } = context
     const nodesToEvaluate: UUID[] = []
     setDatabase(
         produce((database) => {
+            const output = database.nodes[nodeId].output
             for (const edgeId of output.edges) {
                 nodesToEvaluate.push(
                     database.inputs[database.edges[edgeId].input].node
@@ -320,7 +320,7 @@ const deleteOutputEdges = (context: Context, outputId: UUID) => {
                 database.inputs[edge.input].edge = undefined
                 delete database.edges[edgeId]
             }
-            database.outputs[outputId].edges = []
+            output.edges = []
         })
     )
     for (const node of nodesToEvaluate) {

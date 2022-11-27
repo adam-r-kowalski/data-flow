@@ -206,50 +206,48 @@ test("delete a node with a connected output edge", () => {
     expect(graph.database.inputs[node1.inputs[0]].edge).toBeUndefined()
 })
 
-// test("delete a node with a connected input edge", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("num", position) as Source
-//     const node1 = graph.addNode("add", position) as Transform
-//     const edge = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })!
-//     graph.deleteNode(node1.id)
-//     expect(graph.database.nodes[node1.id]).toBeUndefined()
-//     expect(graph.database.bodies[node1.body]).toBeUndefined()
-//     expect(graph.database.outputs[node1.outputs[0]]).toBeUndefined()
-//     expect(graph.database.edges[edge.id]).toBeUndefined()
-//     expect(graph.database.outputs[node0.outputs[0]].edges).toEqual([])
-// })
-//
-// test("delete input edge", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("num", position) as Source
-//     const node1 = graph.addNode("add", position) as Transform
-//     const edge = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })!
-//     graph.deleteInputEdge(node1.inputs[0])
-//     expect(graph.database.edges[edge.id]).toBeUndefined()
-//     expect(graph.database.inputs[edge.input].edge).toBeUndefined()
-//     expect(graph.database.outputs[edge.output].edges).toEqual([])
-// })
-//
-// test("delete output edges", () => {
-//     const graph = createGraph()
-//     const node0 = graph.addNode("num", position) as Source
-//     const node1 = graph.addNode("add", position) as Transform
-//     const edge = graph.addEdge({
-//         output: node0.outputs[0],
-//         input: node1.inputs[0],
-//     })!
-//     graph.deleteOutputEdges(node0.outputs[0])
-//     expect(graph.database.edges[edge.id]).toBeUndefined()
-//     expect(graph.database.inputs[edge.input].edge).toBeUndefined()
-//     expect(graph.database.outputs[edge.output].edges).toEqual([])
-// })
-//
+test("delete a node with a connected input edge", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "num", data: 0 }, position)
+    const node1 = graph.addNode({ type: "call", name: "add" }, position)
+    const edge = graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[0],
+    })!
+    graph.deleteNode(node1.id)
+    expect(graph.database.nodes[node1.id]).toBeUndefined()
+    expect(graph.database.edges[edge.id]).toBeUndefined()
+    expect(graph.database.nodes[node0.id].output.edges).toEqual([])
+})
+
+test("delete input edge", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "num", data: 0 }, position)
+    const node1 = graph.addNode({ type: "call", name: "add" }, position)
+    const edge = graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[0],
+    })!
+    graph.deleteInputEdge(node1.inputs[0])
+    expect(graph.database.edges[edge.id]).toBeUndefined()
+    expect(graph.database.inputs[edge.input].edge).toBeUndefined()
+    expect(graph.database.nodes[edge.node].output.edges).toEqual([])
+})
+
+test("delete output edges", () => {
+    const graph = createGraph()
+    const node0 = graph.addNode({ type: "num", data: 0 }, position)
+    const node1 = graph.addNode({ type: "call", name: "add" }, position)
+    const edge = graph.addEdge({
+        node: node0.id,
+        input: node1.inputs[0],
+    })!
+    graph.deleteOutputEdges(node0.id)
+    expect(graph.database.edges[edge.id]).toBeUndefined()
+    expect(graph.database.inputs[edge.input].edge).toBeUndefined()
+    expect(graph.database.nodes[edge.node].output.edges).toEqual([])
+})
+
 // test("replace a node", () => {
 //     const graph = createGraph()
 //     const node0 = graph.addNode("num", position) as Source
