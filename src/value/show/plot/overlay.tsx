@@ -10,7 +10,7 @@ export const Overlay = (props: Props) => {
             {(plot: Value) => {
                 return (
                     <Switch>
-                        <Match when={plot.type == "Scatter"}>
+                        <Match when={plot.type == "scatter"}>
                             <Scatter
                                 value={plot}
                                 domain={props.domain}
@@ -18,7 +18,7 @@ export const Overlay = (props: Props) => {
                                 to={props.to}
                             />
                         </Match>
-                        <Match when={plot.type == "Line"}>
+                        <Match when={plot.type == "line"}>
                             <Line
                                 value={plot}
                                 domain={props.domain}

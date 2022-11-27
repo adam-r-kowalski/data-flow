@@ -4,102 +4,73 @@ export const demoScene = (graph: Graph): void => {
     const start = graph.addNode({ type: "num", data: -10 }, [50, 50])
     const stop = graph.addNode({ type: "num", data: 10 }, [50, 200])
     const step = graph.addNode({ type: "num", data: 10 }, [50, 350])
-
     const linspace = graph.addNode(
         { type: "call", name: "linspace" },
         [300, 50]
     )
+    const xLabel = graph.addNode({ type: "label", name: "x" }, [730, 50])
     graph.addEdge({ node: start.id, input: linspace.inputs[0] })
     graph.addEdge({ node: stop.id, input: linspace.inputs[1] })
     graph.addEdge({ node: step.id, input: linspace.inputs[2] })
-    //
-    // const xLabel = graph.addNode("label", [730, 50]) as Sink
-    // graph.setValue(xLabel.body, { type: "Label", name: "x" })
-    // graph.addEdge({ output: linspace.outputs[0], input: xLabel.inputs[0] })
-    //
-    // const three = graph.addNode("num", [50, 550]) as Source
-    // graph.setValue(three.body, { type: "Number", data: 3 })
-    //
-    // const xRead = graph.addNode("read", [50, 700]) as Source
-    // graph.setValue(xRead.body, { type: "Read", name: "x" })
-    //
-    // const five = graph.addNode("num", [300, 550]) as Source
-    // graph.setValue(five.body, { type: "Number", data: 5 })
-    //
-    // const mul = graph.addNode("mul", [300, 700]) as Transform
-    // graph.addEdge({ output: three.outputs[0], input: mul.inputs[0] })
-    // graph.addEdge({ output: xRead.outputs[0], input: mul.inputs[1] })
-    //
-    // const add = graph.addNode("add", [530, 550]) as Transform
-    // graph.addEdge({ output: five.outputs[0], input: add.inputs[0] })
-    // graph.addEdge({ output: mul.outputs[0], input: add.inputs[1] })
-    //
-    // const yLabel = graph.addNode("label", [800, 550]) as Sink
-    // graph.setValue(yLabel.body, { type: "Label", name: "y" })
-    // graph.addEdge({ output: add.outputs[0], input: yLabel.inputs[0] })
-    //
-    // const m = graph.addNode("num", [50, 1100]) as Source
-    // graph.setValue(m.body, { type: "Number", data: 1 })
-    //
-    // const xRead1 = graph.addNode("read", [50, 1250]) as Source
-    // graph.setValue(xRead1.body, { type: "Read", name: "x" })
-    //
-    // const mul1 = graph.addNode("mul", [300, 1250]) as Transform
-    // graph.addEdge({ output: m.outputs[0], input: mul1.inputs[0] })
-    // graph.addEdge({ output: xRead1.outputs[0], input: mul1.inputs[1] })
-    //
-    // const b = graph.addNode("num", [300, 1100]) as Source
-    // graph.setValue(b.body, { type: "Number", data: 2 })
-    //
-    // const add1 = graph.addNode("add", [530, 1100]) as Transform
-    // graph.addEdge({ output: b.outputs[0], input: add1.inputs[0] })
-    // graph.addEdge({ output: mul1.outputs[0], input: add1.inputs[1] })
-    //
-    // const yHatLabel = graph.addNode("label", [800, 1100]) as Sink
-    // graph.setValue(yHatLabel.body, { type: "Label", name: "y hat" })
-    // graph.addEdge({ output: add1.outputs[0], input: yHatLabel.inputs[0] })
-    //
-    // const xRead2 = graph.addNode("read", [1200, 50]) as Source
-    // graph.setValue(xRead2.body, { type: "Read", name: "x" })
-    //
-    // const yRead = graph.addNode("read", [1200, 200]) as Source
-    // graph.setValue(yRead.body, { type: "Read", name: "y" })
-    //
-    // const scatter = graph.addNode("scatter", [1400, 50]) as Transform
-    // graph.addEdge({ output: xRead2.outputs[0], input: scatter.inputs[0] })
-    // graph.addEdge({ output: yRead.outputs[0], input: scatter.inputs[1] })
-    //
-    // const xRead3 = graph.addNode("read", [1200, 450]) as Source
-    // graph.setValue(xRead3.body, { type: "Read", name: "x" })
-    //
-    // const yHatRead = graph.addNode("read", [1200, 600]) as Source
-    // graph.setValue(yHatRead.body, { type: "Read", name: "y hat" })
-    //
-    // const line = graph.addNode("line", [1450, 450]) as Transform
-    // graph.addEdge({ output: xRead3.outputs[0], input: line.inputs[0] })
-    // graph.addEdge({ output: yHatRead.outputs[0], input: line.inputs[1] })
-    //
-    // const overlay = graph.addNode("overlay", [1900, 50]) as Transform
-    // graph.addEdge({ output: scatter.outputs[0], input: overlay.inputs[0] })
-    // graph.addEdge({ output: line.outputs[0], input: overlay.inputs[1] })
-    //
-    // const yRead1 = graph.addNode("read", [1200, 850]) as Source
-    // graph.setValue(yRead1.body, { type: "Read", name: "y" })
-    //
-    // const yHatRead1 = graph.addNode("read", [1200, 1000]) as Source
-    // graph.setValue(yHatRead1.body, { type: "Read", name: "y hat" })
-    //
-    // const sub = graph.addNode("sub", [1450, 850]) as Transform
-    // graph.addEdge({ output: yRead1.outputs[0], input: sub.inputs[0] })
-    // graph.addEdge({ output: yHatRead1.outputs[0], input: sub.inputs[1] })
-    //
-    // const abs = graph.addNode("abs", [1650, 850]) as Transform
-    // graph.addEdge({ output: sub.outputs[0], input: abs.inputs[0] })
-    //
-    // const mean = graph.addNode("mean", [1850, 850]) as Transform
-    // graph.addEdge({ output: abs.outputs[0], input: mean.inputs[0] })
-    //
-    // const lossLabel = graph.addNode("label", [2100, 850]) as Sink
-    // graph.setValue(lossLabel.body, { type: "Label", name: "loss" })
-    // graph.addEdge({ output: mean.outputs[0], input: lossLabel.inputs[0] })
+    graph.addEdge({ node: linspace.id, input: xLabel.inputs[0] })
+
+    const three = graph.addNode({ type: "num", data: 3 }, [50, 550])
+    const xRead = graph.addNode({ type: "read", name: "x" }, [50, 700])
+    const five = graph.addNode({ type: "num", data: 5 }, [300, 550])
+    const mul = graph.addNode({ type: "call", name: "mul" }, [300, 700])
+    const add = graph.addNode({ type: "call", name: "add" }, [530, 550])
+    const yLabel = graph.addNode({ type: "label", name: "y" }, [800, 550])
+    graph.addEdge({ node: three.id, input: mul.inputs[0] })
+    graph.addEdge({ node: xRead.id, input: mul.inputs[1] })
+    graph.addEdge({ node: five.id, input: add.inputs[0] })
+    graph.addEdge({ node: mul.id, input: add.inputs[1] })
+    graph.addEdge({ node: add.id, input: yLabel.inputs[0] })
+
+    const m = graph.addNode({ type: "num", data: 1 }, [50, 1100])
+    const xRead1 = graph.addNode({ type: "read", name: "x" }, [50, 1250])
+    const mul1 = graph.addNode({ type: "call", name: "mul" }, [300, 1250])
+    const b = graph.addNode({ type: "num", data: 2 }, [300, 1100])
+    const add1 = graph.addNode({ type: "call", name: "add" }, [530, 1100])
+    const yHatLabel = graph.addNode(
+        { type: "label", name: "y hat" },
+        [800, 1100]
+    )
+    graph.addEdge({ node: m.id, input: mul1.inputs[0] })
+    graph.addEdge({ node: xRead1.id, input: mul1.inputs[1] })
+    graph.addEdge({ node: b.id, input: add1.inputs[0] })
+    graph.addEdge({ node: mul1.id, input: add1.inputs[1] })
+    graph.addEdge({ node: add1.id, input: yHatLabel.inputs[0] })
+
+    const xRead2 = graph.addNode({ type: "read", name: "x" }, [1200, 50])
+    const yRead = graph.addNode({ type: "read", name: "y" }, [1200, 200])
+    const scatter = graph.addNode({ type: "call", name: "scatter" }, [1400, 50])
+    graph.addEdge({ node: xRead2.id, input: scatter.inputs[0] })
+    graph.addEdge({ node: yRead.id, input: scatter.inputs[1] })
+
+    const xRead3 = graph.addNode({ type: "read", name: "x" }, [1200, 450])
+    const yHatRead = graph.addNode({ type: "read", name: "y hat" }, [1200, 600])
+    const line = graph.addNode({ type: "call", name: "line" }, [1450, 450])
+    const overlay = graph.addNode({ type: "call", name: "overlay" }, [1900, 50])
+    graph.addEdge({ node: xRead3.id, input: line.inputs[0] })
+    graph.addEdge({ node: yHatRead.id, input: line.inputs[1] })
+    graph.addEdge({ node: scatter.id, input: overlay.inputs[0] })
+    graph.addEdge({ node: line.id, input: overlay.inputs[1] })
+
+    const yRead1 = graph.addNode({ type: "read", name: "y" }, [1200, 850])
+    const yHatRead1 = graph.addNode(
+        { type: "read", name: "y hat" },
+        [1200, 1000]
+    )
+    const sub = graph.addNode({ type: "call", name: "sub" }, [1450, 850])
+    const abs = graph.addNode({ type: "call", name: "abs" }, [1650, 850])
+    const mean = graph.addNode({ type: "call", name: "mean" }, [1850, 850])
+    const lossLabel = graph.addNode(
+        { type: "label", name: "loss" },
+        [2100, 850]
+    )
+    graph.addEdge({ node: yRead1.id, input: sub.inputs[0] })
+    graph.addEdge({ node: yHatRead1.id, input: sub.inputs[1] })
+    graph.addEdge({ node: sub.id, input: abs.inputs[0] })
+    graph.addEdge({ node: abs.id, input: mean.inputs[0] })
+    graph.addEdge({ node: mean.id, input: lossLabel.inputs[0] })
 }

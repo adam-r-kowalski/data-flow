@@ -14,7 +14,7 @@ const tensorFunc = (f: TensorFunc, inputs: string[]): Value => ({
     fn: (args: Value[]): Value => {
         const tensors: tf.TensorLike[] = []
         for (const arg of args) {
-            if (arg.type === "None") return { type: "None" }
+            if (arg.type === "none") return { type: "none" }
             tensors.push(arg.data)
         }
         const result = f.apply(null, tensors)
@@ -44,13 +44,13 @@ const scatter: Value = {
     fn: (args: Value[]): Value => {
         let data: tf.TensorLike[] = []
         for (const arg of args) {
-            if (arg.type !== "Tensor" || arg.size < 2) return { type: "None" }
+            if (arg.type !== "tensor" || arg.size < 2) return { type: "none" }
             data.push(arg.data)
         }
         const [x, y] = data
         const domain = bounds(x)
         const range = bounds(y)
-        return { type: "Scatter", x, y, domain, range }
+        return { type: "scatter", x, y, domain, range }
     },
     inputs: ["x", "y"],
 }
@@ -60,13 +60,13 @@ const line: Value = {
     fn: (args: Value[]): Value => {
         let data: tf.TensorLike[] = []
         for (const arg of args) {
-            if (arg.type !== "Tensor" || arg.size < 2) return { type: "None" }
+            if (arg.type !== "tensor" || arg.size < 2) return { type: "none" }
             data.push(arg.data)
         }
         const [x, y] = data
         const domain = bounds(x)
         const range = bounds(y)
-        return { type: "Line", x, y, domain, range }
+        return { type: "line", x, y, domain, range }
     },
     inputs: ["x", "y"],
 }
@@ -91,7 +91,7 @@ const overlay: Value = {
                 range: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER],
             }
         )
-        return { type: "Overlay", plots, domain, range }
+        return { type: "overlay", plots, domain, range }
     },
     inputs: ["", ""],
 }
@@ -122,4 +122,6 @@ export const base: Value = {
     overlay,
     line,
     show,
+    label: { type: "label", name: "" },
+    read: { type: "read", name: "" },
 }

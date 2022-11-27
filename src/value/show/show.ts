@@ -2,8 +2,8 @@ import { Error } from "./error"
 import { num } from "./num"
 import { tensor } from "./tensor"
 import { plot } from "./plot"
-import { Label } from "./label"
-import { Read } from "./read"
+import { label } from "./label"
+import { read } from "./read"
 import { none } from "./none"
 
 export const show = {
@@ -12,8 +12,8 @@ export const show = {
         ...{
             num,
             tensor,
-            Label,
-            Read,
+            label,
+            read,
             none,
             Error,
         },
