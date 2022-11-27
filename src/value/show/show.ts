@@ -1,4 +1,4 @@
-import { Error } from "./error"
+import { error } from "./error"
 import { num } from "./num"
 import { tensor } from "./tensor"
 import { plot } from "./plot"
@@ -15,7 +15,7 @@ export const show = {
             label,
             read,
             none,
-            Error,
+            error,
         },
         ...plot,
     },

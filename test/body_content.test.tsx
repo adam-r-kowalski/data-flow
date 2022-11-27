@@ -32,10 +32,88 @@ export const MockPositionsProvider = (props: { children: JSXElement }) => {
     )
 }
 
+test("show error", () => {
+    const graph = createGraph()
+    const error = { type: "error", message: "this is an error" }
+    const node = graph.addNode(error, [0, 0])
+    expect(node.self).toEqual(error)
+    expect(node.self).toEqual(node.output!.value)
+    const { queryByText, unmount } = render(() => (
+        <GraphProvider graph={graph}>
+            <MockMeasureTextProvider>
+                <MockPositionsProvider>
+                    <BodyContent node={node} />
+                </MockPositionsProvider>
+            </MockMeasureTextProvider>
+        </GraphProvider>
+    ))
+    const container = queryByText(error.message)!
+    expect(container).toBeInTheDocument()
+    unmount()
+})
+
+test("show error after function call", () => {
+    const graph = createGraph()
+    const pos: Vec2 = [0, 0]
+    const start = graph.addNode({ type: "num", data: -10 }, pos)
+    const stop = graph.addNode({ type: "num", data: 10 }, pos)
+    const num = graph.addNode({ type: "num", data: -10 }, pos)
+    const linspace = graph.addNode({ type: "call", name: "linspace" }, pos)
+    graph.addEdge({ input: linspace.inputs[0], node: start.id })
+    graph.addEdge({ input: linspace.inputs[1], node: stop.id })
+    graph.addEdge({ input: linspace.inputs[2], node: num.id })
+    expect(linspace.self).toEqual({ type: "call", name: "linspace" })
+    const message = "The number of values should be positive."
+    expect(linspace.output!.value).toEqual({ type: "error", message })
+    const { queryByText, unmount } = render(() => (
+        <GraphProvider graph={graph}>
+            <MockMeasureTextProvider>
+                <MockPositionsProvider>
+                    <BodyContent node={linspace} />
+                </MockPositionsProvider>
+            </MockMeasureTextProvider>
+        </GraphProvider>
+    ))
+    const container = queryByText(message)!
+    expect(container).toBeInTheDocument()
+    unmount()
+})
+
+test("show label and edit name", () => {
+    const graph = createGraph()
+    const node = graph.addNode({ type: "label", name: "x" }, [0, 0])
+    expect(node.self).toEqual({ type: "label", name: "x" })
+    expect(node.output).toBeUndefined()
+    const { queryByText, unmount, queryByDisplayValue } = render(() => (
+        <GraphProvider graph={graph}>
+            <MockMeasureTextProvider>
+                <MockPositionsProvider>
+                    <BodyContent node={node} />
+                </MockPositionsProvider>
+            </MockMeasureTextProvider>
+        </GraphProvider>
+    ))
+    const container = queryByText("x")!
+    expect(container).toBeInTheDocument()
+    fireEvent.click(container)
+    expect(container).not.toBeInTheDocument()
+    const input = queryByDisplayValue("x")!
+    expect(input).toBeInTheDocument()
+    fireEvent.input(input, { target: { value: "y" } })
+    const nextNode = graph.database.nodes[node.id]
+    expect(nextNode.self).toEqual({ type: "label", name: "y" })
+    expect(nextNode.output).toBeUndefined()
+    fireEvent.blur(input)
+    expect(input).not.toBeInTheDocument()
+    expect(queryByText("y")!).toBeInTheDocument()
+    unmount()
+})
+
 test("show number and edit value", () => {
     const graph = createGraph()
     const node = graph.addNode({ type: "num", data: 0 }, [0, 0])
-    expect(node.output.value).toEqual({ type: "num", data: 0 })
+    expect(node.self).toEqual({ type: "num", data: 0 })
+    expect(node.self).toEqual(node.output!.value)
     const { queryByText, unmount, queryByDisplayValue } = render(() => (
         <GraphProvider graph={graph}>
             <MockMeasureTextProvider>
@@ -53,7 +131,8 @@ test("show number and edit value", () => {
     expect(input).toBeInTheDocument()
     fireEvent.input(input, { target: { value: 3 } })
     const nextNode = graph.database.nodes[node.id]
-    expect(nextNode.output.value).toEqual({ type: "num", data: 3 })
+    expect(nextNode.self).toEqual({ type: "num", data: 3 })
+    expect(nextNode.self).toEqual(nextNode.output!.value)
     fireEvent.blur(input)
     expect(input).not.toBeInTheDocument()
     expect(queryByText("3")!).toBeInTheDocument()

@@ -9,10 +9,10 @@ const Container = styled("div")({
     "border-radius": "5px",
 })
 
-export const Error: Value = {
-    type: "Function",
+export const error: Value = {
+    type: "fn",
     fn: () => ({
-        type: "Function",
+        type: "fn",
         fn: (props: Props) => {
             return (
                 <Container
@@ -22,7 +22,7 @@ export const Error: Value = {
                         "max-width": "200px",
                     }}
                 >
-                    {props.body.value.message}
+                    {props.node.output!.value.message}
                 </Container>
             )
         },
