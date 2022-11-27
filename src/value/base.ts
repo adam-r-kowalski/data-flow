@@ -9,18 +9,18 @@ import { Value } from "./value"
 import { show } from "./show"
 
 type TensorFunc = (...tensors: tf.TensorLike[]) => tf.Tensor
-const tensorFunc = (f: TensorFunc): Value => ({
-    type: "Function",
+const tensorFunc = (f: TensorFunc, inputs: string[]): Value => ({
+    type: "fn",
     fn: (args: Value[]): Value => {
         const tensors: tf.TensorLike[] = []
         for (const arg of args) {
-            if (arg.type === "None") return { type: "None" }
+            if (arg.type === "none") return { type: "none" }
             tensors.push(arg.data)
         }
         const result = f.apply(null, tensors)
         const data = result.arraySync()
         return {
-            type: "Tensor",
+            type: "tensor",
             data,
             size: result.size,
             shape: result.shape,
@@ -28,12 +28,8 @@ const tensorFunc = (f: TensorFunc): Value => ({
             dtype: result.dtype,
         }
     },
+    inputs,
 })
-
-const label: Value = {
-    type: "Function",
-    fn: (args: Value[]): Value => ({ type: "None" }),
-}
 
 const bounds = (value: tf.TensorLike): Vec2 => {
     const min = tf.min(value).arraySync() as number
@@ -44,37 +40,39 @@ const bounds = (value: tf.TensorLike): Vec2 => {
 }
 
 const scatter: Value = {
-    type: "Function",
+    type: "fn",
     fn: (args: Value[]): Value => {
         let data: tf.TensorLike[] = []
         for (const arg of args) {
-            if (arg.type !== "Tensor" || arg.size < 2) return { type: "None" }
+            if (arg.type !== "tensor" || arg.size < 2) return { type: "none" }
             data.push(arg.data)
         }
         const [x, y] = data
         const domain = bounds(x)
         const range = bounds(y)
-        return { type: "Scatter", x, y, domain, range }
+        return { type: "scatter", x, y, domain, range }
     },
+    inputs: ["x", "y"],
 }
 
 const line: Value = {
-    type: "Function",
+    type: "fn",
     fn: (args: Value[]): Value => {
         let data: tf.TensorLike[] = []
         for (const arg of args) {
-            if (arg.type !== "Tensor" || arg.size < 2) return { type: "None" }
+            if (arg.type !== "tensor" || arg.size < 2) return { type: "none" }
             data.push(arg.data)
         }
         const [x, y] = data
         const domain = bounds(x)
         const range = bounds(y)
-        return { type: "Line", x, y, domain, range }
+        return { type: "line", x, y, domain, range }
     },
+    inputs: ["x", "y"],
 }
 
 const overlay: Value = {
-    type: "Function",
+    type: "fn",
     fn: (plots: Value[]): Value => {
         const { domain, range } = plots.reduce(
             (acc, plot) => {
@@ -93,34 +91,37 @@ const overlay: Value = {
                 range: [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER],
             }
         )
-        return { type: "Overlay", plots, domain, range }
+        return { type: "overlay", plots, domain, range }
     },
+    inputs: ["", ""],
 }
 
 const id: Value = {
-    type: "Function",
+    type: "fn",
     fn: (args: Value[]): Value => args[0],
+    inputs: [""],
 }
 
 export const base: Value = {
-    type: "Module",
-    add: tensorFunc(tf.add),
-    sub: tensorFunc(tf.sub),
-    mul: tensorFunc(tf.mul),
-    div: tensorFunc(tf.div),
-    abs: tensorFunc(tf.abs),
-    mean: tensorFunc(tf.mean as TensorFunc),
-    maximum: tensorFunc(tf.maximum),
-    minimum: tensorFunc(tf.minimum),
-    mod: tensorFunc(tf.mod),
-    pow: tensorFunc(tf.pow),
-    linspace: tensorFunc(tf.linspace as TensorFunc),
-    "squared difference": tensorFunc(tf.squaredDifference),
-    square: tensorFunc(tf.square),
+    type: "module",
+    add: tensorFunc(tf.add, ["", ""]),
+    sub: tensorFunc(tf.sub, ["", ""]),
+    mul: tensorFunc(tf.mul, ["", ""]),
+    div: tensorFunc(tf.div, ["", ""]),
+    abs: tensorFunc(tf.abs, [""]),
+    mean: tensorFunc(tf.mean as TensorFunc, [""]),
+    maximum: tensorFunc(tf.maximum, [""]),
+    minimum: tensorFunc(tf.minimum, [""]),
+    mod: tensorFunc(tf.mod, ["", ""]),
+    pow: tensorFunc(tf.pow, ["", ""]),
+    linspace: tensorFunc(tf.linspace as TensorFunc, ["start", "stop", "num"]),
+    "squared difference": tensorFunc(tf.squaredDifference, ["", ""]),
+    square: tensorFunc(tf.square, [""]),
     id,
-    label,
     scatter,
     overlay,
     line,
     show,
+    label: { type: "label", name: "" },
+    read: { type: "read", name: "" },
 }

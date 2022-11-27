@@ -1,22 +1,23 @@
 import { Error } from "./error"
-import { Number } from "./number"
-import { Tensor } from "./tensor"
+import { num } from "./num"
+import { tensor } from "./tensor"
 import { plot } from "./plot"
-import { Label } from "./label"
-import { Read } from "./read"
-import { None } from "./none"
+import { label } from "./label"
+import { read } from "./read"
+import { none } from "./none"
 
 export const show = {
-    type: "Functions",
+    type: "fns",
     fns: {
         ...{
-            Number,
-            Tensor,
-            Label,
-            Read,
-            None,
+            num,
+            tensor,
+            label,
+            read,
+            none,
             Error,
         },
         ...plot,
     },
+    inputs: [""],
 }

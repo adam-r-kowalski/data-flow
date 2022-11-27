@@ -10,19 +10,21 @@ const Container = styled("div")({
     "border-radius": "5px",
 })
 
-export const Tensor: Value = {
-    type: "Function",
+export const tensor: Value = {
+    type: "fn",
     fn: () => ({
-        type: "Function",
+        type: "fn",
         fn: (props: Props) => {
             return (
                 <Switch fallback={<>NOT IMPLEMENTED!</>}>
-                    <Match when={props.body.value.rank == 0}>
+                    <Match when={props.node.output.value.rank == 0}>
                         <Container>
-                            {(props.body.value.data as number).toFixed(2)}
+                            {(props.node.output.value.data as number).toFixed(
+                                2
+                            )}
                         </Container>
                     </Match>
-                    <Match when={props.body.value.rank == 1}>
+                    <Match when={props.node.output.value.rank == 1}>
                         <Container
                             style={{
                                 display: "grid",
@@ -36,7 +38,9 @@ export const Tensor: Value = {
                                 e.preventDefault()
                             }}
                         >
-                            <For each={props.body.value.data as number[]}>
+                            <For
+                                each={props.node.output.value.data as number[]}
+                            >
                                 {(number) => <div>{number.toFixed(2)}</div>}
                             </For>
                         </Container>

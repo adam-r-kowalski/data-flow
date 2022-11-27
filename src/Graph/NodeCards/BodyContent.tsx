@@ -1,10 +1,12 @@
 import { base, call } from "../../value"
-import { Body } from "../graph"
+import { Node } from "../graph"
 
-export const BodyContent = (props: { body: Body }) => {
+export const BodyContent = (props: { node: Node }) => {
     const Component = () => {
-        const Show = call(base, "show", [props.body.value]).fn
-        return <Show body={props.body} />
+        const self = props.node.self
+        const value = self.type === "call" ? props.node.output!.value : self
+        const Show = call(base, "show", [value]).fn
+        return <Show node={props.node} />
     }
     return <>{Component()}</>
 }

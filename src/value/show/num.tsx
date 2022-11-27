@@ -13,17 +13,17 @@ const Container = styled("div")({
     "border-radius": "5px",
 })
 
-export const Number: Value = {
-    type: "Function",
+export const num: Value = {
+    type: "fn",
     fn: () => ({
-        type: "Function",
+        type: "fn",
         fn: (props: Props) => {
             const graph = useGraph()!
             const positions = usePositions()!
             const measureText = useMeasureText()!
             const [editing, setEditing] = createSignal(false)
             let input: HTMLInputElement | undefined = undefined
-            const inputString = () => props.body.value.data.toString()
+            const inputString = () => props.node.output.value.data.toString()
             const font = "normal 20px monospace"
             const width = () =>
                 Math.floor(measureText.width(font, inputString())) + 70
@@ -33,13 +33,13 @@ export const Number: Value = {
                         <Container
                             onClick={() => {
                                 setEditing(true)
-                                positions.retrack(props.body.node)
+                                positions.retrack(props.node.id)
                                 input!.value = inputString()
                                 input!.focus()
                                 input!.click()
                             }}
                         >
-                            {props.body.value.data}
+                            {props.node.output.value.data}
                         </Container>
                     </Match>
                     <Match when={editing()}>
@@ -50,14 +50,14 @@ export const Number: Value = {
                             onPointerDown={(e) => e.stopPropagation()}
                             onInput={() => {
                                 const value: Value = {
-                                    type: "Number",
+                                    type: "num",
                                     data: input!.valueAsNumber,
                                 }
-                                graph.setValue(props.body.id, value)
+                                graph.setValue(props.node.id, value)
                             }}
                             onBlur={() => {
                                 setEditing(false)
-                                positions.retrack(props.body.node)
+                                positions.retrack(props.node.id)
                             }}
                             style={{
                                 padding: "20px",

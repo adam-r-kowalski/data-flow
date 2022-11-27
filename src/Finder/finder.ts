@@ -1,8 +1,9 @@
 import { createSignal } from "solid-js"
+
 import { fuzzyFind } from "./fuzzy_find"
 import { Vec2 } from "../vec2"
-import { operations } from "../operations"
 import { UUID } from "../Graph/graph"
+import { base } from "../value"
 
 export enum FinderModeKind {
     INSERT,
@@ -41,7 +42,7 @@ const hidden: FinderMode = {
 }
 
 export const createFinder = (): Finder => {
-    const options = Object.keys(operations)
+    const options = Object.keys(base)
     const [mode, setMode] = createSignal<FinderMode>(hidden)
     const [search, setSearch] = createSignal("")
     const filtered = () =>

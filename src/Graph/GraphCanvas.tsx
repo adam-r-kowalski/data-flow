@@ -17,6 +17,7 @@ import { useCamera } from "../camera"
 import { useGraph } from "./GraphProvider"
 import { PositionsProvider } from "./positions"
 import { FinderModeKind } from "../Finder/finder"
+import { Value } from "../value"
 
 const FullScreen = styled("div")({
     overflow: "hidden",
@@ -79,9 +80,9 @@ const Content = () => {
             camera.drag([-e.deltaX, -e.deltaY])
         }
     }
-    const addNode = (name: string, position: Vec2) => () =>
-        graph.addNode(name, camera.worldSpace(position))
     const showMenu = (position: Vec2) => {
+        const addNode = (value: Value) => () =>
+            graph.addNode(value, camera.worldSpace(position))
         menu.show({
             position,
             options: [
@@ -99,17 +100,17 @@ const Content = () => {
                 {
                     icon: TbNumbers,
                     label: "num",
-                    onClick: addNode("num", position),
+                    onClick: addNode({ type: "num", data: 0 }),
                 },
                 {
                     icon: VsAdd,
                     label: "add",
-                    onClick: addNode("add", position),
+                    onClick: addNode({ type: "call", name: "add" }),
                 },
                 {
                     icon: FiMinus,
                     label: "sub",
-                    onClick: addNode("sub", position),
+                    onClick: addNode({ type: "call", name: "sub" }),
                 },
             ],
         })

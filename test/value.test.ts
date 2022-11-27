@@ -2,16 +2,16 @@ import { Value, base, call } from "../src/value"
 
 test("add 2 and 3 to get 5", () => {
     const a: Value = {
-        type: "Number",
+        type: "num",
         data: 3,
     }
     const b: Value = {
-        type: "Number",
+        type: "num",
         data: 2,
     }
     const c: Value = call(base, "add", [a, b])
     expect(c).toEqual({
-        type: "Tensor",
+        type: "tensor",
         data: 5,
         size: 1,
         shape: [],
@@ -22,11 +22,11 @@ test("add 2 and 3 to get 5", () => {
 
 test("add 2 and [1, 2, 3] to get [3, 4, 5]", () => {
     const a: Value = {
-        type: "Number",
+        type: "num",
         data: 2,
     }
     const b: Value = {
-        type: "Tensor",
+        type: "tensor",
         data: [1, 2, 3],
         size: 3,
         shape: [3],
@@ -35,7 +35,7 @@ test("add 2 and [1, 2, 3] to get [3, 4, 5]", () => {
     }
     const c: Value = call(base, "add", [a, b])
     expect(c).toEqual({
-        type: "Tensor",
+        type: "tensor",
         data: [3, 4, 5],
         size: 3,
         shape: [3],
@@ -46,30 +46,30 @@ test("add 2 and [1, 2, 3] to get [3, 4, 5]", () => {
 
 test("multiple dispatch", () => {
     const mod: Value = {
-        type: "Module",
+        type: "module",
         f: {
-            type: "Functions",
+            type: "fns",
             fns: {
-                Number: {
-                    type: "Functions",
+                num: {
+                    type: "fns",
                     fns: {
-                        String: {
-                            type: "Function",
+                        str: {
+                            type: "fn",
                             fn: () => ({
-                                type: "String",
-                                data: "Number + String",
+                                type: "str",
+                                data: "num + str",
                             }),
                         },
                     },
                 },
-                String: {
-                    type: "Functions",
+                str: {
+                    type: "fns",
                     fns: {
-                        Number: {
-                            type: "Function",
+                        num: {
+                            type: "fn",
                             fn: () => ({
-                                type: "String",
-                                data: "String + Number",
+                                type: "str",
+                                data: "str + num",
                             }),
                         },
                     },
@@ -77,14 +77,14 @@ test("multiple dispatch", () => {
             },
         },
     }
-    const num = { type: "Number", data: 1 }
-    const str = { type: "String", data: "a" }
+    const num = { type: "num", data: 1 }
+    const str = { type: "str", data: "a" }
     expect(call(mod, "f", [num, str])).toEqual({
-        type: "String",
-        data: "Number + String",
+        type: "str",
+        data: "num + str",
     })
     expect(call(mod, "f", [str, num])).toEqual({
-        type: "String",
-        data: "String + Number",
+        type: "str",
+        data: "str + num",
     })
 })

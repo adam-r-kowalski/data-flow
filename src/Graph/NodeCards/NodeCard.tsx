@@ -4,7 +4,7 @@ import { FiSearch } from "solid-icons/fi"
 import { For, Show } from "solid-js"
 
 import { useMenu } from "../../Menu"
-import { Node, NodeKind } from "../graph"
+import { Node } from "../graph"
 import { usePointers } from "../pointers"
 import { useGraph } from "../GraphProvider"
 import { InputPort } from "./InputPort"
@@ -60,13 +60,15 @@ export const NodeCard = (props: Props) => {
         const [x, y] = props.node.position
         return `translate(${x}px, ${y}px)`
     }
-    const inputs = () => {
-        if (props.node.kind === NodeKind.SOURCE) return []
-        return props.node.inputs.map((id) => graph.database.inputs[id])
-    }
-    const outputs = () => {
-        if (props.node.kind === NodeKind.SINK) return []
-        return props.node.outputs.map((id) => graph.database.outputs[id])
+    const inputs = () =>
+        props.node.inputs.map((id) => graph.database.inputs[id])
+    const name = () => {
+        switch (props.node.self.type) {
+            case "call":
+                return props.node.self.name
+            default:
+                return props.node.self.type
+        }
     }
     const pointers = usePointers()!
     const menu = useMenu()!
@@ -113,17 +115,15 @@ export const NodeCard = (props: Props) => {
                 </Show>
             </Inputs>
             <Content>
-                <Name>{props.node.name}</Name>
-                <BodyContent body={graph.database.bodies[props.node.body]} />
+                <Name>{name()}</Name>
+                <BodyContent node={props.node} />
             </Content>
             <Outputs>
                 <Show
-                    when={outputs().length > 0}
+                    when={props.node.output}
                     fallback={<div style={{ width: "10px" }} />}
                 >
-                    <For each={outputs()}>
-                        {(output) => <OutputPort output={output} />}
-                    </For>
+                    <OutputPort node={props.node.id} />
                 </Show>
             </Outputs>
         </Container>
