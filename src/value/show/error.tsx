@@ -16,6 +16,8 @@ export const error: Value = {
         fn: (props: Props) => {
             return (
                 <Container
+                    role="note"
+                    aria-label={`body ${props.node.id}`}
                     style={{
                         color: "#db4b4b",
                         "white-space": "pre-wrap",

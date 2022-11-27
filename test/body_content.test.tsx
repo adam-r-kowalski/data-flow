@@ -34,26 +34,6 @@ export const MockPositionsProvider = (props: { children: JSXElement }) => {
 
 test("show error", () => {
     const graph = createGraph()
-    const error = { type: "error", message: "this is an error" }
-    const node = graph.addNode(error, [0, 0])
-    expect(node.self).toEqual(error)
-    expect(node.self).toEqual(node.output!.value)
-    const { queryByText, unmount } = render(() => (
-        <GraphProvider graph={graph}>
-            <MockMeasureTextProvider>
-                <MockPositionsProvider>
-                    <BodyContent node={node} />
-                </MockPositionsProvider>
-            </MockMeasureTextProvider>
-        </GraphProvider>
-    ))
-    const container = queryByText(error.message)!
-    expect(container).toBeInTheDocument()
-    unmount()
-})
-
-test("show error after function call", () => {
-    const graph = createGraph()
     const pos: Vec2 = [0, 0]
     const start = graph.addNode({ type: "num", data: -10 }, pos)
     const stop = graph.addNode({ type: "num", data: 10 }, pos)
@@ -65,7 +45,7 @@ test("show error after function call", () => {
     expect(linspace.self).toEqual({ type: "call", name: "linspace" })
     const message = "The number of values should be positive."
     expect(linspace.output!.value).toEqual({ type: "error", message })
-    const { queryByText, unmount } = render(() => (
+    const { queryByRole, unmount } = render(() => (
         <GraphProvider graph={graph}>
             <MockMeasureTextProvider>
                 <MockPositionsProvider>
@@ -74,8 +54,10 @@ test("show error after function call", () => {
             </MockMeasureTextProvider>
         </GraphProvider>
     ))
-    const container = queryByText(message)!
+    const name = `body ${linspace.id}`
+    const container = queryByRole("note", { name })
     expect(container).toBeInTheDocument()
+    expect(container).toHaveTextContent(message)
     unmount()
 })
 
