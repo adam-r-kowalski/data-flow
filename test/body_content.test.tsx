@@ -109,7 +109,58 @@ test("show label and edit name", () => {
     unmount()
 })
 
-test("show number and edit value", () => {
+test("show function with no inputs has none type", () => {
+    const graph = createGraph()
+    const pos: Vec2 = [0, 0]
+    const linspace = graph.addNode({ type: "call", name: "linspace" }, pos)
+    expect(linspace.self).toEqual({ type: "call", name: "linspace" })
+    expect(linspace.output!.value).toEqual({ type: "none" })
+    const { unmount, baseElement } = render(() => (
+        <GraphProvider graph={graph}>
+            <MockMeasureTextProvider>
+                <MockPositionsProvider>
+                    <BodyContent node={linspace} />
+                </MockPositionsProvider>
+            </MockMeasureTextProvider>
+        </GraphProvider>
+    ))
+    expect(baseElement.children.length).toEqual(1)
+    expect(baseElement.children[0]).toBeEmptyDOMElement()
+    unmount()
+})
+
+test("show num and edit value", () => {
+    const graph = createGraph()
+    const node = graph.addNode({ type: "num", data: 0 }, [0, 0])
+    expect(node.self).toEqual({ type: "num", data: 0 })
+    expect(node.self).toEqual(node.output!.value)
+    const { queryByRole, unmount } = render(() => (
+        <GraphProvider graph={graph}>
+            <MockMeasureTextProvider>
+                <MockPositionsProvider>
+                    <BodyContent node={node} />
+                </MockPositionsProvider>
+            </MockMeasureTextProvider>
+        </GraphProvider>
+    ))
+    const name = `body ${node.id}`
+    const container = queryByRole("button", { name })!
+    expect(container).toBeInTheDocument()
+    fireEvent.click(container)
+    expect(container).not.toBeInTheDocument()
+    const input = queryByRole("spinbutton", { name })!
+    expect(input).toBeInTheDocument()
+    fireEvent.input(input, { target: { value: 3 } })
+    const nextNode = graph.database.nodes[node.id]
+    expect(nextNode.self).toEqual({ type: "num", data: 3 })
+    expect(nextNode.self).toEqual(nextNode.output!.value)
+    fireEvent.blur(input)
+    expect(input).not.toBeInTheDocument()
+    expect(queryByRole("button", { name })!).toBeInTheDocument()
+    unmount()
+})
+
+test("show read and edit value", () => {
     const graph = createGraph()
     const node = graph.addNode({ type: "num", data: 0 }, [0, 0])
     expect(node.self).toEqual({ type: "num", data: 0 })

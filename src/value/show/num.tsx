@@ -23,7 +23,7 @@ export const num: Value = {
             const measureText = useMeasureText()!
             const [editing, setEditing] = createSignal(false)
             let input: HTMLInputElement | undefined = undefined
-            const inputString = () => props.node.output.value.data.toString()
+            const inputString = () => props.node.self.data.toString()
             const font = "normal 20px monospace"
             const width = () =>
                 Math.floor(measureText.width(font, inputString())) + 70
@@ -31,6 +31,8 @@ export const num: Value = {
                 <Switch>
                     <Match when={!editing()}>
                         <Container
+                            role="button"
+                            aria-label={`body ${props.node.id}`}
                             onClick={() => {
                                 setEditing(true)
                                 positions.retrack(props.node.id)
@@ -39,12 +41,13 @@ export const num: Value = {
                                 input!.click()
                             }}
                         >
-                            {props.node.output.value.data}
+                            {props.node.self.data}
                         </Container>
                     </Match>
                     <Match when={editing()}>
                         <input
                             type="number"
+                            aria-label={`body ${props.node.id}`}
                             step="any"
                             ref={input}
                             onPointerDown={(e) => e.stopPropagation()}
