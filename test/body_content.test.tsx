@@ -1,7 +1,6 @@
 import { render, fireEvent } from "@solidjs/testing-library"
 import { JSXElement } from "solid-js"
 import { vi } from "vitest"
-import * as fc from "fast-check"
 
 import { GraphProvider } from "../src/Graph"
 import { createGraph, Graph, UUID } from "../src/Graph/graph"
@@ -10,7 +9,6 @@ import { PositionsContext } from "../src/Graph/positions"
 import { MeasureTextContext } from "../src/MeasureText"
 
 import { Vec2 } from "../src/vec2"
-import { Arbitrary } from "fast-check"
 
 export const MockMeasureTextProvider = (props: { children: JSXElement }) => {
     const width = vi.fn<[string, string], number>(() => 0)
@@ -33,15 +31,6 @@ export const MockPositionsProvider = (props: { children: JSXElement }) => {
         </PositionsContext.Provider>
     )
 }
-
-const N = fc.integer({ min: -10000, max: 10000 })
-const Pos: Arbitrary<Vec2> = fc.tuple(N, N)
-const Name: Arbitrary<string> = fc.stringOf(fc.lorem(), { minLength: 1 })
-const Names = (n: number): Arbitrary<string[]> =>
-    fc.array(Name, { minLength: n, maxLength: n }).filter((names) => {
-        const unique = new Set(names)
-        return unique.size === names.length
-    })
 
 interface Props {
     graph: Graph
@@ -189,5 +178,24 @@ test("show tensor", () => {
     for (let i = 0; i < data.length; i++) {
         expect(container.children[i]).toHaveTextContent(data[i].toString())
     }
+    unmount()
+})
+
+test("show call", () => {
+    const graph = createGraph()
+    const a = graph.addNode({ type: "num", data: 5 }, pos)
+    const b = graph.addNode({ type: "num", data: 3 }, pos)
+    const node = graph.addNode({ type: "call", name: "add" }, pos)
+    graph.addEdge({ node: a.id, input: node.inputs[0] })
+    graph.addEdge({ node: b.id, input: node.inputs[1] })
+    const { queryByRole, unmount } = render(() => (
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
+    ))
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("grid", options)!
+    expect(container).toBeInTheDocument()
+    expect(container).toHaveTextContent("8")
     unmount()
 })

@@ -18,7 +18,10 @@ export const tensor: Value = {
             return (
                 <Switch fallback={<>NOT IMPLEMENTED!</>}>
                     <Match when={props.value.rank == 0}>
-                        <Container>
+                        <Container
+                            role="grid"
+                            aria-label={`body ${props.node}`}
+                        >
                             {(props.value.data as number).toFixed(2)}
                         </Container>
                     </Match>
