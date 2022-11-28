@@ -6,7 +6,7 @@ export const BodyContent = (props: { node: Node }) => {
         const self = props.node.self
         const value = self.type === "call" ? props.node.output!.value : self
         const Show = call(base, "show", [value]).fn
-        return <Show node={props.node} />
+        return <Show node={props.node.id} value={value} />
     }
     return <>{Component()}</>
 }

@@ -9,20 +9,22 @@ const Container = styled("div")({
     "border-radius": "5px",
 })
 
-export const Error: Value = {
-    type: "Function",
+export const error: Value = {
+    type: "fn",
     fn: () => ({
-        type: "Function",
+        type: "fn",
         fn: (props: Props) => {
             return (
                 <Container
+                    role="note"
+                    aria-label={`body ${props.node}`}
                     style={{
                         color: "#db4b4b",
                         "white-space": "pre-wrap",
                         "max-width": "200px",
                     }}
                 >
-                    {props.body.value.message}
+                    {props.value.message}
                 </Container>
             )
         },

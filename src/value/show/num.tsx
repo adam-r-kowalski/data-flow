@@ -23,7 +23,7 @@ export const num: Value = {
             const measureText = useMeasureText()!
             const [editing, setEditing] = createSignal(false)
             let input: HTMLInputElement | undefined = undefined
-            const inputString = () => props.node.output.value.data.toString()
+            const inputString = () => props.value.data.toString()
             const font = "normal 20px monospace"
             const width = () =>
                 Math.floor(measureText.width(font, inputString())) + 70
@@ -31,20 +31,23 @@ export const num: Value = {
                 <Switch>
                     <Match when={!editing()}>
                         <Container
+                            role="button"
+                            aria-label={`body ${props.node}`}
                             onClick={() => {
                                 setEditing(true)
-                                positions.retrack(props.node.id)
+                                positions.retrack(props.node)
                                 input!.value = inputString()
                                 input!.focus()
                                 input!.click()
                             }}
                         >
-                            {props.node.output.value.data}
+                            {props.value.data}
                         </Container>
                     </Match>
                     <Match when={editing()}>
                         <input
                             type="number"
+                            aria-label={`body ${props.node}`}
                             step="any"
                             ref={input}
                             onPointerDown={(e) => e.stopPropagation()}
@@ -53,11 +56,11 @@ export const num: Value = {
                                     type: "num",
                                     data: input!.valueAsNumber,
                                 }
-                                graph.setValue(props.node.id, value)
+                                graph.setValue(props.node, value)
                             }}
                             onBlur={() => {
                                 setEditing(false)
-                                positions.retrack(props.node.id)
+                                positions.retrack(props.node)
                             }}
                             style={{
                                 padding: "20px",

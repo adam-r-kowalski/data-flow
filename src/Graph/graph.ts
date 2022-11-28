@@ -255,7 +255,7 @@ const addEdge = (
 
 const setValue = (context: Context, nodeId: UUID, value: Value) => {
     const { setDatabase, notifySubscribers } = context
-    setDatabase("nodes", nodeId, "output", "value", value)
+    setDatabase("nodes", nodeId, "self", value)
     if (value.type === "read") {
         const readers = context.readers[value.name]
         if (readers) readers.add(nodeId)

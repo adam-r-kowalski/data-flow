@@ -7,21 +7,21 @@ import { Scatter } from "./scatter"
 import { Svg } from "./svg"
 import { Vec2 } from "../../../vec2"
 import { Overlay } from "./overlay"
-import { Node } from "../../../Graph"
+import { UUID } from "../../../Graph/graph"
 
 export const Plot = (Component: (props: Props) => JSXElement): Value => ({
     type: "fn",
     fn: () => ({
         type: "fn",
-        fn: (props: { node: Node }) => {
+        fn: (props: { node: UUID; value: Value }) => {
             const size: Vec2 = [300, 300]
             const to: Vec2 = [10, 290]
             return (
-                <Svg size={size}>
+                <Svg node={props.node} size={size}>
                     <Component
-                        value={props.node.output.value}
-                        domain={props.node.output.value.domain}
-                        range={props.node.output.value.range}
+                        value={props.value}
+                        domain={props.value.domain}
+                        range={props.value.range}
                         to={to}
                     />
                 </Svg>
