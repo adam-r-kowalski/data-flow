@@ -17,14 +17,14 @@ export const error: Value = {
             return (
                 <Container
                     role="note"
-                    aria-label={`body ${props.node.id}`}
+                    aria-label={`body ${props.node}`}
                     style={{
                         color: "#db4b4b",
                         "white-space": "pre-wrap",
                         "max-width": "200px",
                     }}
                 >
-                    {props.node.output!.value.message}
+                    {props.value.message}
                 </Container>
             )
         },

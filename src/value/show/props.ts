@@ -1,5 +1,7 @@
-import { Node } from "../../Graph"
+import { UUID } from "../../Graph/graph"
+import { Value } from "../value"
 
 export interface Props {
-    node: Node
+    node: UUID
+    value: Value
 }

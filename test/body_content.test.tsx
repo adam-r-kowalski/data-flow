@@ -1,14 +1,16 @@
 import { render, fireEvent } from "@solidjs/testing-library"
 import { JSXElement } from "solid-js"
 import { vi } from "vitest"
+import * as fc from "fast-check"
 
 import { GraphProvider } from "../src/Graph"
-import { createGraph, UUID } from "../src/Graph/graph"
+import { createGraph, Graph, Node, UUID } from "../src/Graph/graph"
 import { BodyContent } from "../src/Graph/NodeCards/BodyContent"
 import { PositionsContext } from "../src/Graph/positions"
 import { MeasureTextContext } from "../src/MeasureText"
 
 import { Vec2 } from "../src/vec2"
+import { Arbitrary } from "fast-check"
 
 export const MockMeasureTextProvider = (props: { children: JSXElement }) => {
     const width = vi.fn<[string, string], number>(() => 0)
@@ -32,88 +34,93 @@ export const MockPositionsProvider = (props: { children: JSXElement }) => {
     )
 }
 
+const N = fc.integer({ min: -10000, max: 10000 })
+const Pos: Arbitrary<Vec2> = fc.tuple(N, N)
+const Name: Arbitrary<string> = fc.stringOf(fc.lorem(), { minLength: 1 })
+const Names = (n: number): Arbitrary<string[]> =>
+    fc.array(Name, { minLength: n, maxLength: n }).filter((names) => {
+        const unique = new Set(names)
+        return unique.size === names.length
+    })
+
+interface Props {
+    graph: Graph
+    children: JSXElement
+}
+
+const Provider = (props: Props) => (
+    <GraphProvider graph={props.graph}>
+        <MockMeasureTextProvider>
+            <MockPositionsProvider>{props.children}</MockPositionsProvider>
+        </MockMeasureTextProvider>
+    </GraphProvider>
+)
+
 test("show error", () => {
-    const graph = createGraph()
-    const pos: Vec2 = [0, 0]
-    const start = graph.addNode({ type: "num", data: -10 }, pos)
-    const stop = graph.addNode({ type: "num", data: 10 }, pos)
-    const num = graph.addNode({ type: "num", data: -10 }, pos)
-    const linspace = graph.addNode({ type: "call", name: "linspace" }, pos)
-    graph.addEdge({ input: linspace.inputs[0], node: start.id })
-    graph.addEdge({ input: linspace.inputs[1], node: stop.id })
-    graph.addEdge({ input: linspace.inputs[2], node: num.id })
-    expect(linspace.self).toEqual({ type: "call", name: "linspace" })
-    const message = "The number of values should be positive."
-    expect(linspace.output!.value).toEqual({ type: "error", message })
-    const { queryByRole, unmount } = render(() => (
-        <GraphProvider graph={graph}>
-            <MockMeasureTextProvider>
-                <MockPositionsProvider>
-                    <BodyContent node={linspace} />
-                </MockPositionsProvider>
-            </MockMeasureTextProvider>
-        </GraphProvider>
-    ))
-    const name = `body ${linspace.id}`
-    const container = queryByRole("note", { name })
-    expect(container).toBeInTheDocument()
-    expect(container).toHaveTextContent(message)
-    unmount()
+    fc.assert(
+        fc.property(Pos, fc.string(), (pos, message) => {
+            const graph = createGraph()
+            const node = graph.addNode({ type: "error", message }, pos)
+            const { queryByRole, unmount } = render(() => (
+                <Provider graph={graph}>
+                    <BodyContent node={node} />
+                </Provider>
+            ))
+            const options = { name: `body ${node.id}` }
+            const container = queryByRole("note", options)
+            expect(container).toBeInTheDocument()
+            expect(container).toHaveTextContent(message.trim())
+            unmount()
+        })
+    )
 })
 
 test("show label and edit name", () => {
-    const graph = createGraph()
-    const node = graph.addNode({ type: "label", name: "x" }, [0, 0])
-    expect(node.self).toEqual({ type: "label", name: "x" })
-    expect(node.output).toBeUndefined()
-    const { queryByRole, unmount } = render(() => (
-        <GraphProvider graph={graph}>
-            <MockMeasureTextProvider>
-                <MockPositionsProvider>
+    fc.assert(
+        fc.property(Pos, Names(2), (pos, [name, newName]) => {
+            const graph = createGraph()
+            const node = graph.addNode({ type: "label", name }, pos)
+            const { queryByRole, unmount } = render(() => (
+                <Provider graph={graph}>
                     <BodyContent node={node} />
-                </MockPositionsProvider>
-            </MockMeasureTextProvider>
-        </GraphProvider>
-    ))
-    const name = `body ${node.id}`
-    const container = queryByRole("button", { name })!
-    expect(container).toBeInTheDocument()
-    expect(container).toHaveTextContent("x")
-    fireEvent.click(container)
-    expect(container).not.toBeInTheDocument()
-    const input = queryByRole("textbox", { name })!
-    expect(input).toBeInTheDocument()
-    expect(input).toHaveValue("x")
-    fireEvent.input(input, { target: { value: "y" } })
-    const nextNode = graph.database.nodes[node.id]
-    expect(nextNode.self).toEqual({ type: "label", name: "y" })
-    expect(nextNode.output).toBeUndefined()
-    fireEvent.blur(input)
-    expect(input).not.toBeInTheDocument()
-    const nextContainer = queryByRole("button", { name })!
-    expect(nextContainer).toBeInTheDocument()
-    expect(nextContainer).toHaveTextContent("y")
-    unmount()
+                </Provider>
+            ))
+            const options = { name: `body ${node.id}` }
+            const container = queryByRole("button", options)!
+            expect(container).toBeInTheDocument()
+            expect(container).toHaveTextContent(name)
+            fireEvent.click(container)
+            expect(container).not.toBeInTheDocument()
+            const input = queryByRole("textbox", options)!
+            expect(input).toBeInTheDocument()
+            expect(input).toHaveValue(name)
+            fireEvent.input(input, { target: { value: newName } })
+            fireEvent.blur(input)
+            expect(input).not.toBeInTheDocument()
+            const nextContainer = queryByRole("button", options)!
+            expect(nextContainer).toBeInTheDocument()
+            expect(nextContainer).toHaveTextContent(newName)
+            unmount()
+        })
+    )
 })
 
-test("show function with no inputs has none type", () => {
-    const graph = createGraph()
-    const pos: Vec2 = [0, 0]
-    const linspace = graph.addNode({ type: "call", name: "linspace" }, pos)
-    expect(linspace.self).toEqual({ type: "call", name: "linspace" })
-    expect(linspace.output!.value).toEqual({ type: "none" })
-    const { unmount, baseElement } = render(() => (
-        <GraphProvider graph={graph}>
-            <MockMeasureTextProvider>
-                <MockPositionsProvider>
-                    <BodyContent node={linspace} />
-                </MockPositionsProvider>
-            </MockMeasureTextProvider>
-        </GraphProvider>
-    ))
-    expect(baseElement.children.length).toEqual(1)
-    expect(baseElement.children[0]).toBeEmptyDOMElement()
-    unmount()
+test("show none", () => {
+    fc.assert(
+        fc.property(Pos, (pos) => {
+            const graph = createGraph()
+            const node = graph.addNode({ type: "none" }, pos)
+            const { unmount, queryByRole } = render(() => (
+                <Provider graph={graph}>
+                    <BodyContent node={node} />
+                </Provider>
+            ))
+            const options = { name: `body ${node.id}` }
+            const container = queryByRole("none", options)
+            expect(container).toBeInTheDocument()
+            unmount()
+        })
+    )
 })
 
 test("show num and edit value", () => {

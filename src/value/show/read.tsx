@@ -25,27 +25,27 @@ export const read: Value = {
             let input: HTMLInputElement | undefined = undefined
             const font = "normal 20px monospace"
             const width = () =>
-                Math.floor(measureText.width(font, props.node.self.name)) + 70
+                Math.floor(measureText.width(font, props.value.name)) + 70
             return (
                 <Switch>
                     <Match when={!editing()}>
                         <Container
                             role="button"
-                            aria-label={`body ${props.node.id}`}
+                            aria-label={`body ${props.node}`}
                             onClick={() => {
                                 setEditing(true)
-                                positions.retrack(props.node.id)
-                                input!.value = props.node.self.name
+                                positions.retrack(props.node)
+                                input!.value = props.value.name
                                 input!.focus()
                                 input!.click()
                             }}
                         >
-                            {props.node.self.name}
+                            {props.value.name}
                         </Container>
                     </Match>
                     <Match when={editing()}>
                         <input
-                            aria-label={`body ${props.node.id}`}
+                            aria-label={`body ${props.node}`}
                             ref={input}
                             onPointerDown={(e) => e.stopPropagation()}
                             onInput={() => {
@@ -53,15 +53,12 @@ export const read: Value = {
                                     type: "read",
                                     name: input!.value,
                                 }
-                                graph.untrackLabel(
-                                    props.node.id,
-                                    props.node.self.name
-                                )
-                                graph.setValue(props.node.id, value)
+                                graph.untrackLabel(props.node, props.value.name)
+                                graph.setValue(props.node, value)
                             }}
                             onBlur={() => {
                                 setEditing(false)
-                                positions.retrack(props.node.id)
+                                positions.retrack(props.node)
                             }}
                             style={{
                                 padding: "20px",

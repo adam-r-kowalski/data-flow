@@ -17,17 +17,15 @@ export const tensor: Value = {
         fn: (props: Props) => {
             return (
                 <Switch fallback={<>NOT IMPLEMENTED!</>}>
-                    <Match when={props.node.output!.value.rank == 0}>
+                    <Match when={props.value.rank == 0}>
                         <Container>
-                            {(props.node.output!.value.data as number).toFixed(
-                                2
-                            )}
+                            {(props.value.data as number).toFixed(2)}
                         </Container>
                     </Match>
-                    <Match when={props.node.output!.value.rank == 1}>
+                    <Match when={props.value.rank == 1}>
                         <Container
                             role="grid"
-                            aria-label={`body ${props.node.id}`}
+                            aria-label={`body ${props.node}`}
                             style={{
                                 display: "grid",
                                 "text-align": "end",
@@ -40,9 +38,7 @@ export const tensor: Value = {
                                 e.preventDefault()
                             }}
                         >
-                            <For
-                                each={props.node.output!.value.data as number[]}
-                            >
+                            <For each={props.value.data as number[]}>
                                 {(number) => (
                                     <div role="gridcell">
                                         {number.toFixed(2)}
