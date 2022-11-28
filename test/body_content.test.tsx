@@ -4,7 +4,7 @@ import { vi } from "vitest"
 import * as fc from "fast-check"
 
 import { GraphProvider } from "../src/Graph"
-import { createGraph, Graph, Node, UUID } from "../src/Graph/graph"
+import { createGraph, Graph, UUID } from "../src/Graph/graph"
 import { BodyContent } from "../src/Graph/NodeCards/BodyContent"
 import { PositionsContext } from "../src/Graph/positions"
 import { MeasureTextContext } from "../src/MeasureText"
@@ -56,172 +56,138 @@ const Provider = (props: Props) => (
     </GraphProvider>
 )
 
+const pos: Vec2 = [0, 0]
+
 test("show error", () => {
-    fc.assert(
-        fc.property(Pos, fc.string(), (pos, message) => {
-            const graph = createGraph()
-            const node = graph.addNode({ type: "error", message }, pos)
-            const { queryByRole, unmount } = render(() => (
-                <Provider graph={graph}>
-                    <BodyContent node={node} />
-                </Provider>
-            ))
-            const options = { name: `body ${node.id}` }
-            const container = queryByRole("note", options)
-            expect(container).toBeInTheDocument()
-            expect(container).toHaveTextContent(message.trim())
-            unmount()
-        })
-    )
+    const graph = createGraph()
+    const node = graph.addNode({ type: "error", message: "error message" }, pos)
+    const { queryByRole, unmount } = render(() => (
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
+    ))
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("note", options)
+    expect(container).toBeInTheDocument()
+    expect(container).toHaveTextContent("error message")
+    unmount()
 })
 
 test("show label and edit name", () => {
-    fc.assert(
-        fc.property(Pos, Names(2), (pos, [name, newName]) => {
-            const graph = createGraph()
-            const node = graph.addNode({ type: "label", name }, pos)
-            const { queryByRole, unmount } = render(() => (
-                <Provider graph={graph}>
-                    <BodyContent node={node} />
-                </Provider>
-            ))
-            const options = { name: `body ${node.id}` }
-            const container = queryByRole("button", options)!
-            expect(container).toBeInTheDocument()
-            expect(container).toHaveTextContent(name)
-            fireEvent.click(container)
-            expect(container).not.toBeInTheDocument()
-            const input = queryByRole("textbox", options)!
-            expect(input).toBeInTheDocument()
-            expect(input).toHaveValue(name)
-            fireEvent.input(input, { target: { value: newName } })
-            fireEvent.blur(input)
-            expect(input).not.toBeInTheDocument()
-            const nextContainer = queryByRole("button", options)!
-            expect(nextContainer).toBeInTheDocument()
-            expect(nextContainer).toHaveTextContent(newName)
-            unmount()
-        })
-    )
+    const graph = createGraph()
+    const node = graph.addNode({ type: "label", name: "x" }, pos)
+    const { queryByRole, unmount } = render(() => (
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
+    ))
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("button", options)!
+    expect(container).toBeInTheDocument()
+    expect(container).toHaveTextContent("x")
+    fireEvent.click(container)
+    expect(container).not.toBeInTheDocument()
+    const input = queryByRole("textbox", options)!
+    expect(input).toBeInTheDocument()
+    expect(input).toHaveValue("x")
+    fireEvent.input(input, { target: { value: "y" } })
+    fireEvent.blur(input)
+    expect(input).not.toBeInTheDocument()
+    const nextContainer = queryByRole("button", options)!
+    expect(nextContainer).toBeInTheDocument()
+    expect(nextContainer).toHaveTextContent("y")
+    unmount()
 })
 
 test("show none", () => {
-    fc.assert(
-        fc.property(Pos, (pos) => {
-            const graph = createGraph()
-            const node = graph.addNode({ type: "none" }, pos)
-            const { unmount, queryByRole } = render(() => (
-                <Provider graph={graph}>
-                    <BodyContent node={node} />
-                </Provider>
-            ))
-            const options = { name: `body ${node.id}` }
-            const container = queryByRole("none", options)
-            expect(container).toBeInTheDocument()
-            unmount()
-        })
-    )
+    const graph = createGraph()
+    const node = graph.addNode({ type: "none" }, pos)
+    const { unmount, queryByRole } = render(() => (
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
+    ))
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("none", options)
+    expect(container).toBeInTheDocument()
+    unmount()
 })
 
 test("show num and edit value", () => {
     const graph = createGraph()
-    const node = graph.addNode({ type: "num", data: 0 }, [0, 0])
-    expect(node.self).toEqual({ type: "num", data: 0 })
-    expect(node.self).toEqual(node.output!.value)
+    const node = graph.addNode({ type: "num", data: 5 }, pos)
     const { queryByRole, unmount } = render(() => (
-        <GraphProvider graph={graph}>
-            <MockMeasureTextProvider>
-                <MockPositionsProvider>
-                    <BodyContent node={node} />
-                </MockPositionsProvider>
-            </MockMeasureTextProvider>
-        </GraphProvider>
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
     ))
-    const name = `body ${node.id}`
-    const container = queryByRole("button", { name })!
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("button", options)!
     expect(container).toBeInTheDocument()
-    expect(container).toHaveTextContent("0")
+    expect(container).toHaveTextContent("5")
     fireEvent.click(container)
     expect(container).not.toBeInTheDocument()
-    const input = queryByRole("spinbutton", { name })!
+    const input = queryByRole("spinbutton", options)!
     expect(input).toBeInTheDocument()
-    fireEvent.input(input, { target: { value: 3 } })
-    const nextNode = graph.database.nodes[node.id]
-    expect(nextNode.self).toEqual({ type: "num", data: 3 })
-    expect(nextNode.self).toEqual(nextNode.output!.value)
+    fireEvent.input(input, { target: { value: 10 } })
     fireEvent.blur(input)
     expect(input).not.toBeInTheDocument()
-    const nextContainer = queryByRole("button", { name })!
+    const nextContainer = queryByRole("button", options)!
     expect(nextContainer).toBeInTheDocument()
-    expect(nextContainer).toHaveTextContent("3")
+    expect(nextContainer).toHaveTextContent("10")
     unmount()
 })
 
 test("show read and edit value", () => {
     const graph = createGraph()
-    const node = graph.addNode({ type: "read", name: "x" }, [0, 0])
-    expect(node.self).toEqual({ type: "read", name: "x" })
-    expect(node.self).toEqual(node.output!.value)
+    const node = graph.addNode({ type: "read", name: "x" }, pos)
     const { queryByRole, unmount } = render(() => (
-        <GraphProvider graph={graph}>
-            <MockMeasureTextProvider>
-                <MockPositionsProvider>
-                    <BodyContent node={node} />
-                </MockPositionsProvider>
-            </MockMeasureTextProvider>
-        </GraphProvider>
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
     ))
-    const name = `body ${node.id}`
-    const container = queryByRole("button", { name })!
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("button", options)!
     expect(container).toBeInTheDocument()
+    expect(container).toHaveTextContent("x")
     fireEvent.click(container)
     expect(container).not.toBeInTheDocument()
-    const input = queryByRole("textbox", { name })!
+    const input = queryByRole("textbox", options)!
     expect(input).toBeInTheDocument()
     fireEvent.input(input, { target: { value: "y" } })
-    const nextNode = graph.database.nodes[node.id]
-    expect(nextNode.self).toEqual({ type: "read", name: "y" })
-    expect(nextNode.self).toEqual(nextNode.output!.value)
     fireEvent.blur(input)
     expect(input).not.toBeInTheDocument()
-    expect(queryByRole("button", { name })).toBeInTheDocument()
+    const nextContainer = queryByRole("button", options)!
+    expect(nextContainer).toBeInTheDocument()
+    expect(nextContainer).toHaveTextContent("y")
     unmount()
 })
 
 test("show tensor", () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     const graph = createGraph()
-    const pos: Vec2 = [0, 0]
-    const start = graph.addNode({ type: "num", data: -10 }, pos)
-    const stop = graph.addNode({ type: "num", data: 10 }, pos)
-    const num = graph.addNode({ type: "num", data: 3 }, pos)
-    const linspace = graph.addNode({ type: "call", name: "linspace" }, pos)
-    graph.addEdge({ input: linspace.inputs[0], node: start.id })
-    graph.addEdge({ input: linspace.inputs[1], node: stop.id })
-    graph.addEdge({ input: linspace.inputs[2], node: num.id })
-    expect(linspace.self).toEqual({ type: "call", name: "linspace" })
-    expect(linspace.output!.value).toEqual({
-        type: "tensor",
-        data: [-10, 0, 10],
-        size: 3,
-        shape: [3],
-        rank: 1,
-        dtype: "float32",
-    })
+    const node = graph.addNode(
+        {
+            type: "tensor",
+            data,
+            size: data.length,
+            shape: [data.length],
+            rank: 1,
+            dtype: "float32",
+        },
+        pos
+    )
     const { queryByRole, unmount } = render(() => (
-        <GraphProvider graph={graph}>
-            <MockMeasureTextProvider>
-                <MockPositionsProvider>
-                    <BodyContent node={linspace} />
-                </MockPositionsProvider>
-            </MockMeasureTextProvider>
-        </GraphProvider>
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
     ))
-    const name = `body ${linspace.id}`
-    const container = queryByRole("grid", { name })!
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("grid", options)!
     expect(container).toBeInTheDocument()
-    expect(container.children.length).toEqual(3)
-    expect(container.children[0]).toHaveTextContent("-10")
-    expect(container.children[1]).toHaveTextContent("0")
-    expect(container.children[2]).toHaveTextContent("10")
+    expect(container.children.length).toEqual(data.length)
+    for (let i = 0; i < data.length; i++) {
+        expect(container.children[i]).toHaveTextContent(data[i].toString())
+    }
     unmount()
 })
