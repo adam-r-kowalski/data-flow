@@ -7,6 +7,7 @@ import { createGraph, Graph, UUID } from "../src/Graph/graph"
 import { BodyContent } from "../src/Graph/NodeCards/BodyContent"
 import { PositionsContext } from "../src/Graph/positions"
 import { MeasureTextContext } from "../src/MeasureText"
+import { scaled } from "../src/value/show/plot/scaled"
 
 import { Vec2 } from "../src/vec2"
 
@@ -197,5 +198,62 @@ test("show call", () => {
     const container = queryByRole("grid", options)!
     expect(container).toBeInTheDocument()
     expect(container).toHaveTextContent("8")
+    unmount()
+})
+
+test("show scatter", () => {
+    const graph = createGraph()
+    const value = {
+        type: "scatter",
+        x: [1, 2, 3],
+        y: [2, 4, 8],
+        domain: [1, 3] as Vec2,
+        range: [4, 12] as Vec2,
+    }
+    const node = graph.addNode(value, pos)
+    const { queryByRole, unmount } = render(() => (
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
+    ))
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("figure", options)!
+    expect(container).toBeInTheDocument()
+    expect(container.children.length).toEqual(3)
+    const scaledX = scaled(value.x, value.domain, [10, 290])
+    const scaledY = scaled(value.y, value.range, [10, 290])
+    for (let i = 0; i < 3; i++) {
+        const child = container.children[i]
+        expect(child).toHaveAttribute("cx", scaledX[i].toString())
+        expect(child).toHaveAttribute("cy", scaledY[i].toString())
+    }
+    unmount()
+})
+
+test("show line", () => {
+    const graph = createGraph()
+    const value = {
+        type: "line",
+        x: [1, 2, 3],
+        y: [2, 4, 8],
+        domain: [1, 3] as Vec2,
+        range: [4, 12] as Vec2,
+    }
+    const node = graph.addNode(value, pos)
+    const { queryByRole, unmount } = render(() => (
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
+    ))
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("figure", options)!
+    expect(container).toBeInTheDocument()
+    expect(container.children.length).toEqual(1)
+    const scaledX = scaled(value.x, value.domain, [10, 290])
+    const scaledY = scaled(value.y, value.range, [10, 290])
+    const path = scaledX
+        .map((x, i) => `${i == 0 ? "M" : "L"}${x},${scaledY[i]}`)
+        .join("")
+    expect(container.children[0]).toHaveAttribute("d", path)
     unmount()
 })

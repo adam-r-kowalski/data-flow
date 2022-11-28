@@ -17,7 +17,7 @@ export const Plot = (Component: (props: Props) => JSXElement): Value => ({
             const size: Vec2 = [300, 300]
             const to: Vec2 = [10, 290]
             return (
-                <Svg size={size}>
+                <Svg node={props.node} size={size}>
                     <Component
                         value={props.value}
                         domain={props.value.domain}
