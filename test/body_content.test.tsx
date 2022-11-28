@@ -257,3 +257,55 @@ test("show line", () => {
     expect(container.children[0]).toHaveAttribute("d", path)
     unmount()
 })
+
+test("show overlay", () => {
+    const graph = createGraph()
+    const line = {
+        type: "line",
+        x: [1, 2, 3],
+        y: [2, 4, 8],
+        domain: [1, 3] as Vec2,
+        range: [2, 8] as Vec2,
+    }
+    const scatter = {
+        type: "scatter",
+        x: [1, 2, 3],
+        y: [3, 6, 9],
+        domain: [1, 3] as Vec2,
+        range: [3, 9] as Vec2,
+    }
+    const value = {
+        type: "overlay",
+        plots: [line, scatter],
+        domain: [1, 3] as Vec2,
+        range: [2, 9] as Vec2,
+    }
+    const node = graph.addNode(value, pos)
+    const { queryByRole, unmount } = render(() => (
+        <Provider graph={graph}>
+            <BodyContent node={node} />
+        </Provider>
+    ))
+    const options = { name: `body ${node.id}` }
+    const container = queryByRole("figure", options)!
+    expect(container).toBeInTheDocument()
+    expect(container.children.length).toEqual(4)
+    {
+        const scaledX = scaled(line.x, value.domain, [10, 290])
+        const scaledY = scaled(line.y, value.range, [10, 290])
+        const path = scaledX
+            .map((x, i) => `${i == 0 ? "M" : "L"}${x},${scaledY[i]}`)
+            .join("")
+        expect(container.children[0]).toHaveAttribute("d", path)
+    }
+    {
+        const scaledX = scaled(scatter.x, value.domain, [10, 290])
+        const scaledY = scaled(scatter.y, value.range, [10, 290])
+        for (let i = 0; i < 3; i++) {
+            const child = container.children[i + 1]
+            expect(child).toHaveAttribute("cx", scaledX[i].toString())
+            expect(child).toHaveAttribute("cy", scaledY[i].toString())
+        }
+    }
+    unmount()
+})
