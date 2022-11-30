@@ -32,13 +32,3 @@ export const call = (module: Value, name: string, args: Value[]): Value => {
         throw e
     }
 }
-
-export const callable = (value: Value): boolean => {
-    switch (value.type) {
-        case "fn":
-        case "fns":
-            return true
-        default:
-            return false
-    }
-}
