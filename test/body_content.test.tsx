@@ -1,37 +1,13 @@
 import { render, fireEvent } from "@solidjs/testing-library"
 import { JSXElement } from "solid-js"
-import { vi } from "vitest"
 
 import { GraphProvider } from "../src/Graph"
-import { createGraph, Graph, UUID } from "../src/Graph/graph"
+import { createGraph, Graph } from "../src/Graph/graph"
 import { BodyContent } from "../src/Graph/NodeCards/BodyContent"
-import { PositionsContext } from "../src/Graph/positions"
-import { MeasureTextContext } from "../src/MeasureText"
 import { scaled } from "../src/value/show/plot/scaled"
 
 import { Vec2 } from "../src/vec2"
-
-export const MockMeasureTextProvider = (props: { children: JSXElement }) => {
-    const width = vi.fn<[string, string], number>(() => 0)
-    return (
-        <MeasureTextContext.Provider value={{ width }}>
-            {props.children}
-        </MeasureTextContext.Provider>
-    )
-}
-
-export const MockPositionsProvider = (props: { children: JSXElement }) => {
-    const positions = {
-        track: vi.fn<[UUID, HTMLElement], void>(),
-        position: vi.fn<[UUID], Vec2>(() => [0, 0]),
-        retrack: vi.fn<[UUID], void>(),
-    }
-    return (
-        <PositionsContext.Provider value={positions}>
-            {props.children}
-        </PositionsContext.Provider>
-    )
-}
+import { MockMeasureTextProvider, MockPositionsProvider } from "./mocks"
 
 interface Props {
     graph: Graph

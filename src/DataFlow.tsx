@@ -2,12 +2,10 @@ import { onCleanup } from "solid-js"
 import { styled } from "solid-styled-components"
 
 import { CameraProvider } from "./camera"
-import { createGraph, GraphProvider } from "./Graph"
+import { Graph, GraphProvider } from "./Graph"
 import { FinderPane, FinderProvider, useFinder } from "./Finder"
 import { RadialMenu, MenuProvider, useMenu } from "./Menu"
-import { demoScene } from "./demo_scene"
 import { GraphCanvas } from "./Graph/GraphCanvas"
-import { MeasureTextProvider } from "./MeasureText"
 import { FinderModeKind } from "./Finder/finder"
 
 const FullScreen = styled("div")({
@@ -42,19 +40,19 @@ const Content = () => {
     )
 }
 
-export const DataFlow = () => {
-    const graph = createGraph()
-    demoScene(graph)
+interface Props {
+    graph: Graph
+}
+
+export const DataFlow = (props: Props) => {
     return (
-        <GraphProvider graph={graph}>
+        <GraphProvider graph={props.graph}>
             <CameraProvider>
                 <FinderProvider>
                     <MenuProvider>
-                        <MeasureTextProvider>
-                            <FullScreen>
-                                <Content />
-                            </FullScreen>
-                        </MeasureTextProvider>
+                        <FullScreen>
+                            <Content />
+                        </FullScreen>
                     </MenuProvider>
                 </FinderProvider>
             </CameraProvider>
