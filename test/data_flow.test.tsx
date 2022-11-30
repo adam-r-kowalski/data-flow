@@ -59,3 +59,124 @@ test("connecting all inputs of a function calls it and updates its body", () => 
     expect(newAddBody).toHaveTextContent("5")
     unmount()
 })
+
+test("right clicking on the graph opens the menu", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    const background = queryByRole("application", { name: "background" })!
+    expect(background).toBeInTheDocument()
+    fireEvent.contextMenu(background)
+    const menu = queryByRole("menu", { name: "menu" })
+    expect(menu).toBeInTheDocument()
+    const select = queryByRole("menuitem", { name: "select" })
+    expect(select).toBeInTheDocument()
+    const search = queryByRole("menuitem", { name: "search" })
+    expect(search).toBeInTheDocument()
+    const num = queryByRole("menuitem", { name: "num" })
+    expect(num).toBeInTheDocument()
+    const add = queryByRole("menuitem", { name: "add" })
+    expect(add).toBeInTheDocument()
+    const sub = queryByRole("menuitem", { name: "sub" })
+    expect(sub).toBeInTheDocument()
+    unmount()
+})
+
+test("clicking search in menu opens finder", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    const background = queryByRole("application", { name: "background" })!
+    expect(background).toBeInTheDocument()
+    fireEvent.contextMenu(background)
+    const menu = queryByRole("menu", { name: "menu" })
+    expect(menu).toBeInTheDocument()
+    const search = queryByRole("menuitem", { name: "search" })!
+    fireEvent.pointerUp(search)
+    expect(menu).not.toBeInTheDocument()
+    const finder = queryByRole("dialog", { name: "finder" })
+    expect(finder).toBeInTheDocument()
+    unmount()
+})
+
+test("pressing `f` opens finder", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    fireEvent.keyDown(document, { key: "f" })
+    const finder = queryByRole("dialog", { name: "finder" })
+    expect(finder).toBeInTheDocument()
+    unmount()
+})
+
+test("when finder opens the search bar is focused", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    fireEvent.keyDown(document, { key: "f" })
+    const finder = queryByRole("dialog", { name: "finder" })
+    expect(finder).toBeInTheDocument()
+    const search = queryByRole("searchbox", { name: "finder search" })
+    expect(search).toBeInTheDocument()
+    expect(search).toHaveFocus()
+    unmount()
+})
+
+test("when finder opens pressing `esc` closes it", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    fireEvent.keyDown(document, { key: "f" })
+    const search = queryByRole("searchbox", { name: "finder search" })!
+    expect(search).toBeInTheDocument()
+    fireEvent.keyDown(search, { key: "Escape" })
+    expect(search).not.toBeInTheDocument()
+    unmount()
+})
+
+test("when finder opens clicking the background closes it", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    fireEvent.keyDown(document, { key: "f" })
+    const finder = queryByRole("dialog", { name: "finder" })!
+    expect(finder).toBeInTheDocument()
+    fireEvent.click(finder)
+    expect(finder).not.toBeInTheDocument()
+    unmount()
+})
+
+// test("pressing enter when finder is open adds node to graph", () => {
+//     const graph = createGraph()
+//     const { unmount, queryByRole } = render(() => (
+//         <MockMeasureTextProvider>
+//             <DataFlow graph={graph} />
+//         </MockMeasureTextProvider>
+//     ))
+//     fireEvent.keyDown(document, { key: "f" })
+//     const finder = queryByRole("dialog", { name: "finder" })
+//     expect(finder).toBeInTheDocument()
+//     const search = queryByRole("searchbox", { name: "finder search" })!
+//     fireEvent.change(search, { target: { value: "num" } })
+//     fireEvent.keyDown(search, { key: "Enter" })
+//     expect(finder).not.toBeInTheDocument()
+//     unmount()
+// })

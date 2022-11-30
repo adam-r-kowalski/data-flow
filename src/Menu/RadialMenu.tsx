@@ -22,7 +22,7 @@ export const RadialMenu = () => {
     }
     return (
         <Show when={menu.visible()}>
-            <Container onPointerUp={menu.hide}>
+            <Container role="menu" aria-label="menu" onPointerUp={menu.hide}>
                 <div style={{ transform: translate() }}>
                     <For each={menu.options()}>
                         {(option, i) => <MenuItem i={i} option={option} />}

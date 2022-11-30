@@ -43,6 +43,8 @@ export const MenuItem = (props: Props) => {
     const [hover, setHover] = createSignal(false)
     return (
         <Circle
+            role="menuitem"
+            aria-label={props.option.label}
             style={{
                 transform: translate,
                 background: hover() ? "#000000AA" : "#00000066",

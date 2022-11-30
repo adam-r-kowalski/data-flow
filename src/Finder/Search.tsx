@@ -78,6 +78,8 @@ export const Search = () => {
         <Container>
             <FiSearch />
             <Input
+                role="searchbox"
+                aria-label="finder search"
                 placeholder="search"
                 ref={input}
                 onkeydown={onKeyDown}
