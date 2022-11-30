@@ -41,6 +41,8 @@ export const BezierCurves = () => {
                     {(edge) => {
                         return (
                             <path
+                                role="link"
+                                aria-label={`edge ${edge.id}`}
                                 fill="none"
                                 stroke="#7aa2f7"
                                 stroke-width="3"
