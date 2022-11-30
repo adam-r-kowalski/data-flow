@@ -32,6 +32,8 @@ export const OutputPort = (props: Props) => {
         requestAnimationFrame(() => positions.track(id, el))
     return (
         <Container
+            role="button"
+            aria-label={`output ${props.node}`}
             onClick={() => {
                 selected.setOutput(props.node)
             }}
