@@ -88,3 +88,136 @@ test("multiple dispatch", () => {
         data: "str + num",
     })
 })
+
+test("call a non function results in an error", () => {
+    const a = {
+        type: "num",
+        data: 3,
+    }
+    const mod: Value = {
+        type: "module",
+        x: {
+            type: "num",
+            data: 5,
+        },
+    }
+    const result: Value = call(mod, "x", [a])
+    expect(result).toEqual({
+        type: "error",
+        message: "Cannot call x with num",
+    })
+})
+
+test("call a function with invalid arguments results in error message", () => {
+    const a = {
+        type: "num",
+        data: 3,
+    }
+    const b = {
+        type: "str",
+        data: "hello",
+    }
+    const result: Value = call(base, "add", [a, b])
+    expect(result).toEqual({
+        type: "error",
+        message:
+            "Argument 'b' passed to 'add' must be numeric tensor, but got string tensor",
+    })
+})
+
+test("scatter plot of two vectors", () => {
+    const x = {
+        type: "tensor",
+        data: [1, 2, 3],
+        size: 3,
+        shape: [3],
+        rank: 1,
+        dtype: "float32",
+    }
+    const y = {
+        type: "tensor",
+        data: [2, 4, 8],
+        size: 3,
+        shape: [3],
+        rank: 1,
+        dtype: "float32",
+    }
+    const result = call(base, "scatter", [x, y])
+    expect(result).toEqual({
+        type: "scatter",
+        x: x.data,
+        y: y.data,
+        domain: [0.95, 3.15],
+        range: [1.9, 8.4],
+    })
+})
+
+test("line plot of two vectors", () => {
+    const x = {
+        type: "tensor",
+        data: [1, 2, 3],
+        size: 3,
+        shape: [3],
+        rank: 1,
+        dtype: "float32",
+    }
+    const y = {
+        type: "tensor",
+        data: [2, 4, 8],
+        size: 3,
+        shape: [3],
+        rank: 1,
+        dtype: "float32",
+    }
+    const result = call(base, "line", [x, y])
+    expect(result).toEqual({
+        type: "line",
+        x: x.data,
+        y: y.data,
+        domain: [0.95, 3.15],
+        range: [1.9, 8.4],
+    })
+})
+
+test("overlay of two plots", () => {
+    const x = {
+        type: "tensor",
+        data: [1, 2, 3],
+        size: 3,
+        shape: [3],
+        rank: 1,
+        dtype: "float32",
+    }
+    const y = {
+        type: "tensor",
+        data: [2, 4, 8],
+        size: 3,
+        shape: [3],
+        rank: 1,
+        dtype: "float32",
+    }
+    const line = call(base, "line", [x, y])
+    const scatter = call(base, "scatter", [x, y])
+    const overlay = call(base, "overlay", [line, scatter])
+    expect(overlay).toEqual({
+        type: "overlay",
+        domain: [0.95, 3.15],
+        range: [1.9, 8.4],
+        plots: [
+            {
+                type: "line",
+                x: x.data,
+                y: y.data,
+                domain: [0.95, 3.15],
+                range: [1.9, 8.4],
+            },
+            {
+                type: "scatter",
+                x: x.data,
+                y: y.data,
+                domain: [0.95, 3.15],
+                range: [1.9, 8.4],
+            },
+        ],
+    })
+})

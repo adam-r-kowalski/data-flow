@@ -1,7 +1,4 @@
 import * as tf from "@tensorflow/tfjs"
-import "@tensorflow/tfjs-backend-cpu"
-import "@tensorflow/tfjs-backend-wasm"
-import "@tensorflow/tfjs-backend-webgl"
 import { Vec2 } from "../vec2"
 tf.setBackend("cpu")
 
@@ -124,4 +121,5 @@ export const base: Value = {
     show,
     label: { type: "label", name: "" },
     read: { type: "read", name: "" },
+    num: { type: "num", data: 0 },
 }

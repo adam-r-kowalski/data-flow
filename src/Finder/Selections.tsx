@@ -27,7 +27,11 @@ export const Selections = () => {
     const graph = useGraph()!
     const camera = useCamera()!
     return (
-        <Container onWheel={(e) => (e.currentTarget.scrollTop += e.deltaY)}>
+        <Container
+            role="grid"
+            aria-label="finder selections"
+            onWheel={(e) => (e.currentTarget.scrollTop += e.deltaY)}
+        >
             <For each={finder.filtered()}>
                 {(option) => {
                     const onClick = () => {
@@ -61,7 +65,15 @@ export const Selections = () => {
                         }
                         finder.hide()
                     }
-                    return <Selection onClick={onClick}>{option}</Selection>
+                    return (
+                        <Selection
+                            role="gridcell"
+                            aria-label={option}
+                            onClick={onClick}
+                        >
+                            {option}
+                        </Selection>
+                    )
                 }}
             </For>
         </Container>

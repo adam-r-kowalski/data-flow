@@ -22,7 +22,7 @@ export const createSelected = (graph: Graph): Selected => {
     const [input, setInput] = createSignal<Selection>()
     const [output, setOutput] = createSignal<Selection>()
     createEffect(() => {
-        if (input() && output()) {
+        if (input() !== undefined && output() !== undefined) {
             graph.addEdge({ input: input()!, node: output()! })
             setInput(undefined)
             setOutput(undefined)

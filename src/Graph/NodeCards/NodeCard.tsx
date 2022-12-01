@@ -76,6 +76,8 @@ export const NodeCard = (props: Props) => {
     const finder = useFinder()!
     return (
         <Container
+            role="region"
+            aria-label={`node ${props.node.id}`}
             style={{ transform: translateNode() }}
             onPointerDown={(e) => {
                 if (e.button === 0) pointers.downOnNode(e, props.node.id)
@@ -115,7 +117,9 @@ export const NodeCard = (props: Props) => {
                 </Show>
             </Inputs>
             <Content>
-                <Name>{name()}</Name>
+                <Name role="heading" aria-label={`name ${props.node.id}`}>
+                    {name()}
+                </Name>
                 <BodyContent node={props.node} />
             </Content>
             <Outputs>

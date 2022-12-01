@@ -130,6 +130,8 @@ const Content = () => {
     }
     return (
         <FullScreen
+            role="application"
+            aria-label="background"
             ref={root.set}
             onPointerDown={onPointerDown}
             onWheel={onWheel}

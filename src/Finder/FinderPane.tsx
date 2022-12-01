@@ -33,6 +33,8 @@ export const FinderPane = () => {
     return (
         <Show when={finder.visible()}>
             <FullScreen
+                role="dialog"
+                aria-label="finder"
                 onClick={finder.hide}
                 onWheel={(e) => e.preventDefault()}
                 onContextMenu={(e) => e.preventDefault()}
