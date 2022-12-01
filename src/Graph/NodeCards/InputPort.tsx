@@ -54,6 +54,8 @@ export const InputPort = (props: Props) => {
             }}
         >
             <Circle
+                aria-label={`input ${props.input.id}`}
+                role="button"
                 ref={track(props.input.id)}
                 style={{
                     background:

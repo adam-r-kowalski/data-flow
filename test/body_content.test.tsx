@@ -2,12 +2,27 @@ import { render, fireEvent } from "@solidjs/testing-library"
 import { JSXElement } from "solid-js"
 
 import { GraphProvider } from "../src/Graph"
-import { createGraph, Graph } from "../src/Graph/graph"
+import { createGraph, Graph, UUID } from "../src/Graph/graph"
 import { BodyContent } from "../src/Graph/NodeCards/BodyContent"
+import { PositionsContext } from "../src/Graph/positions"
+import { MeasureTextContext } from "../src/MeasureText"
 import { scaled } from "../src/value/show/plot/scaled"
 
 import { Vec2 } from "../src/vec2"
 import { MockMeasureTextProvider, MockPositionsProvider } from "./mocks"
+
+interface Props {
+    graph: Graph
+    children: JSXElement
+}
+
+const Provider = (props: Props) => (
+    <GraphProvider graph={props.graph}>
+        <MockMeasureTextProvider>
+            <MockPositionsProvider>{props.children}</MockPositionsProvider>
+        </MockMeasureTextProvider>
+    </GraphProvider>
+)
 
 interface Props {
     graph: Graph
