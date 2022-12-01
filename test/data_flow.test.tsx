@@ -22,14 +22,10 @@ test("clicking an output and input creates an edge", () => {
         name: `input ${linspace.inputs[0]}`,
     })!
     expect(input).toBeInTheDocument()
+    expect(queryByRole("link", { name: /edge.*/ })).not.toBeInTheDocument()
     fireEvent.click(output)
     fireEvent.click(input)
-    const outEdge = graph.database.nodes[num.id].output!.edges[0]
-    const start = graph.database.nodes[linspace.id].inputs[0]
-    const inEdge = graph.database.inputs[start].edge
-    expect(outEdge).toBe(inEdge)
-    const edge = queryByRole("link", { name: `edge ${outEdge}` })
-    expect(edge).toBeInTheDocument()
+    expect(queryByRole("link", { name: /edge.*/ })).toBeInTheDocument()
     unmount()
 })
 
@@ -164,19 +160,67 @@ test("when finder opens clicking the background closes it", () => {
     unmount()
 })
 
-// test("pressing enter when finder is open adds node to graph", () => {
-//     const graph = createGraph()
-//     const { unmount, queryByRole } = render(() => (
-//         <MockMeasureTextProvider>
-//             <DataFlow graph={graph} />
-//         </MockMeasureTextProvider>
-//     ))
-//     fireEvent.keyDown(document, { key: "f" })
-//     const finder = queryByRole("dialog", { name: "finder" })
-//     expect(finder).toBeInTheDocument()
-//     const search = queryByRole("searchbox", { name: "finder search" })!
-//     fireEvent.change(search, { target: { value: "num" } })
-//     fireEvent.keyDown(search, { key: "Enter" })
-//     expect(finder).not.toBeInTheDocument()
-//     unmount()
-// })
+test("typing into finder search field narrows shown options", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    fireEvent.keyDown(document, { key: "f" })
+    const finder = queryByRole("dialog", { name: "finder" })
+    expect(finder).toBeInTheDocument()
+    const search = queryByRole("searchbox", { name: "finder search" })!
+    const selections = queryByRole("grid", { name: "finder selections" })!
+    expect(selections).toBeInTheDocument()
+    const length = selections.children.length
+    fireEvent.input(search, { target: { value: "add" } })
+    expect(search).toHaveValue("add")
+    const newLength = selections.children.length
+    expect(newLength).toBeLessThan(length)
+    expect(selections.children[0]).toHaveTextContent("add")
+    unmount()
+})
+
+test("pressing enter when finder is open adds node to graph and closes the finder", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    fireEvent.keyDown(document, { key: "f" })
+    const finder = queryByRole("dialog", { name: "finder" })
+    expect(finder).toBeInTheDocument()
+    const search = queryByRole("searchbox", { name: "finder search" })!
+    fireEvent.input(search, { target: { value: "add" } })
+    expect(queryByRole("region", { name: /node.*/ })).not.toBeInTheDocument()
+    fireEvent.keyDown(search, { key: "Enter" })
+    expect(finder).not.toBeInTheDocument()
+    const node = queryByRole("region", { name: /node.*/ })
+    expect(node).toBeInTheDocument()
+    expect(node).toHaveTextContent("add")
+    unmount()
+})
+
+test("clicking a selection when finder is open adds node to graph and closes the finder", () => {
+    const graph = createGraph()
+    const { unmount, queryByRole } = render(() => (
+        <MockMeasureTextProvider>
+            <DataFlow graph={graph} />
+        </MockMeasureTextProvider>
+    ))
+    fireEvent.keyDown(document, { key: "f" })
+    const finder = queryByRole("dialog", { name: "finder" })
+    expect(finder).toBeInTheDocument()
+    expect(queryByRole("region", { name: /node.*/ })).not.toBeInTheDocument()
+    const selection = queryByRole("gridcell", { name: "num" })!
+    expect(selection).toBeInTheDocument()
+    expect(selection).toHaveTextContent("num")
+    fireEvent.click(selection)
+    expect(finder).not.toBeInTheDocument()
+    const node = queryByRole("region", { name: /node.*/ })
+    expect(node).toBeInTheDocument()
+    expect(node).toHaveTextContent("num")
+    unmount()
+})

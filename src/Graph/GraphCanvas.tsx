@@ -42,6 +42,7 @@ const Content = () => {
     const [position, setPosition] = createSignal<Vec2>([0, 0])
     const [middleMouse, setMiddleMouse] = createSignal(false)
     const onPointerUp = (e: PointerEvent) => {
+        console.log("pointer up")
         if (e.button === 0) {
             setDown(false)
             pointers.up(e)
@@ -50,6 +51,7 @@ const Content = () => {
         }
     }
     const onPointerMove = (e: PointerEvent) => {
+        console.log("pointer move")
         setDown(false)
         if (menu.visible()) return
         if (middleMouse()) {

@@ -80,6 +80,10 @@ export const NodeCard = (props: Props) => {
             aria-label={`node ${props.node.id}`}
             style={{ transform: translateNode() }}
             onPointerDown={(e) => {
+                console.log("pointer down", e.button, {
+                    id: e.pointerId,
+                    position: [e.clientX, e.clientY],
+                })
                 if (e.button === 0) pointers.downOnNode(e, props.node.id)
             }}
             onContextMenu={(e) => {
