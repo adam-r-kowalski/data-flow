@@ -1,3 +1,4 @@
+import { expect, test } from "vitest"
 import { render, fireEvent } from "@solidjs/testing-library"
 
 import { DataFlow } from "../src/DataFlow"

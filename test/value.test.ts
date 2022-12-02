@@ -1,3 +1,4 @@
+import { expect, test } from "vitest"
 import { Value, base, call } from "../src/value"
 
 test("add 2 and 3 to get 5", () => {

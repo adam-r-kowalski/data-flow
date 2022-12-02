@@ -18,8 +18,8 @@ export default defineConfig({
             registerNodeLoader: true,
         },
         environment: "jsdom",
-        globals: true,
         setupFiles: ["node_modules/@testing-library/jest-dom/extend-expect"],
         transformMode: { web: [/\.[jt]sx?$/] },
+        globals: true,
     },
 })
