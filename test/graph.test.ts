@@ -1,3 +1,4 @@
+import { test, expect } from "vitest"
 import * as fc from "fast-check"
 
 import { createGraph } from "../src/Graph"

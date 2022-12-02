@@ -10,3 +10,6 @@ coverage:
 dev:
 	pnpm dev
 
+cypress:
+	pnpm cypress open
+

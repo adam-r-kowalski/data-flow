@@ -1,3 +1,4 @@
+import { expect, test } from "vitest"
 import { render } from "@solidjs/testing-library"
 
 import { NodeCard } from "../src/Graph/NodeCards/NodeCard"

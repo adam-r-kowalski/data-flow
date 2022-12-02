@@ -36,7 +36,7 @@ export const BezierCurves = () => {
     }
     return (
         <FullScreen>
-            <g transform={transform()}>
+            <g transform={transform()} role="group" aria-label="edges">
                 <For each={Object.values(graph.database.edges)}>
                     {(edge) => {
                         return (

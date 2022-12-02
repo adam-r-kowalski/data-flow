@@ -1,6 +1,8 @@
-import { Graph } from "./Graph/graph"
+import { createGraph } from "../Graph/graph"
+import { DataFlow } from "../DataFlow"
 
-export const demoScene = (graph: Graph): void => {
+export const Demo = () => {
+    const graph = createGraph()
     const start = graph.addNode({ type: "num", data: -10 }, [50, 50])
     const stop = graph.addNode({ type: "num", data: 10 }, [50, 200])
     const step = graph.addNode({ type: "num", data: 10 }, [50, 350])
@@ -73,4 +75,6 @@ export const demoScene = (graph: Graph): void => {
     graph.addEdge({ node: sub.id, input: abs.inputs[0] })
     graph.addEdge({ node: abs.id, input: mean.inputs[0] })
     graph.addEdge({ node: mean.id, input: lossLabel.inputs[0] })
+
+    return <DataFlow graph={graph} />
 }

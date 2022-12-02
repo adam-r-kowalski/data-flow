@@ -1,7 +1,7 @@
-import { JSXElement } from "solid-js"
 import { vi } from "vitest"
-import { UUID } from "../src/Graph/graph"
+import { JSXElement } from "solid-js"
 
+import { UUID } from "../src/Graph/graph"
 import { PositionsContext } from "../src/Graph/positions"
 import { MeasureTextContext } from "../src/MeasureText"
 import { Vec2 } from "../src/vec2"

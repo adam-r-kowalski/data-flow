@@ -19,7 +19,11 @@ export const NodeCards = () => {
     const scale = () => `scale(${camera.zoom()}, ${camera.zoom()})`
     const transform = () => `${translate()} ${scale()}`
     return (
-        <Scene style={{ transform: transform() }}>
+        <Scene
+            style={{ transform: transform() }}
+            role="group"
+            aria-label="nodes"
+        >
             <For each={Object.values(graph.database.nodes)}>
                 {(node) => <NodeCard node={node} />}
             </For>

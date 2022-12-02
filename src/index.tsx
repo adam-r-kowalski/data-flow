@@ -1,16 +1,19 @@
 import { render } from "solid-js/web"
+import { Router, Routes, Route } from "@solidjs/router"
 
-import { DataFlow } from "./DataFlow"
 import { MeasureTextProvider } from "./MeasureText"
-import { demoScene } from "./demo_scene"
-import { createGraph } from "./Graph"
+import { Demo } from "./routes/Demo"
+import { Empty } from "./routes/Empty"
 
 render(() => {
-    const graph = createGraph()
-    demoScene(graph)
     return (
         <MeasureTextProvider>
-            <DataFlow graph={graph} />
+            <Router>
+                <Routes>
+                    <Route path="/data-flow/" component={Demo} />
+                    <Route path="/data-flow/empty" component={Empty} />
+                </Routes>
+            </Router>
         </MeasureTextProvider>
     )
 }, document.getElementById("root")!)

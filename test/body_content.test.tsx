@@ -1,3 +1,4 @@
+import { test, expect } from "vitest"
 import { render, fireEvent } from "@solidjs/testing-library"
 import { JSXElement } from "solid-js"
 
